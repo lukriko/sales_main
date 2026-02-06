@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import dj_database_url
 from pathlib import Path
 from decouple import config
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -159,3 +161,54 @@ JAZZMIN_SETTINGS = {
     "search_model": ["sales_app.Sales"], # Allows quick search for your data
     "show_ui_builder": True, # This adds a settings icon on the page to change colors live!
 }
+
+
+
+# settings.py additions
+
+# CACHING - Use Redis on Render
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 20,
+                'retry_on_timeout': True,
+            }
+        },
+        'KEY_PREFIX': 'sales_dashboard',
+        'TIMEOUT': 300,  # 5 minutes default
+    }
+}
+
+# DATABASE OPTIMIZATION
+DATABASES['default']['CONN_MAX_AGE'] = 60  # Connection pooling
+DATABASES['default']['OPTIONS'] = {
+    'connect_timeout': 10,
+    'options': '-c statement_timeout=30000',  # 30 second query timeout
+}
+
+# DJANGO OPTIMIZATION
+DEBUG = False  # CRITICAL - never use True in production
+ALLOWED_HOSTS = ['yr-dep-ss.onrender.com', '.onrender.com']
+
+# Reduce logging in production
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',  # Only log warnings and errors
+    },
+}
+
+# Session optimization
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'default'

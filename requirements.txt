@@ -8,3 +8,6 @@ django-jazzmin==3.0.1
 openpyxl==3.1.5
 pandas==2.3.3
 numpy==2.1.3
+django-redis==5.4.0  # ADD THIS - for caching
+redis==5.2.1  # ADD THIS
+os

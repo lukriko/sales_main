@@ -6,12 +6,9 @@ from django.db.models.functions import ExtractMonth, ExtractDay, TruncDay, Extra
 from django.http import HttpResponse
 from datetime import datetime, date, timedelta
 from django.utils import timezone
-from openpyxl import load_workbook
 import os
 from django.conf import settings
-import pandas as pd
 import calendar
-from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from pathlib import Path
@@ -1593,7 +1590,8 @@ def plan_workflow(request):
 
 @login_required
 def export_location_csv(request):    
-
+    import pandas as pd
+    from openpyxl import Workbook, load_workbook
     try:
         user_profile = request.user.profile
     except:
@@ -2072,7 +2070,8 @@ def query(request):
 
 def export_to_excel(results, columns):
     """Export query results to Excel with formatting"""
-    
+    import pandas as pd
+    from openpyxl import Workbook, load_workbook
     # Create workbook and worksheet
     wb = Workbook()
     ws = wb.active
