@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <title>Plan vs Actual Analysis</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #0a0e27; color: #e4e4e7; min-height: 100vh; overflow-y: auto;}
+    .achievement-excellent {
+      background-color: #10b981;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .achievement-good {
+      background-color: #86efac;
+      color: #065f46;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .achievement-warning {
+      background-color: #fbbf24;
+      color: #78350f;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: #0f1629; border-right: 1px solid #1e293b; padding: 24px 0; z-index: 100; overflow-y: auto; box-sizing: border-box; }
+    .sidebar-header { padding: 0 24px 24px; border-bottom: 1px solid #1e293b; position: sticky;}
+    .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-menu { margin-top: 24px; padding: 0 12px; }
+    .nav-item { list-style: none; margin-bottom: 4px; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s ease; }
+    .nav-link:hover, .nav-link.active { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+    .nav-link i { width: 20px; font-size: 18px; }
+    
+    .main-content { margin-left: 260px; padding: 24px; min-height: 100vh; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-size: 28px; font-weight: 700; color: #f1f5f9; }
+    .btn-primary { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+    
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+    .alert-success { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .alert-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    
+    /* Tabs */
+    .tabs-container { margin-bottom: 28px; }
+    .tabs { display: flex; gap: 8px; border-bottom: 2px solid #1e293b; padding-bottom: 0; }
+    .tab { padding: 12px 24px; background: transparent; border: none; color: #94a3b8; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; position: relative; bottom: -2px; }
+    .tab:hover { color: #667eea; }
+    .tab.active { color: #667eea; border-bottom-color: #667eea; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 28px; }
+    .kpi-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+    .kpi-card:hover { transform: translateY(-4px); border-color: #667eea; box-shadow: 0 12px 30px rgba(102, 126, 234, 0.2); transition: all 0.3s ease; }
+    .kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .kpi-title { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .kpi-icon.blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .kpi-icon.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .kpi-icon.orange { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+    .kpi-icon.red { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .kpi-icon.purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+    .kpi-icon.cyan { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: #f1f5f9; margin-bottom: 8px; line-height: 1; }
+    .kpi-meta { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+    .kpi-change { display: flex; align-items: center; gap: 4px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+    .kpi-change.up { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .kpi-change.down { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    
+    .filter-section { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    .filter-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 16px; font-weight: 700; color: #f1f5f9; }
+    .filter-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+    .filter-label { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-select { padding: 12px 14px; background: #0f1629; border: 1px solid #334155; border-radius: 8px; color: #e4e4e7; font-size: 14px; cursor: pointer; }
+    .filter-select:focus { outline: none; border-color: #667eea; }
+    
+    .chart-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .chart-title { font-size: 20px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
+    .chart-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chart-btn { padding: 6px 12px; background: #334155; border: 1px solid #475569; border-radius: 6px; color: #94a3b8; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+    .chart-btn:hover, .chart-btn.active { background: rgba(102, 126, 234, 0.2); border-color: #667eea; color: #667eea; }
+    .chart-wrapper { position: relative; height: 320px; }
+    
+    .table-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    .data-table thead { border-bottom: 1px solid #334155; }
+    .data-table th { text-align: left; padding: 12px; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; white-space: nowrap; }
+    .data-table td { padding: 16px 12px; font-size: 14px; color: #e4e4e7; border-bottom: 1px solid #1e293b; }
+    .data-table tbody tr:hover { background: rgba(102, 126, 234, 0.05); }
+    .data-table td.positive { color: #10b981; font-weight: 600; }
+    .data-table td.negative { color: #ef4444; font-weight: 600; }
+    .yoy-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .yoy-badge.positive { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .yoy-badge.negative { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo">YR Sales</div></div>
+    <nav class="nav-menu">
+      <ul>
+        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link active"><i class="fas fa-bullseye"></i><span>Plan vs Actual</span></a></li>
+        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>Query</span></a></li>
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>Employee Analytics</span></a></li>
+        <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>Insights</span></a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="top-bar">
+      <h1 class="page-title">Plan vs Actual Performance</h1>
+      <a href="{% url 'sales_dashboard' %}" class="btn-primary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
+    </div>
+     <div style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(102, 126, 234, 0.15); color: #667eea;">
+      <i class="fas fa-user"></i>
+    </div>
+    <div>
+      <div style="font-size: 14px; font-weight: 600; color: #f1f5f9;">{{ request.user.username }}</div>
+      <div style="font-size: 12px; color: #94a3b8;">
+        {% if is_admin %}
+          <i class="fas fa-crown" style="color: #fb923c;"></i> Administrator - Full Access
+        {% else %}
+          <i class="fas fa-map-marker-alt"></i> Access to {{ user_locations_count }} location{{ user_locations_count|pluralize }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <a href="{% url 'logout' %}" class="btn-primary" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </a>
+</div>
+
+    <!-- Status Message -->
+    {% if file_status %}
+    <div class="alert {% if excel_df %}alert-success{% else %}alert-danger{% endif %}">
+      {{ file_status }}
+    </div>
+    {% endif %}
+
+    <div class="filter-section">
+      <div class="filter-header"><i class="fas fa-sliders-h"></i> Filters & Controls</div>
+      <form method="GET" id="filterForm">
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label class="filter-label">Location</label>
+            <select name="location" class="filter-select">
+              <option value="all" {% if selected_geo == 'all' %}selected{% endif %}>All Locations</option>
+              {% for geo in all_geos %}
+                <option value="{{ geo }}" {% if geo == selected_geo %}selected{% endif %}>{{ geo }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Year</label>
+            <select name="year" class="filter-select">
+              <option value="2024" {% if selected_year == '2024' %}selected{% endif %}>2024</option>
+              <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
+              <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Start Month</label>
+            <select name="start_month" class="filter-select">
+              {% for month in month_options %}
+                <option value="{{ month.value }}" {% if month.value == selected_start_month %}selected{% endif %}>
+                  {{ month.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">End Month</label>
+            <select name="end_month" class="filter-select">
+              {% for month in month_options %}
+                <option value="{{ month.value }}" {% if month.value == selected_end_month %}selected{% endif %}>
+                  {{ month.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <input type="hidden" name="aggregation" value="{{ aggregation }}">
+        <input type="hidden" name="show_prev_year" value="{{ show_prev_year }}">
+        <button type="submit" style="margin-top: 20px;" class="btn-primary">
+          <i class="fas fa-filter"></i> Apply Filters
+        </button>
+      </form>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('revenue')">
+          <i class="fas fa-dollar-sign"></i> Revenue
+        </button>
+        <button class="tab" onclick="switchTab('tickets')">
+          <i class="fas fa-ticket-alt"></i> Tickets
+        </button>
+        <button class="tab" onclick="switchTab('basket')">
+          <i class="fas fa-shopping-basket"></i> Avg Basket
+        </button>
+      </div>
+    </div>
+
+    <!-- REVENUE TAB -->
+    <div id="revenue-tab" class="tab-content active">
+      <!-- KPI Cards - Revenue -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Plan Target</div>
+              <div class="kpi-value">{{ total_plan }}</div>
+            </div>
+            <div class="kpi-icon blue"><i class="fas fa-bullseye"></i></div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">Target revenue</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Plan Target 85%</div>
+              <div class="kpi-value">{{ total_plan_85 }}</div>
+            </div>
+            <div class="kpi-icon blue"><i class="fas fa-bullseye"></i></div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">Target 85% revenue</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Actual Revenue</div>
+              <div class="kpi-value">{{ total_actual }}</div>
+            </div>
+            <div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">Achieved revenue</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Achievement</div>
+              <div class="kpi-value">{{ plan_achievement }}%</div>
+            </div>
+            <div class="kpi-icon {% if plan_achievement|floatformat:0|add:'0' >= 100 %}green{% else %}orange{% endif %}">
+              <i class="fas fa-percentage"></i>
+            </div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">of target reached</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Variance</div>
+              <div class="kpi-value">{{ variance }}</div>
+            </div>
+            <div class="kpi-icon {% if variance_pct|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
+              <i class="fas fa-chart-line"></i>
+            </div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-change {% if variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}">
+              <i class="fas fa-arrow-{% if variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
+              {{ variance_pct }}%
+            </span>
+            <span style="color: #64748b; font-size: 12px;">vs plan</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Variance 85%</div>
+              <div class="kpi-value">{{ variance_85 }}</div>
+            </div>
+            <div class="kpi-icon {% if variance_pct_85|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
+              <i class="fas fa-chart-line"></i>
+            </div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-change {% if variance_pct_85|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}">
+              <i class="fas fa-arrow-{% if variance_pct_85|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
+              {{ variance_pct_85 }}%
+            </span>
+            <span style="color: #64748b; font-size: 12px;">vs plan 85%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plan vs Actual Chart - Revenue -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fas fa-chart-area"></i> Revenue: Plan vs Actual Trend</div>
+          <div class="chart-actions">
+            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">Daily</button>
+            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">Weekly</button>
+            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">Monthly</button>
+            <button class="chart-btn {% if show_prev_year == 'true' %}active{% endif %}" onclick="togglePrevYear()">
+              <i class="fas fa-calendar-alt"></i> Prev Year
+            </button>
+          </div>
+        </div>
+        <div class="chart-wrapper"><canvas id="revenueChart"></canvas></div>
+      </div>
+
+      <!-- Location Performance Table - Revenue -->
+      {% if location_performance %}
+      <div class="table-card">
+        <h3 style="margin-bottom: 20px; color: #f1f5f9;">
+          <i class="fas fa-map-marker-alt"></i> Location Performance Ranking - Revenue
+        </h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Location</th>
+              <th>Plan CY</th>
+              <th>Actual CY</th>
+              <th>Plan PY</th>
+              <th>Actual PY</th>
+              <th>Variance CY</th>
+              <th>Achievement</th>
+              <th>YoY Growth</th>
+              <th>YoY Growth Plan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loc in location_performance %}
+            <tr>
+              <td>
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% else %}{{ forloop.counter }}.
+                {% endif %}
+              </td>
+              <td><strong>{{ loc.geo }}</strong></td>
+              <td>${{ loc.plan|floatformat:0 }}</td>
+              <td>${{ loc.actual|floatformat:0 }}</td>
+              <td>${{ loc.plan_py|floatformat:0 }}</td>
+              <td>${{ loc.actual_py|floatformat:0 }}</td>
+              <td class="{% if loc.variance >= 0 %}positive{% else %}negative{% endif %}">
+                {% if loc.variance >= 0 %}+{% endif %}${{ loc.variance|floatformat:0 }}
+              </td>
+              <td>
+                <span class="kpi-change {% if loc.achievement >= 105 %}achievement-excellent{% elif loc.achievement >= 95 %}achievement-good{% elif loc.achievement >= 85 %}achievement-warning{% else %}down{% endif %}">
+                  {{ loc.achievement|floatformat:1 }}%
+                </span>
+              </td>
+              <td>
+                <span class="yoy-badge {% if loc.yoy_growth >= 0 %}positive{% else %}negative{% endif %}">
+                  {% if loc.yoy_growth >= 0 %}+{% endif %}{{ loc.yoy_growth|floatformat:1 }}%
+                </span>
+              </td>
+               <td>
+                <span class="yoy-badge {% if loc.yoy_growth >= 0 %}positive{% else %}negative{% endif %}">
+                  {% if loc.yoy_growth_plan >= 0 %}+{% endif %}{{ loc.yoy_growth_plan|floatformat:1 }}%
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- TICKETS TAB -->
+    <div id="tickets-tab" class="tab-content">
+      <!-- KPI Cards - Tickets -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Tickets Plan</div>
+              <div class="kpi-value">{{ total_tickets_plan }}</div>
+            </div>
+            <div class="kpi-icon purple"><i class="fas fa-ticket-alt"></i></div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">Target tickets</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Tickets Actual</div>
+              <div class="kpi-value">{{ total_tickets_actual }}</div>
+            </div>
+            <div class="kpi-icon green"><i class="fas fa-check-circle"></i></div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">Achieved tickets</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Achievement</div>
+              <div class="kpi-value">{{ tickets_achievement }}%</div>
+            </div>
+            <div class="kpi-icon {% if tickets_achievement|floatformat:0|add:'0' >= 100 %}green{% else %}orange{% endif %}">
+              <i class="fas fa-percentage"></i>
+            </div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">of target reached</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Variance</div>
+              <div class="kpi-value">{{ tickets_variance }}</div>
+            </div>
+            <div class="kpi-icon {% if tickets_variance_pct|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
+              <i class="fas fa-chart-line"></i>
+            </div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-change {% if tickets_variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}">
+              <i class="fas fa-arrow-{% if tickets_variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
+              {{ tickets_variance_pct }}%
+            </span>
+            <span style="color: #64748b; font-size: 12px;">vs plan</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tickets Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fas fa-chart-area"></i> Tickets: Plan vs Actual Trend</div>
+          <div class="chart-actions">
+            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">Daily</button>
+            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">Weekly</button>
+            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">Monthly</button>
+            <button class="chart-btn {% if show_prev_year == 'true' %}active{% endif %}" onclick="togglePrevYear()">
+              <i class="fas fa-calendar-alt"></i> Prev Year
+            </button>
+          </div>
+        </div>
+        <div class="chart-wrapper"><canvas id="ticketsChart"></canvas></div>
+      </div>
+
+      <!-- Location Performance Table - Tickets -->
+      {% if tickets_location_performance %}
+      <div class="table-card">
+        <h3 style="margin-bottom: 20px; color: #f1f5f9;">
+          <i class="fas fa-map-marker-alt"></i> Location Performance Ranking - Tickets
+        </h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Location</th>
+              <th>Plan CY</th>
+              <th>Actual CY</th>
+              <th>Plan PY</th>
+              <th>Actual PY</th>
+              <th>Variance CY</th>
+              <th>Achievement</th>
+              <th>YoY Growth</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loc in tickets_location_performance %}
+            <tr>
+              <td>
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% else %}{{ forloop.counter }}.
+                {% endif %}
+              </td>
+              <td><strong>{{ loc.geo }}</strong></td>
+              <td>{{ loc.plan|floatformat:0 }}</td>
+              <td>{{ loc.actual|floatformat:0 }}</td>
+              <td>{{ loc.plan_py|floatformat:0 }}</td>
+              <td>{{ loc.actual_py|floatformat:0 }}</td>
+              <td class="{% if loc.variance >= 0 %}positive{% else %}negative{% endif %}">
+                {% if loc.variance >= 0 %}+{% endif %}{{ loc.variance|floatformat:0 }}
+              </td>
+              <td>
+                <span class="kpi-change {% if loc.achievement >= 105 %}achievement-excellent{% elif loc.achievement >= 95 %}achievement-good{% elif loc.achievement >= 85 %}achievement-warning{% else %}down{% endif %}">
+                  {{ loc.achievement|floatformat:1 }}%
+                </span>
+              </td>
+              <td>
+                <span class="yoy-badge {% if loc.yoy_growth >= 0 %}positive{% else %}negative{% endif %}">
+                  {% if loc.yoy_growth >= 0 %}+{% endif %}{{ loc.yoy_growth|floatformat:1 }}%
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- BASKET TAB -->
+    <div id="basket-tab" class="tab-content">
+      <!-- KPI Cards - Basket -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Avg Basket Plan</div>
+              <div class="kpi-value">${{ avg_basket_plan }}</div>
+            </div>
+            <div class="kpi-icon cyan"><i class="fas fa-shopping-basket"></i></div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">Target basket</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Avg Basket Actual</div>
+              <div class="kpi-value">${{ avg_basket_actual }}</div>
+            </div>
+            <div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">Achieved basket</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Achievement</div>
+              <div class="kpi-value">{{ basket_achievement }}%</div>
+            </div>
+            <div class="kpi-icon {% if basket_achievement|floatformat:0|add:'0' >= 100 %}green{% else %}orange{% endif %}">
+              <i class="fas fa-percentage"></i>
+            </div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-comparison" style="color: #64748b;">of target reached</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div>
+              <div class="kpi-title">Variance</div>
+              <div class="kpi-value">${{ basket_variance }}</div>
+            </div>
+            <div class="kpi-icon {% if basket_variance_pct|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
+              <i class="fas fa-chart-line"></i>
+            </div>
+          </div>
+          <div class="kpi-meta">
+            <span class="kpi-change {% if basket_variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}">
+              <i class="fas fa-arrow-{% if basket_variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
+              {{ basket_variance_pct }}%
+            </span>
+            <span style="color: #64748b; font-size: 12px;">vs plan</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Basket Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fas fa-chart-area"></i> Average Basket: Plan vs Actual Trend</div>
+          <div class="chart-actions">
+            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">Daily</button>
+            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">Weekly</button>
+            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">Monthly</button>
+            <button class="chart-btn {% if show_prev_year == 'true' %}active{% endif %}" onclick="togglePrevYear()">
+              <i class="fas fa-calendar-alt"></i> Prev Year
+            </button>
+          </div>
+        </div>
+        <div class="chart-wrapper"><canvas id="basketChart"></canvas></div>
+      </div>
+
+      <!-- Location Performance Table - Basket -->
+      {% if basket_location_performance %}
+      <div class="table-card">
+        <h3 style="margin-bottom: 20px; color: #f1f5f9;">
+          <i class="fas fa-map-marker-alt"></i> Location Performance Ranking - Average Basket
+        </h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Location</th>
+              <th>Plan CY</th>
+              <th>Actual CY</th>
+              <th>Plan PY</th>
+              <th>Actual PY</th>
+              <th>Variance CY</th>
+              <th>Achievement</th>
+              <th>YoY Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loc in basket_location_performance %}
+            <tr>
+              <td>
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% else %}{{ forloop.counter }}.
+                {% endif %}
+              </td>
+              <td><strong>{{ loc.geo }}</strong></td>
+              <td>${{ loc.plan|floatformat:2 }}</td>
+              <td>${{ loc.actual|floatformat:2 }}</td>
+              <td>${{ loc.plan_py|floatformat:2 }}</td>
+              <td>${{ loc.actual_py|floatformat:2 }}</td>
+              <td class="{% if loc.variance >= 0 %}positive{% else %}negative{% endif %}">
+                {% if loc.variance >= 0 %}+{% endif %}${{ loc.variance|floatformat:2 }}
+              </td>
+              <td>
+                <span class="kpi-change {% if loc.achievement >= 105 %}achievement-excellent{% elif loc.achievement >= 95 %}achievement-good{% elif loc.achievement >= 85 %}achievement-warning{% else %}down{% endif %}">
+                  {{ loc.achievement|floatformat:1 }}%
+                </span>
+              </td>
+              <td>
+                <span class="yoy-badge {% if loc.yoy_change >= 0 %}positive{% else %}negative{% endif %}">
+                  {% if loc.yoy_change >= 0 %}+{% endif %}${{ loc.yoy_change|floatformat:2 }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Tab switching
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Show selected tab
+      document.getElementById(tabName + '-tab').classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // Chart configuration base
+    const chartConfig = {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          labels: { color: '#94a3b8', font: { size: 12, weight: '600' } }
+        },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#f1f5f9',
+          bodyColor: '#e4e4e7',
+          borderColor: '#334155',
+          borderWidth: 1,
+          padding: 12,
+          displayColors: true
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#1e293b' },
+          ticks: { 
+            color: '#94a3b8'
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 0 }
+        }
+      }
+    };
+
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueDatasets = [
+      {
+        label: 'Plan',
+        data: {{ plan_values|safe }},
+        borderColor: '#667eea',
+        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 6
+      },
+      {
+        label: 'Plan 85%',
+        data: {{ plan_85_values|safe }},
+        borderColor: '#fb923c',
+        backgroundColor: 'rgba(251, 146, 60, 0.1)',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        fill: false,
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 4
+      },
+      {
+        label: 'Actual',
+        data: {{ actual_values|safe }},
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 6
+      }
+    ];
+
+    {% if show_prev_year == 'true' %}
+    revenueDatasets.push({
+      label: 'Plan PY',
+      data: {{ plan_values_py|safe }},
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.05)',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      fill: false,
+      tension: 0.4,
+      pointRadius: 1,
+      pointHoverRadius: 4
+    });
+    revenueDatasets.push({
+      label: 'Actual PY',
+      data: {{ actual_values_py|safe }},
+      borderColor: '#64748b',
+      backgroundColor: 'rgba(100, 116, 139, 0.05)',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      fill: false,
+      tension: 0.4,
+      pointRadius: 1,
+      pointHoverRadius: 4
+    });
+    {% endif %}
+
+    const revenueChart = new Chart(revenueCtx, {
+      type: 'line',
+      data: {
+        labels: {{ labels|safe }},
+        datasets: revenueDatasets
+      },
+      options: {
+        ...chartConfig,
+        plugins: {
+          ...chartConfig.plugins,
+          tooltip: {
+            ...chartConfig.plugins.tooltip,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          ...chartConfig.scales,
+          y: {
+            ...chartConfig.scales.y,
+            ticks: {
+              ...chartConfig.scales.y.ticks,
+              callback: function(value) {
+                if (value >= 1000000) return '$' + (value/1000000).toFixed(1) + 'M';
+                if (value >= 1000) return '$' + (value/1000).toFixed(0) + 'K';
+                return '$' + value.toLocaleString();
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Tickets Chart
+    const ticketsCtx = document.getElementById('ticketsChart').getContext('2d');
+    const ticketsDatasets = [
+      {
+        label: 'Plan',
+        data: {{ tickets_plan_values|safe }},
+        borderColor: '#a855f7',
+        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 6
+      },
+      {
+        label: 'Actual',
+        data: {{ tickets_actual_values|safe }},
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 6
+      }
+    ];
+
+    {% if show_prev_year == 'true' %}
+    ticketsDatasets.push({
+      label: 'Plan PY',
+      data: {{ tickets_plan_values_py|safe }},
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.05)',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      fill: false,
+      tension: 0.4,
+      pointRadius: 1,
+      pointHoverRadius: 4
+    });
+    ticketsDatasets.push({
+      label: 'Actual PY',
+      data: {{ tickets_actual_values_py|safe }},
+      borderColor: '#64748b',
+      backgroundColor: 'rgba(100, 116, 139, 0.05)',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      fill: false,
+      tension: 0.4,
+      pointRadius: 1,
+      pointHoverRadius: 4
+    });
+    {% endif %}
+
+    const ticketsChart = new Chart(ticketsCtx, {
+      type: 'line',
+      data: {
+        labels: {{ labels|safe }},
+        datasets: ticketsDatasets
+      },
+      options: {
+        ...chartConfig,
+        plugins: {
+          ...chartConfig.plugins,
+          tooltip: {
+            ...chartConfig.plugins.tooltip,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toLocaleString();
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Basket Chart
+    const basketCtx = document.getElementById('basketChart').getContext('2d');
+    const basketDatasets = [
+      {
+        label: 'Plan',
+        data: {{ basket_plan_values|safe }},
+        borderColor: '#06b6d4',
+        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 6
+      },
+      {
+        label: 'Actual',
+        data: {{ basket_actual_values|safe }},
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 6
+      }
+    ];
+
+    {% if show_prev_year == 'true' %}
+    basketDatasets.push({
+      label: 'Plan PY',
+      data: {{ basket_plan_values_py|safe }},
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.05)',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      fill: false,
+      tension: 0.4,
+      pointRadius: 1,
+      pointHoverRadius: 4
+    });
+    basketDatasets.push({
+      label: 'Actual PY',
+      data: {{ basket_actual_values_py|safe }},
+      borderColor: '#64748b',
+      backgroundColor: 'rgba(100, 116, 139, 0.05)',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      fill: false,
+      tension: 0.4,
+      pointRadius: 1,
+      pointHoverRadius: 4
+    });
+    {% endif %}
+
+    const basketChart = new Chart(basketCtx, {
+      type: 'line',
+      data: {
+        labels: {{ labels|safe }},
+        datasets: basketDatasets
+      },
+      options: {
+        ...chartConfig,
+        plugins: {
+          ...chartConfig.plugins,
+          tooltip: {
+            ...chartConfig.plugins.tooltip,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+              }
+            }
+          }
+        },
+        scales: {
+          ...chartConfig.scales,
+          y: {
+            ...chartConfig.scales.y,
+            ticks: {
+              ...chartConfig.scales.y.ticks,
+              callback: function(value) {
+                return '$' + value.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Change aggregation function
+    function changeAggregation(type) {
+      const url = new URL(window.location);
+      url.searchParams.set('aggregation', type);
+      window.location = url;
+    }
+
+    // Toggle previous year
+    function togglePrevYear() {
+      const url = new URL(window.location);
+      const current = url.searchParams.get('show_prev_year');
+      url.searchParams.set('show_prev_year', current === 'true' ? 'false' : 'true');
+      window.location = url;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,702 @@
+{% load humanize %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <title>Employee Analytics - Cross-Selling Performance</title>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #0a0e27; color: #e4e4e7; min-height: 100vh; }
+    
+    .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: #0f1629; border-right: 1px solid #1e293b; padding: 24px 0; z-index: 100; }
+    .sidebar-header { padding: 0 24px 24px; border-bottom: 1px solid #1e293b; }
+    .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-menu { margin-top: 24px; padding: 0 12px; }
+    .nav-item { list-style: none; margin-bottom: 4px; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s ease; }
+    .nav-link:hover, .nav-link.active { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+    .nav-link i { width: 20px; font-size: 18px; }
+    
+    .main-content { margin-left: 260px; padding: 24px; min-height: 100vh; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-size: 28px; font-weight: 700; color: #f1f5f9; }
+    .btn-primary { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+    
+    .filters-section { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
+    .filter-label { font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-select, .filter-input { padding: 10px 12px; background: #0f1629; border: 1px solid #334155; border-radius: 8px; color: #e4e4e7; font-size: 14px; transition: all 0.2s ease; }
+    .filter-select:focus, .filter-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+    
+    /* Search Box Styling */
+    .search-wrapper { position: relative; }
+    .search-input { 
+      width: 100%; 
+      padding: 10px 36px 10px 12px; 
+      background: #0f1629; 
+      border: 1px solid #334155; 
+      border-radius: 8px; 
+      color: #e4e4e7; 
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    .search-input:focus { 
+      outline: none; 
+      border-color: #667eea; 
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .search-icon { 
+      position: absolute; 
+      right: 12px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      color: #94a3b8; 
+      pointer-events: none;
+    }
+    .search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    .search-dropdown.active { display: block; }
+    .search-option {
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-size: 14px;
+      color: #e4e4e7;
+    }
+    .search-option:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #667eea;
+    }
+    .search-option.selected {
+      background: rgba(102, 126, 234, 0.15);
+      color: #667eea;
+      font-weight: 600;
+    }
+    .no-results {
+      padding: 10px 12px;
+      color: #94a3b8;
+      font-size: 14px;
+      font-style: italic;
+    }
+    
+    .btn-apply { padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: all 0.3s ease; }
+    .btn-apply:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+    
+    .card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    .card-header { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    
+    .table-wrapper { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+    .data-table thead { border-bottom: 2px solid #334155; }
+    .data-table th { text-align: left; padding: 14px 12px; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; white-space: nowrap; }
+    .data-table td { padding: 16px 12px; font-size: 14px; color: #e4e4e7; border-bottom: 1px solid #1e293b; }
+    .data-table tbody tr { transition: all 0.2s ease; }
+    .data-table tbody tr:hover { background: rgba(102, 126, 234, 0.05); transform: scale(1.001); }
+    
+    .text-success { color: #10b981; }
+    .text-danger { color: #ef4444; }
+    .text-warning { color: #f59e0b; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .badge-rank { background: rgba(102, 126, 234, 0.15); color: #667eea; margin-right: 8px; }
+    
+    /* Cross-Selling Visual Indicators */
+    .cross-sell-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cross-sell-progress {
+      width: 100px;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+    .cross-sell-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .cross-sell-fill.excellent { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+    .cross-sell-fill.good { background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%); }
+    .cross-sell-fill.average { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); }
+    .cross-sell-fill.poor { background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%); }
+    
+    /* Ticket Distribution Mini Chart */
+    .ticket-distribution {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+    .dist-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dist-label {
+      width: 60px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .dist-bar {
+      flex: 1;
+      height: 16px;
+      background: #1e293b;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .dist-fill {
+      height: 100%;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 10px;
+      color: white;
+      transition: width 0.3s ease;
+    }
+    .dist-fill.one-item { background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%); }
+    .dist-fill.two-item { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); }
+    .dist-fill.three-plus { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+    
+    /* Enhanced Category Sections */
+    .category-section { 
+      margin-bottom: 32px; 
+      background: rgba(15, 22, 41, 0.5);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #1e293b;
+      transition: all 0.3s ease;
+    }
+    .category-section:hover {
+      border-color: #334155;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #334155;
+    }
+    .category-title { 
+      font-size: 16px; 
+      font-weight: 700; 
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .category-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    /* Podium Style for Top 3 */
+    .top-three {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .podium-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .podium-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    .podium-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+    .podium-rank {
+      font-size: 36px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .podium-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 16px;
+    }
+    .podium-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .podium-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #1e293b;
+    }
+    .podium-stat:last-child { border-bottom: none; }
+    .podium-stat-label { color: #94a3b8; }
+    .podium-stat-value { color: #667eea; font-weight: 600; }
+    
+    /* Compact table for ranks 4-10 */
+    .remaining-performers {
+      background: rgba(30, 41, 59, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .compact-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .compact-table td {
+      padding: 12px;
+      font-size: 13px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .compact-table tr:last-child td { border-bottom: none; }
+    .compact-table tr { transition: all 0.2s ease; }
+    .compact-table tr:hover { background: rgba(102, 126, 234, 0.05); }
+    
+    /* Loading Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+      background-size: 200% 100%;
+      animation: loading 1.5s ease-in-out infinite;
+      border-radius: 4px;
+    }
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-content { margin-left: 0; }
+      .top-three { grid-template-columns: 1fr; }
+    }
+    
+    @media (max-width: 768px) {
+      .filters-grid { grid-template-columns: 1fr; }
+      .data-table { min-width: 100%; font-size: 12px; }
+      .data-table th, .data-table td { padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo">YR Sales</div></div>
+    <nav class="nav-menu">
+      <ul>
+        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link"><i class="fas fa-bullseye"></i><span>Plan vs Actual</span></a></li>
+        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-search"></i><span>Query</span></a></li>
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link active"><i class="fas fa-users"></i><span>Employee Analytics</span></a></li>
+        <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>Insights</span></a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="top-bar">
+      <h1 class="page-title"><i class="fas fa-chart-pie"></i> Cross-Selling Performance Analytics</h1>
+      <div style="display: flex; gap: 12px;">
+        <span style="padding: 10px 16px; background: rgba(102, 126, 234, 0.1); color: #667eea; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          {{ date_range_text }}
+        </span>
+      </div>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(102, 126, 234, 0.15); color: #667eea;">
+          <i class="fas fa-user"></i>
+        </div>
+        <div>
+          <div style="font-size: 14px; font-weight: 600; color: #f1f5f9;">{{ request.user.username }}</div>
+          <div style="font-size: 12px; color: #94a3b8;">
+            {% if is_admin %}
+              <i class="fas fa-crown" style="color: #fb923c;"></i> Administrator - Full Access
+            {% else %}
+              <i class="fas fa-map-marker-alt"></i> Access to {{ user_locations_count }} location{{ user_locations_count|pluralize }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="btn-primary" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+        <i class="fas fa-filter" style="color: #667eea;"></i>
+        <span style="font-size: 16px; font-weight: 600;">Filters</span>
+      </div>
+      
+      <form method="GET" action="{% url 'employee_analytics' %}" id="filterForm">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label class="filter-label">Comparison Mode</label>
+            <select name="comparison" class="filter-select">
+              <option value="2025-2024" {% if comparison_mode == '2025-2024' %}selected{% endif %}>2025 vs 2024</option>
+              <option value="2026-2025" {% if comparison_mode == '2026-2025' %}selected{% endif %}>2026 vs 2025</option>
+              <option value="2026-2024" {% if comparison_mode == '2026-2024' %}selected{% endif %}>2026 vs 2024</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Start Date</label>
+            <input type="date" name="start_date" value="{{ start_date }}" class="filter-input">
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">End Date</label>
+            <input type="date" name="end_date" value="{{ end_date }}" class="filter-input">
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Location</label>
+            <select name="un_filter" class="filter-select" size="1">
+              <option value="all" {% if selected_un == 'all' %}selected{% endif %}>All Locations</option>
+              {% for location in all_locations %}
+                <option value="{{ location }}" {% if location in selected_locations %}selected{% endif %}>{{ location }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Category</label>
+            <select name="category" class="filter-select">
+              <option value="all">All Categories</option>
+              {% for category in all_categories %}
+                <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Employee</label>
+            <div class="search-wrapper">
+              <input 
+                type="text" 
+                id="employeeSearch" 
+                class="search-input" 
+                placeholder="Search employees..."
+                autocomplete="off"
+                value="{{ selected_employee|default:'all' }}">
+              <i class="fas fa-search search-icon"></i>
+              <input type="hidden" name="employee_filter" id="employeeFilterValue" value="{{ selected_employee|default:'all' }}">
+              <div class="search-dropdown" id="employeeDropdown">
+                <div class="search-option" data-value="all">All Employees</div>
+                {% for employee in all_employees %}
+                  <div class="search-option" data-value="{{ employee }}">{{ employee }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-apply">
+          <i class="fas fa-sync-alt"></i> Apply Filters
+        </button>
+      </form>
+    </div>
+
+    <!-- Overall Employee Performance -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-trophy"></i> Employee Performance Leaderboard ({{ current_year }})
+      </div>
+      
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Employee</th>
+              <th>Location</th>
+              <th>Revenue ({{ current_year }})</th>
+              <th>YoY Change</th>
+              <th>Tickets</th>
+              <th>Avg Basket</th>
+              <th>Cross-Sell Rate</th>
+              <th>Ticket Distribution</th>
+              <th>Avg Items/Ticket</th>
+              <th>Skincare_percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for emp in employees_current %}
+            <tr>
+              <td><span class="badge badge-rank">#{{ forloop.counter }}</span></td>
+              <td style="font-weight: 600;">{{ emp.name }}</td>
+              <td>{{ emp.location }}</td>
+              <td style="font-weight: 600; color: #667eea;">₾{{ emp.revenue|floatformat:2|intcomma }}</td>
+              <td>
+                <span class="{% if emp.revenue_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  <i class="fas fa-arrow-{% if emp.revenue_change >= 0 %}up{% else %}down{% endif %}"></i>
+                  {{ emp.revenue_change|floatformat:1 }}%
+                </span>
+              </td>
+              <td>{{ emp.tickets|intcomma }}</td>
+              <td>₾{{ emp.avg_basket|floatformat:2 }}</td>
+              
+              <!-- Cross-Selling Rate with Visual Indicator -->
+              <td>
+                <div class="cross-sell-bar">
+                  <div class="cross-sell-progress">
+                    <div class="cross-sell-fill {% if emp.cross_sell_pct >= 40 %}excellent{% elif emp.cross_sell_pct >= 25 %}good{% elif emp.cross_sell_pct >= 15 %}average{% else %}poor{% endif %}" 
+                         style="width: {{ emp.cross_sell_pct }}%"></div>
+                  </div>
+                  <span class="{% if emp.cross_sell_pct >= 30 %}text-success{% elif emp.cross_sell_pct >= 15 %}text-warning{% else %}text-danger{% endif %}" 
+                        style="font-weight: 600; min-width: 45px;">
+                    {{ emp.cross_sell_pct|floatformat:1 }}%
+                  </span>
+                </div>
+              </td>
+              
+              <!-- Ticket Distribution Mini Chart -->
+              <td>
+                <div class="ticket-distribution">
+                  <div class="dist-row">
+                    <span class="dist-label">1 item:</span>
+                    <div class="dist-bar">
+                      <div class="dist-fill one-item" style="width: {{ emp.one_item_pct }}%">
+                        {% if emp.one_item_pct > 15 %}{{ emp.one_item_pct|floatformat:0 }}%{% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dist-row">
+                    <span class="dist-label">2 items:</span>
+                    <div class="dist-bar">
+                      <div class="dist-fill two-item" style="width: {{ emp.two_item_pct }}%">
+                        {% if emp.two_item_pct > 15 %}{{ emp.two_item_pct|floatformat:0 }}%{% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dist-row">
+                    <span class="dist-label">3+ items:</span>
+                    <div class="dist-bar">
+                      <div class="dist-fill three-plus" style="width: {{ emp.three_plus_pct }}%">
+                        {% if emp.three_plus_pct > 15 %}{{ emp.three_plus_pct|floatformat:0 }}%{% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              
+              <td style="font-weight: 600;">{{ emp.avg_items_per_ticket|floatformat:1 }}</td>
+              <td style="font-weight: 600;">{{ emp.skincare_percentage|floatformat:2 }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Category Leaders -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-medal"></i> Top 10 Performers by Category
+      </div>
+      
+      {% for cat_data in category_leaders %}
+      <div class="category-section">
+        <div class="category-header">
+          <div class="category-title">
+            <div class="category-icon">
+              <i class="fas fa-layer-group"></i>
+            </div>
+            {{ cat_data.category }}
+          </div>
+        </div>
+        
+        <!-- Top 3 Podium -->
+        <div class="top-three">
+          {% for emp in cat_data.performers_current|slice:":3" %}
+          <div class="podium-card">
+            <div class="podium-rank">#{{ forloop.counter }}</div>
+            <div class="podium-name">{{ emp.name }}</div>
+            <div class="podium-stats">
+              <div class="podium-stat">
+                <span class="podium-stat-label">Revenue</span>
+                <span class="podium-stat-value">₾{{ emp.revenue|floatformat:0|intcomma }}</span>
+              </div>
+              <div class="podium-stat">
+                <span class="podium-stat-label">Tickets</span>
+                <span class="podium-stat-value">{{ emp.tickets|intcomma }}</span>
+              </div>
+              <div class="podium-stat">
+                <span class="podium-stat-label">Items Sold</span>
+                <span class="podium-stat-value">{{ emp.items|intcomma }}</span>
+              </div>
+              <div class="podium-stat">
+                <span class="podium-stat-label">Cross-Sell %</span>
+                <span class="podium-stat-value {% if emp.cross_sell_pct >= 30 %}text-success{% elif emp.cross_sell_pct >= 15 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ emp.cross_sell_pct|floatformat:1 }}%
+                </span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Remaining performers (4-10) -->
+        {% if cat_data.performers_current|length > 3 %}
+        <div class="remaining-performers">
+          <table class="compact-table">
+            <tbody>
+              {% for emp in cat_data.performers_current|slice:"3:" %}
+              <tr>
+                <td style="width: 60px;"><span class="badge badge-rank">#{{ forloop.counter|add:3 }}</span></td>
+                <td style="font-weight: 600; width: 25%;">{{ emp.name }}</td>
+                <td style="color: #667eea; font-weight: 600;">₾{{ emp.revenue|floatformat:0|intcomma }}</td>
+                <td style="color: #94a3b8;">{{ emp.tickets|intcomma }} tickets</td>
+                <td style="color: #94a3b8;">{{ emp.items|intcomma }} items</td>
+                <td>
+                  <span class="{% if emp.cross_sell_pct >= 30 %}text-success{% elif emp.cross_sell_pct >= 15 %}text-warning{% else %}text-danger{% endif %}" 
+                        style="font-weight: 600;">
+                    {{ emp.cross_sell_pct|floatformat:1 }}% cross-sell
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+  </main>
+
+  <script>
+    // Employee Search Functionality
+    const searchInput = document.getElementById('employeeSearch');
+    const dropdown = document.getElementById('employeeDropdown');
+    const hiddenInput = document.getElementById('employeeFilterValue');
+    const options = dropdown.querySelectorAll('.search-option');
+
+    // Show dropdown on focus
+    searchInput.addEventListener('focus', () => {
+      dropdown.classList.add('active');
+    });
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrapper')) {
+        dropdown.classList.remove('active');
+      }
+    });
+
+    // Filter options as user types
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      let hasResults = false;
+
+      options.forEach(option => {
+        const text = option.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+          option.style.display = 'block';
+          hasResults = true;
+        } else {
+          option.style.display = 'none';
+        }
+      });
+
+      // Show "no results" message if needed
+      const existingNoResults = dropdown.querySelector('.no-results');
+      if (!hasResults && !existingNoResults) {
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.textContent = 'No employees found';
+        dropdown.appendChild(noResults);
+      } else if (hasResults && existingNoResults) {
+        existingNoResults.remove();
+      }
+    });
+
+    // Handle option selection
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        const value = option.dataset.value;
+        const text = option.textContent;
+        
+        searchInput.value = text;
+        hiddenInput.value = value;
+        
+        // Update selected state
+        options.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        
+        dropdown.classList.remove('active');
+      });
+    });
+
+    // Set initial selected state
+    const currentValue = hiddenInput.value;
+    if (currentValue && currentValue !== 'all') {
+      searchInput.value = currentValue;
+      options.forEach(option => {
+        if (option.dataset.value === currentValue) {
+          option.classList.add('selected');
+        }
+      });
+    } else {
+      searchInput.value = 'All Employees';
+    }
+  </script>
+</body>
+</html>

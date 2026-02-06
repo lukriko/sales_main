@@ -1,0 +1,148 @@
+------------------------------------------------
+for password reseting
+------------------------------------------------
+
+from django.contrib.auth.models import User
+from sales_app.models import UserProfile
+
+# Get the admin user
+admin = User.objects.get(username='admin')
+
+# Reset password (this properly hashes it)
+admin.set_password('admin123')
+admin.save()
+
+print("✓ Password reset for admin")
+
+# Make sure profile exists
+profile, created = UserProfile.objects.get_or_create(
+    user=admin,
+    defaults={'is_admin': True}
+)
+if created:
+    print("✓ Profile created")
+else:
+    print("✓ Profile already exists")
+
+# Test authentication
+from django.contrib.auth import authenticate
+test_user = authenticate(username='admin', password='admin123')
+if test_user:
+    print("✓✓ Login test SUCCESSFUL - use admin/admin123")
+else:
+    print("✗✗ Login test FAILED")
+
+exit()
+
+------------------------------------------------
+for removing access from user
+------------------------------------------------
+
+python3 manage.py shell
+
+from django.contrib.auth.models import User
+from sales_app.models import UserProfile  # Adjust import based on your app name
+
+# Get the user
+user = User.objects.get(username='batumi_manager')
+
+# Remove a specific location
+user.profile.allowed_locations.remove('ბათუმი1')
+
+# Or remove multiple locations
+locations_to_remove = ['Location 1', 'Location 2', 'Location 3']
+for location in locations_to_remove:
+    user.profile.allowed_locations.remove(location)
+
+
+------------------------------------------------
+to see accessed locaitons per user
+------------------------------------------------
+
+from django.contrib.auth.models import User
+
+u = User.objects.get(username="pekini")
+print(u.profile.allowed_locations)
+print(type(u.profile.allowed_locations))  # should be <class 'list'>
+
+
+------------------------------------------------
+to remove location
+------------------------------------------------
+
+from django.contrib.auth.models import User
+
+user = User.objects.get(username="batumi_manager")
+
+# REMOVE (string!)
+user.profile.allowed_locations.remove("ბათუმი1")
+user.profile.save()
+
+print(user.profile.allowed_locations)
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------
+Users
+------------------------------------------------
+
+
+from django.contrib.auth.models import User
+from sales_app.models import UserProfile as Profile # <-- change if your Profile is in another app
+
+USERS = [
+    ("batumi_metro", "batumi_metro_2000", ["ბათუმი მეტრო მოლი"]), good
+    ("batumi_grandi", "batumi_grandi_2001", ["ბათუმი გრანდ მოლი"]), good
+    ("vake", "vake_200_2002", ["ვაკე 1"]), good
+    ("plexanovi", "plexanovi_200_2003", ["პლეხანოვი"]), good
+    ("gudvili2", "gudvili2_200_2004", ["გუდვილი 2"]), good
+    ("gldani", "gldani_200_2005", ["გლდანი"]), good
+    ("rustavi", "rustavi_201_2000", ["რუსთავი"]), good
+    ("gori", "gori_201_2001", ["გორი"]), good
+    ("gudvili", "gudvili_200_2006", ["გუდვილი"]), good
+    ("gldani_siti", "gldani_siti_200_2007", ["გლდანი სითი მოლი"]), good
+    ("galerea", "galerea_200_2008", ["გალერია"]), good
+    ("east_point", "east_point_200_2009", ["ისტ პოინტი"]), good
+    ("merani", "merani_200_2010", ["მერანი"]), good
+    ("pekini", "pekini_200_2011", ["პეკინი"]), good
+]
+
+for username, password, locations in USERS:
+    user, created = User.objects.get_or_create(username=username)
+
+    # set/reset password even if the user already existed (optional)
+    user.set_password(password)
+    user.save()
+
+    profile, _ = Profile.objects.get_or_create(user=user)
+    profile.allowed_locations = locations
+    profile.save()
+
+    print(f"✓ Upserted {username} → {locations}")
+
+
+------------------------------------------------
+to change location format for user
+------------------------------------------------
+
+from django.contrib.auth.models import User
+
+u = User.objects.get(username="gori")
+
+old = "გორი "
+new = "გორი"
+
+if old in u.profile.allowed_locations:
+    u.profile.allowed_locations.remove(old)
+    u.profile.allowed_locations.append(new)
+    u.profile.save()
+    print("✓ Updated:", u.profile.allowed_locations)
+else:
+    print("Location not found")

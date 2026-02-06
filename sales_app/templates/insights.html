@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>YR Sales Insights</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Work Sans', sans-serif;
+      background: #0a0e27;
+      color: #e4e4e7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar - Same as dashboard */
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 260px; 
+      height: 100vh; 
+      background: #0f1629; 
+      border-right: 1px solid #1e293b; 
+      padding: 0;
+      z-index: 100; 
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header { 
+      padding: 24px; 
+      border-bottom: 1px solid #1e293b; 
+      flex-shrink: 0;
+    }
+
+    .logo { 
+      font-size: 24px; 
+      font-weight: 800; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+    }
+
+    .nav-menu { 
+      margin-top: 24px; 
+      padding: 0 12px 24px;
+      flex: 1;
+    }
+
+    .nav-item { list-style: none; margin-bottom: 4px; }
+    
+    .nav-link { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      padding: 12px 16px; 
+      color: #94a3b8; 
+      text-decoration: none; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      font-weight: 500; 
+      transition: all 0.2s ease; 
+    }
+    
+    .nav-link:hover, .nav-link.active { 
+      background: rgba(102, 126, 234, 0.1); 
+      color: #667eea; 
+    }
+    
+    .nav-link i { width: 20px; font-size: 18px; }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 260px;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    /* Hero Section */
+    .insights-hero {
+      background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%);
+      border-bottom: 1px solid #334155;
+      padding: 60px 48px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .insights-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 40%;
+      height: 100%;
+      background: radial-gradient(circle at top right, rgba(102, 126, 234, 0.1), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .insights-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 56px;
+      font-weight: 900;
+      color: #f1f5f9;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    .insights-subtitle {
+      font-size: 20px;
+      color: #94a3b8;
+      font-weight: 300;
+      max-width: 700px;
+      line-height: 1.6;
+    }
+
+    .period-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: rgba(102, 126, 234, 0.1);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      border-radius: 30px;
+      color: #667eea;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Filter Section */
+    .filter-section {
+      background: #0f1629;
+      border-bottom: 1px solid #334155;
+      padding: 32px 48px;
+    }
+
+    .filter-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .filter-form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group-full {
+      grid-column: 1 / -1;
+    }
+
+    .filter-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-label i {
+      font-size: 14px;
+      color: #667eea;
+    }
+
+    .filter-input {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #e4e4e7;
+      font-size: 14px;
+      font-family: 'Work Sans', sans-serif;
+      transition: all 0.2s ease;
+    }
+
+    .filter-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .filter-input option {
+      background: #1e293b;
+      color: #e4e4e7;
+    }
+
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      padding: 16px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .checkbox-label:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #667eea;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      padding-top: 8px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-family: 'Work Sans', sans-serif;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+      background: #334155;
+      color: #cbd5e1;
+    }
+
+    /* Content Container */
+    .insights-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 48px;
+    }
+
+    /* Insight Card */
+    .insight-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .insight-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .insight-card:hover {
+      transform: translateY(-4px);
+      border-color: #667eea;
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.15);
+    }
+
+    .insight-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 24px;
+    }
+
+    .insight-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .icon-positive { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .icon-negative { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .icon-neutral { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .icon-warning { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+
+    .insight-header-content {
+      flex: 1;
+    }
+
+    .insight-category {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+
+    .insight-title-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .insight-body {
+      font-size: 16px;
+      line-height: 1.8;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+    }
+
+    .insight-body p {
+      margin-bottom: 16px;
+    }
+
+    .insight-body strong {
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #334155;
+    }
+
+    .metric-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .metric-change {
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .metric-change.positive { color: #10b981; }
+    .metric-change.negative { color: #ef4444; }
+    .metric-change.neutral { color: #94a3b8; }
+
+    /* Year Comparison */
+    .year-comparison {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    .year-card {
+      background: #0f1629;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .year-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .year-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .year-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .year-stat-label {
+      color: #94a3b8;
+    }
+
+    .year-stat-value {
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    /* Recommendations */
+    .recommendations {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      border-radius: 12px;
+      padding: 32px;
+      margin-top: 32px;
+    }
+
+    .recommendations-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .recommendation-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .recommendation-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .recommendation-bullet {
+      width: 28px;
+      height: 28px;
+      background: rgba(102, 126, 234, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #667eea;
+      font-weight: 700;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .recommendation-text {
+      flex: 1;
+      color: #cbd5e1;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* Summary Section */
+    .summary-section {
+      background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 48px;
+      margin: 48px 0;
+    }
+
+    .summary-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .summary-card {
+      background: #0f1629;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-4px);
+      border-color: #667eea;
+    }
+
+    .summary-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .summary-label {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+
+    .summary-change {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 80px 48px;
+      color: #64748b;
+    }
+
+    .empty-state i {
+      font-size: 64px;
+      margin-bottom: 24px;
+      color: #334155;
+    }
+
+    .empty-state h3 {
+      font-size: 24px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-content { margin-left: 0; }
+      .insights-hero { padding: 40px 24px; }
+      .insights-title { font-size: 40px; }
+      .filter-section { padding: 24px; }
+      .insights-container { padding: 24px; }
+      .insight-card { padding: 24px; }
+      .summary-section { padding: 32px 24px; }
+    }
+
+    @media screen and (max-width: 768px) {
+      .insights-title { font-size: 32px; }
+      .insight-title-text { font-size: 22px; }
+      .insight-header { flex-direction: column; }
+      .metrics-grid { grid-template-columns: 1fr; }
+      .year-comparison { grid-template-columns: 1fr; }
+      .filter-row { grid-template-columns: 1fr; }
+      .filter-actions { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(102, 126, 234, 0.3);
+      border-radius: 50%;
+      border-top-color: #667eea;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Highlight Text */
+    .highlight {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .highlight-positive {
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .highlight-negative {
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    .highlight-warning {
+      color: #fb923c;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  {% load humanize %}
+
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo">YR sales</div></div>
+    <nav class="nav-menu">
+      <ul>
+        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link"><i class="fas fa-bullseye"></i><span>Plan vs Actual</span></a></li>
+        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>Query</span></a></li>
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>Employee Analytics</span></a></li>
+        <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link active"><i class="fas fa-lightbulb"></i><span>Insights</span></a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+     <div style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(102, 126, 234, 0.15); color: #667eea;">
+      <i class="fas fa-user"></i>
+    </div>
+    <div>
+      <div style="font-size: 14px; font-weight: 600; color: #f1f5f9;">{{ request.user.username }}</div>
+      <div style="font-size: 12px; color: #94a3b8;">
+        {% if is_admin %}
+          <i class="fas fa-crown" style="color: #fb923c;"></i> Administrator - Full Access
+        {% else %}
+          <i class="fas fa-map-marker-alt"></i> Access to {{ user_locations_count }} location{{ user_locations_count|pluralize }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <a href="{% url 'logout' %}" class="btn-primary" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </a>
+</div>
+    <!-- Hero Section -->
+    <div class="insights-hero">
+      <div class="hero-content">
+        <h1 class="insights-title">Business Insights</h1>
+        <p class="insights-subtitle">AI-powered analysis comparing your performance across multiple years to uncover trends, opportunities, and areas for improvement.</p>
+        <div class="period-badge">
+          <i class="fas fa-calendar-alt"></i>
+          <span>{{ date_range_text }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-container">
+        <form method="GET" action="{% url 'insights' %}" class="filter-form">
+          
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="comparison" class="filter-label">
+                <i class="fas fa-calendar-alt"></i>
+                Comparison Period
+              </label>
+              <select name="comparison" id="comparison" class="filter-input">
+                <option value="2025-2024" {% if request.GET.comparison == '2025-2024' or not request.GET.comparison %}selected{% endif %}>2025 vs 2024</option>
+                <option value="2026-2025" {% if request.GET.comparison == '2026-2025' %}selected{% endif %}>2026 vs 2025</option>
+                <option value="2026-2024" {% if request.GET.comparison == '2026-2024' %}selected{% endif %}>2026 vs 2024</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="start_date" class="filter-label">
+                <i class="fas fa-calendar-day"></i>
+                Start Date
+              </label>
+              <input type="date" name="start_date" id="start_date" class="filter-input" 
+                     value="{{ request.GET.start_date|default:'' }}">
+            </div>
+
+            <div class="filter-group">
+              <label for="end_date" class="filter-label">
+                <i class="fas fa-calendar-day"></i>
+                End Date
+              </label>
+              <input type="date" name="end_date" id="end_date" class="filter-input" 
+                     value="{{ request.GET.end_date|default:'' }}">
+            </div>
+          </div>
+
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="category" class="filter-label">
+                <i class="fas fa-tags"></i>
+                Category
+              </label>
+              <select name="category" id="category" class="filter-input">
+                <option value="all" {% if request.GET.category == 'all' or not request.GET.category %}selected{% endif %}>All Categories</option>
+                <!-- Add your categories dynamically here -->
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="prod_filter" class="filter-label">
+                <i class="fas fa-box"></i>
+                Product
+              </label>
+              <select name="prod_filter" id="prod_filter" class="filter-input">
+                <option value="all" {% if request.GET.prod_filter == 'all' or not request.GET.prod_filter %}selected{% endif %}>All Products</option>
+                <!-- Add your products dynamically here -->
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="campaign_filter" class="filter-label">
+                <i class="fas fa-bullhorn"></i>
+                Campaign
+              </label>
+              <select name="campaign_filter" id="campaign_filter" class="filter-input">
+                <option value="all" {% if request.GET.campaign_filter == 'all' or not request.GET.campaign_filter %}selected{% endif %}>All Campaigns</option>
+                <!-- Add your campaigns dynamically here -->
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-row">
+            <div class="filter-group filter-group-full">
+              <label class="filter-label">
+                <i class="fas fa-map-marker-alt"></i>
+                Locations
+              </label>
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" name="un_filter" value="all" 
+                         {% if not request.GET.getlist.un_filter or 'all' in request.GET.getlist.un_filter %}checked{% endif %}>
+                  <span>All Locations</span>
+                </label>
+                <!-- Add your locations dynamically here with the following pattern:
+                <label class="checkbox-label">
+                  <input type="checkbox" name="un_filter" value="location_name">
+                  <span>Location Name</span>
+                </label>
+                -->
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search"></i>
+              Generate Insights
+            </button>
+            <a href="{% url 'insights' %}" class="btn btn-secondary">
+              <i class="fas fa-redo"></i>
+              Reset
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="insights-container">
+      
+      {% if insights %}
+        
+        <!-- Executive Summary -->
+        <div class="summary-section">
+          <h2 class="summary-title">Performance Overview</h2>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="summary-icon icon-positive">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+              <div class="summary-label">Total Revenue</div>
+              <div class="summary-value">{{ summary.total_revenue }}</div>
+              <div class="summary-change {{ summary.revenue_trend }}">
+                <i class="fas fa-arrow-{{ summary.revenue_trend_icon }}"></i>
+                {{ summary.revenue_change }}
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-icon icon-neutral">
+                <i class="fas fa-ticket-alt"></i>
+              </div>
+              <div class="summary-label">Total Tickets</div>
+              <div class="summary-value">{{ summary.total_tickets }}</div>
+              <div class="summary-change {{ summary.tickets_trend }}">
+                <i class="fas fa-arrow-{{ summary.tickets_trend_icon }}"></i>
+                {{ summary.tickets_change }}
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-icon icon-warning">
+                <i class="fas fa-shopping-basket"></i>
+              </div>
+              <div class="summary-label">Avg Basket</div>
+              <div class="summary-value">{{ summary.avg_basket }}</div>
+              <div class="summary-change {{ summary.basket_trend }}">
+                <i class="fas fa-arrow-{{ summary.basket_trend_icon }}"></i>
+                {{ summary.basket_change }}
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-icon icon-positive">
+                <i class="fas fa-layer-group"></i>
+              </div>
+              <div class="summary-label">Cross-Sell Rate</div>
+              <div class="summary-value">{{ summary.cross_sell_rate }}%</div>
+              <div class="summary-change {{ summary.cross_sell_trend }}">
+                <i class="fas fa-arrow-{{ summary.cross_sell_trend_icon }}"></i>
+                {{ summary.cross_sell_change }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Individual Insights -->
+        {% for insight in insights %}
+        <div class="insight-card">
+          <div class="insight-header">
+            <div class="insight-icon {{ insight.icon_class }}">
+              <i class="fas {{ insight.icon }}"></i>
+            </div>
+            <div class="insight-header-content">
+              <div class="insight-category">{{ insight.category }}</div>
+              <h2 class="insight-title-text">{{ insight.title }}</h2>
+            </div>
+          </div>
+
+          <div class="insight-body">
+            {{ insight.description|safe }}
+          </div>
+
+          {% if insight.metrics %}
+          <div class="metrics-grid">
+            {% for metric in insight.metrics %}
+            <div class="metric-item">
+              <div class="metric-label">{{ metric.label }}</div>
+              <div class="metric-value">{{ metric.value }}</div>
+              {% if metric.change %}
+              <div class="metric-change {{ metric.change_class }}">
+                <i class="fas fa-arrow-{{ metric.change_icon }}"></i>
+                {{ metric.change }}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if insight.year_comparison %}
+          <div class="year-comparison">
+            {% for year_data in insight.year_comparison %}
+            <div class="year-card">
+              <div class="year-label">{{ year_data.year }}</div>
+              <div class="year-stats">
+                {% for stat in year_data.stats %}
+                <div class="year-stat">
+                  <span class="year-stat-label">{{ stat.label }}</span>
+                  <span class="year-stat-value">{{ stat.value }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Recommendations -->
+        {% if recommendations %}
+        <div class="recommendations">
+          <h3 class="recommendations-title">
+            <i class="fas fa-clipboard-check"></i>
+            Strategic Recommendations
+          </h3>
+          <ul class="recommendation-list">
+            {% for rec in recommendations %}
+            <li class="recommendation-item">
+              <div class="recommendation-bullet">{{ forloop.counter }}</div>
+              <div class="recommendation-text">{{ rec|safe }}</div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+          <i class="fas fa-chart-line"></i>
+          <h3>No Insights Available</h3>
+          <p>Not enough data to generate insights. Please adjust your filters or date range.</p>
+        </div>
+      {% endif %}
+
+    </div>
+  </main>
+
+</body>
+</html>
