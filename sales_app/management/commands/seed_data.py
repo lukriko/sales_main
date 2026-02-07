@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from sales_app.models import UserProfile
 
 class Command(BaseCommand):
     help = 'Seeds initial users for locations'
@@ -22,13 +23,25 @@ class Command(BaseCommand):
             ("pekini", "pekini_200_2011", ["პეკინი"]),
         ]
 
-        for username, password, locations in USERS:
-            user, created = User.objects.get_or_create(username=username)
-            if created:
+        for username, password, allowed_locations in USERS:
+            # Create or get user
+            user, user_created = User.objects.get_or_create(username=username)
+            if user_created:
                 user.set_password(password)
                 user.save()
                 self.stdout.write(self.style.SUCCESS(f'✓ Created user: {username}'))
             else:
                 self.stdout.write(self.style.WARNING(f'- User already exists: {username}'))
+            
+            # Create or update profile
+            profile, profile_created = UserProfile.objects.get_or_create(user=user)
+            profile.allowed_locations = allowed_locations
+            profile.is_admin = False
+            profile.save()
+            
+            if profile_created:
+                self.stdout.write(self.style.SUCCESS(f'  → Created profile with locations: {allowed_locations}'))
+            else:
+                self.stdout.write(self.style.SUCCESS(f'  → Updated profile with locations: {allowed_locations}'))
 
-        self.stdout.write(self.style.SUCCESS(f'\n✓ Successfully processed {len(USERS)} users'))
+        self.stdout.write(self.style.SUCCESS(f'\n✓ Successfully processed {len(USERS)} users with profiles'))
