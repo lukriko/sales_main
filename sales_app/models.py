@@ -51,6 +51,19 @@ class Sales(models.Model):
     class Meta:
         managed = False
         db_table = 'sales_main_web'
+        indexes = [
+            # Core date + location filters
+            models.Index(fields=['cd', 'un'], name='sales_cd_un_idx'),
+            models.Index(fields=['cd', 'prodg'], name='sales_cd_prodg_idx'),
+            models.Index(fields=['zedd', 'cd'], name='sales_zedd_cd_idx'),
+            models.Index(fields=['tanam', 'cd'], name='sales_tanam_cd_idx'),
+            models.Index(fields=['prod', 'cd'], name='sales_prod_cd_idx'),
+            
+            # Employee analytics specific
+            models.Index(fields=['tanam', 'cd', 'prodg'], name='sales_emp_date_cat_idx'),
+            models.Index(fields=['tanam', 'prodt', 'cd'], name='sales_emp_type_date_idx'),
+            models.Index(fields=['zedd', 'tanam'], name='sales_ticket_emp_idx'),
+        ]
 
     def __str__(self):
         return f"Ticket {self.zedd} - {self.un} - ${self.tanxa}"

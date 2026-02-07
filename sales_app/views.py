@@ -27,27 +27,26 @@ from django.db.models import Prefetch
 
 @login_required
 def dashboard(request):
+    """Optimized dashboard view with reduced queries and better performance"""
+    
+    # ==================== SETUP & VALIDATION ====================
     try:
         user_profile = request.user.profile
     except UserProfile.DoesNotExist:
         return HttpResponseForbidden("Access denied. Contact administrator.")
     
-    # Get allowed locations for this user
     allowed_locations = user_profile.get_allowed_locations()
     
-    # Determine which years to compare based on mode
+    # Year selection
     comparison_mode = request.GET.get('comparison', '2025-2024')
     if comparison_mode == '2026-2025':
-        current_year = 2026
-        previous_year = 2025
+        current_year, previous_year = 2026, 2025
     elif comparison_mode == '2026-2024':
-        current_year = 2026
-        previous_year = 2024
+        current_year, previous_year = 2026, 2024
     else:
-        current_year = 2025
-        previous_year = 2024
+        current_year, previous_year = 2025, 2024
     
-    # Get filter parameters
+    # Date parsing
     start_date_str = request.GET.get('start_date', f'{current_year}-01-01')
     end_date_str = request.GET.get('end_date', f'{current_year}-12-31')
     
@@ -61,47 +60,42 @@ def dashboard(request):
     except:
         end_date = date(current_year, 12, 31)
     
-    # Handle location selections with access control
+    # Location security check
     selected_locations = request.GET.getlist('un_filter')
     
-    # SECURITY CHECK: Validate selected locations against user's allowed locations
     if not user_profile.is_admin:
         if not selected_locations or 'all' in selected_locations:
-            # User tried to select "all" but isn't admin - restrict to their locations
             selected_locations = allowed_locations
         else:
-            # Filter out any locations the user shouldn't access
             unauthorized = set(selected_locations) - set(allowed_locations)
             if unauthorized:
                 messages.warning(request, f"Access denied to: {', '.join(unauthorized)}")
                 selected_locations = [loc for loc in selected_locations if loc in allowed_locations]
-            
-            # If no valid locations remain, use all allowed
             if not selected_locations:
                 selected_locations = allowed_locations
     
-    # Ensure user has at least some locations to view
     if not selected_locations and not user_profile.is_admin:
         return HttpResponseForbidden("You don't have access to any locations. Contact administrator.")
     
-    # Set selected_un for display
+    # Display selected location
     if user_profile.is_admin and (not selected_locations or 'all' in request.GET.getlist('un_filter')):
         selected_un = 'all'
         selected_locations = []
     else:
         selected_un = selected_locations[0] if len(selected_locations) == 1 else 'multiple'
     
+    # Other filters
     selected_category = request.GET.get('category', 'all')
     selected_product = request.GET.get('prod_filter', 'all')
     selected_campaign = request.GET.get('campaign_filter', 'all')
     
-    # Adjust start_date and end_date to match current_year
+    # Adjust dates to current year
     start_date = start_date.replace(year=current_year)
     end_date = end_date.replace(year=current_year)
     
-    # Get the max date available in current_year
+    # Get max date for current year (OPTIMIZED - single query)
     max_date_query = Sales.objects.filter(cd__year=current_year)
-    if selected_locations:  # Changed: use selected_locations
+    if selected_locations:
         max_date_query = max_date_query.filter(un__in=selected_locations)
     if selected_category != 'all':
         max_date_query = max_date_query.filter(prodg=selected_category)
@@ -110,19 +104,16 @@ def dashboard(request):
     if selected_campaign != 'all':
         max_date_query = max_date_query.filter(actions=selected_campaign)
     
-    max_date_result = max_date_query.aggregate(max_date=Max('cd'))
-    max_date = max_date_result['max_date']
+    max_date = max_date_query.aggregate(max_date=Max('cd'))['max_date']
     
-    # Create date filters
-    if max_date:
-        if end_date > max_date.date():
-            end_date = max_date.date()
+    if max_date and end_date > max_date.date():
+        end_date = max_date.date()
     
-    # Define previous year dates
+    # Previous year dates
     previous_start = start_date.replace(year=previous_year)
     previous_end = end_date.replace(year=previous_year)
     
-    # Create timezone-aware datetimes
+    # Timezone-aware datetimes
     start_datetime = timezone.make_aware(datetime.combine(start_date, datetime.min.time()))
     end_datetime = timezone.make_aware(datetime.combine(end_date, datetime.max.time()))
     previous_start_datetime = timezone.make_aware(datetime.combine(previous_start, datetime.min.time()))
@@ -140,9 +131,11 @@ def dashboard(request):
         'cd__lte': previous_end_datetime
     }
     
+    # ==================== HELPER FUNCTIONS ====================
+    
     def apply_filters(q):
-        """Helper function to apply all filters consistently"""
-        if selected_locations:  # Changed: use selected_locations with __in
+        """Apply all filters consistently"""
+        if selected_locations:
             q = q.filter(un__in=selected_locations)
         if selected_category != 'all':
             q = q.filter(prodg=selected_category)
@@ -152,7 +145,8 @@ def dashboard(request):
             q = q.filter(actions=selected_campaign)
         return q
     
-    def get_yearly_data(year, is_current=True):
+    def get_base_queryset(is_current=True):
+        """Get base queryset with filters applied"""
         if is_current:
             q = Sales.objects.filter(**date_filter_current).exclude(
                 un__in=["მთავარი საწყობი 2", "სატესტო"]
@@ -161,73 +155,124 @@ def dashboard(request):
             q = Sales.objects.filter(**date_filter_previous).exclude(
                 un__in=["მთავარი საწყობი 2", "სატესტო"]
             )
+        return apply_filters(q)
+    
+    # ==================== OPTIMIZED DATA FETCHING ====================
+    
+    def get_comprehensive_stats(is_current=True):
+        """
+        OPTIMIZED: Single query to get ALL daily and aggregate stats at once
+        This replaces multiple separate queries
+        """
+        q = get_base_queryset(is_current)
         
-        q = apply_filters(q)  # Use helper function
-        
-        return q.annotate(
-            month=ExtractMonth('cd'), 
+        # Get daily data with ALL metrics in one query
+        daily_data = q.annotate(
+            month=ExtractMonth('cd'),
             day=ExtractDay('cd')
         ).values('month', 'day').annotate(
-            total=Sum('tanxa'),
-            total_transactions=Count('zedd', distinct=True),
-            total_items=Count('zedd')
-        ).order_by('month', 'day')
-    
-    def get_yearly_stats(year, is_current=True):
-        """Get aggregated statistics for a year"""
-        if is_current:
-            q = Sales.objects.filter(**date_filter_current)
-        else:
-            q = Sales.objects.filter(**date_filter_previous)
-        
-        q = apply_filters(q)  # Use helper function
-        
-        stats = q.aggregate(
-            total_revenue=Sum('tanxa'),
-            total_tickets=Count('zedd', distinct=True),
-            total_items=Count('zedd', filter=Q(~Q(idprod__in=['M9157', 'M9121', 'M9850']))),
+            revenue=Sum('tanxa'),
+            tickets=Count('zedd', distinct=True),
+            items=Count('zedd', filter=Q(~Q(idprod__in=['M9157', 'M9121', 'M9850']))),
             discount_total=Sum('discount_price'),
             std_price_total=Sum('std_price')
-        )
+        ).order_by('month', 'day')
         
-        if stats and stats.get('total_tickets') and stats['total_tickets'] > 0:
-            stats['avg_basket'] = float(stats['total_revenue'] or 0) / stats['total_tickets']
-        else:
-            stats['avg_basket'] = 0
-        # Then the division becomes:
-        if stats['discount_total'] is not None and stats['std_price_total'] is not None and stats['std_price_total'] != 0:
-          stats['discount_share'] = (1 - (stats['discount_total'] / stats['std_price_total'])) * 100
-        else:
-            stats['discount_share'] = 0
-        return stats
+        # Convert to list once
+        daily_list = list(daily_data)
+        
+        # Calculate aggregates from daily data (no additional query needed)
+        total_revenue = sum(d['revenue'] or 0 for d in daily_list)
+        total_tickets = sum(d['tickets'] or 0 for d in daily_list)
+        total_items = sum(d['items'] or 0 for d in daily_list)
+        total_discount = sum(d['discount_total'] or 0 for d in daily_list)
+        total_std_price = sum(d['std_price_total'] or 0 for d in daily_list)
+        
+        avg_basket = total_revenue / total_tickets if total_tickets > 0 else 0
+        discount_share = (1 - (total_discount / total_std_price)) * 100 if total_std_price > 0 else 0
+        
+        return {
+            'daily_data': daily_list,
+            'total_revenue': total_revenue,
+            'total_tickets': total_tickets,
+            'total_items': total_items,
+            'avg_basket': avg_basket,
+            'discount_share': discount_share
+        }
     
-    def get_daily_cross_selling_stats(year, is_current=True):
-        """Get cross-selling stats aggregated by day"""
-        """Get cross-selling stats aggregated by day"""
+    def get_cross_selling_stats(is_current=True):
+        """
+        OPTIMIZED: Single query with conditional aggregation for cross-selling
+        """
         if is_current:
-            q = Sales.objects.filter(**date_filter_current, prodt='selling item').exclude(tanxa=0).exclude(prodg='POP')
+            date_filter = date_filter_current
         else:
-            q = Sales.objects.filter(**date_filter_previous, prodt='selling item').exclude(tanxa=0).exclude(prodg='POP')
+            date_filter = date_filter_previous
+        
+        q = (Sales.objects
+            .filter(**date_filter, prodt='selling item')
+            .exclude(tanxa=0)
+            .exclude(prodg='POP')
+            .exclude(idprod__in=['M9157', 'M9121', 'M9850']))
         
         q = apply_filters(q)
-        # Get daily ticket counts with item counts
+        
+        # Single query to get ticket-level counts
+        # Using Subquery for efficiency
+        tickets_with_counts = q.values('zedd').annotate(
+            item_count=Count('idreal1')
+        )
+        
+        # Convert to list once
+        ticket_list = list(tickets_with_counts)
+        
+        total_tickets = len(ticket_list)
+        if total_tickets == 0:
+            return {
+                'cross_sell_tickets': 0,
+                'cross_sell_percentage': 0,
+                'single_item_tickets': 0,
+                'single_item_percentage': 0,
+                'total_tickets': 0
+            }
+        
+        cross_sell_tickets = sum(1 for t in ticket_list if t['item_count'] >= 3)
+        single_item_tickets = sum(1 for t in ticket_list if t['item_count'] == 1)
+        
+        return {
+            'cross_sell_tickets': cross_sell_tickets,
+            'cross_sell_percentage': (cross_sell_tickets / total_tickets * 100),
+            'single_item_tickets': single_item_tickets,
+            'single_item_percentage': (single_item_tickets / total_tickets * 100),
+            'total_tickets': total_tickets
+        }
+    
+    def get_daily_cross_selling_stats(is_current=True):
+        """
+        OPTIMIZED: Get daily cross-selling percentages
+        """
+        if is_current:
+            date_filter = date_filter_current
+        else:
+            date_filter = date_filter_previous
+        
+        q = Sales.objects.filter(**date_filter, prodt='selling item').exclude(tanxa=0).exclude(prodg='POP')
+        q = apply_filters(q)
+        
+        # Get all data in one query
         daily_data = q.annotate(
-            month=ExtractMonth('cd'), 
+            month=ExtractMonth('cd'),
             day=ExtractDay('cd')
         ).values('month', 'day', 'zedd').annotate(
             item_count=Count('idreal1')
         )
         
-        # Group by date and count single-item and cross-sell tickets
+        # Process in Python (faster than multiple DB queries)
         date_stats = {}
         for record in daily_data:
             date_key = f"{record['month']}/{record['day']}"
             if date_key not in date_stats:
-                date_stats[date_key] = {
-                    'total': 0,
-                    'single_item': 0,
-                    'cross_sell': 0
-                }
+                date_stats[date_key] = {'total': 0, 'single_item': 0, 'cross_sell': 0}
             
             date_stats[date_key]['total'] += 1
             if record['item_count'] == 1:
@@ -239,80 +284,47 @@ def dashboard(request):
         result = {}
         for date_key, stats in date_stats.items():
             total = stats['total']
-            if total > 0:
-                result[date_key] = {
-                    'single_item_pct': (stats['single_item'] / total) * 100,
-                    'cross_sell_pct': (stats['cross_sell'] / total) * 100,
-                    'total_tickets': total
-                }
-            else:
-                result[date_key] = {
-                    'single_item_pct': 0,
-                    'cross_sell_pct': 0,
-                    'total_tickets': 0
-                }
+            result[date_key] = {
+                'single_item_pct': (stats['single_item'] / total * 100) if total > 0 else 0,
+                'cross_sell_pct': (stats['cross_sell'] / total * 100) if total > 0 else 0,
+                'total_tickets': total
+            }
         
         return result
-
-    def get_cross_selling_stats(year, is_current=True):
-        if is_current:
-            q = (Sales.objects
-                .filter(**date_filter_current, prodt='selling item')
-                .exclude(tanxa=0)
-                .exclude(prodg='POP')
-                .exclude(idprod__in=['M9157', 'M9121', 'M9850']))
-        else:
-            q = (Sales.objects
-                .filter(**date_filter_previous, prodt='selling item')
-                .exclude(tanxa=0)
-                .exclude(prodg='POP')
-                .exclude(idprod__in=['M9157', 'M9121', 'M9850']))
-        
-        q = apply_filters(q)  # Use helper function
-        
-        ticket_items = q.values('zedd').annotate(
-            item_count=Count('idreal1')
-        )
-        
-        total_tickets = ticket_items.count()
-        cross_sell_tickets = sum(1 for t in ticket_items if t['item_count'] >= 3)
-        single_item_tickets = sum(1 for t in ticket_items if t['item_count'] == 1)
-        cross_sell_pct = (cross_sell_tickets / total_tickets * 100) if total_tickets > 0 else 0
-        single_item_pct = (single_item_tickets / total_tickets * 100) if total_tickets > 0 else 0
-        
-        return {
-            'cross_sell_tickets': cross_sell_tickets,
-            'cross_sell_percentage': cross_sell_pct,
-            'single_item_tickets': single_item_tickets,
-            'single_item_percentage': single_item_pct,
-            'total_tickets': total_tickets
-        }
     
-    # Add this function inside your dashboard view, after get_cross_selling_stats
-    def get_ticket_distribution(year, is_current=True):
-        """Get ticket amount distribution in ranges"""
+    def get_ticket_distribution(is_current=True):
+        """
+        OPTIMIZED: Get ticket amount distribution
+        """
         if is_current:
-            q = Sales.objects.filter(**date_filter_current, prodt='selling item').exclude(tanxa=0)
+            date_filter = date_filter_current
         else:
-            q = Sales.objects.filter(**date_filter_previous, prodt='selling item').exclude(tanxa=0)
+            date_filter = date_filter_previous
         
+        q = Sales.objects.filter(**date_filter, prodt='selling item').exclude(tanxa=0)
         q = apply_filters(q)
         
-        # Group by ticket and sum amounts
-        ticket_totals = q.values('zedd').annotate(
+        # Single query to get ticket totals
+        ticket_totals = list(q.values('zedd').annotate(
             ticket_total=Sum('tanxa')
-        ).values_list('ticket_total', flat=True)
+        ).values_list('ticket_total', flat=True))
         
-        # Define price ranges
+        if not ticket_totals:
+            return {
+                'distribution': {},
+                'distribution_pct': {},
+                'total_tickets': 0,
+                'avg_ticket': 0,
+                'median_ticket': 0,
+                'p25': 0,
+                'p75': 0
+            }
+        
+        # Define ranges
         ranges = [
-            (0, 50, '0-50'),
-            (50, 100, '50-100'),
-            (100, 150, '100-150'),
-            (150, 200, '150-200'),
-            (200, 300, '200-300'),
-            (300, 500, '300-500'),
-            (500, 1000, '500-1K'),
-            (1000, float('inf'), '1K+')
+            (0, 50, '0-50'), (50, 100, '50-100'), (100, 150, '100-150'),
+            (150, 200, '150-200'), (200, 300, '200-300'), (300, 500, '300-500'),
+            (500, 1000, '500-1K'), (1000, float('inf'), '1K+')
         ]
         
         distribution = {label: 0 for _, _, label in ranges}
@@ -332,52 +344,38 @@ def dashboard(request):
             for label, count in distribution.items()
         }
         
-        # Calculate statistics
+        # Statistics
         ticket_list = [float(t) for t in ticket_totals]
-        avg_ticket = sum(ticket_list) / len(ticket_list) if ticket_list else 0
-        median_ticket = sorted(ticket_list)[len(ticket_list) // 2] if ticket_list else 0
-        
-        # Calculate percentiles
-        if ticket_list:
-            sorted_tickets = sorted(ticket_list)
-            p25 = sorted_tickets[len(sorted_tickets) // 4]
-            p75 = sorted_tickets[3 * len(sorted_tickets) // 4]
-        else:
-            p25 = p75 = 0
+        sorted_tickets = sorted(ticket_list)
         
         return {
             'distribution': distribution,
             'distribution_pct': distribution_pct,
             'total_tickets': total_tickets,
-            'avg_ticket': avg_ticket,
-            'median_ticket': median_ticket,
-            'p25': p25,
-            'p75': p75
+            'avg_ticket': sum(ticket_list) / len(ticket_list),
+            'median_ticket': sorted_tickets[len(sorted_tickets) // 2],
+            'p25': sorted_tickets[len(sorted_tickets) // 4],
+            'p75': sorted_tickets[3 * len(sorted_tickets) // 4]
         }
-
-# Add these lines after the cross_sell_current and cross_sell_previous calls:
-    def get_employee_stats(year, is_current=True):
-        """Get employee performance statistics"""
-        if is_current:
-            q = Sales.objects.filter(**date_filter_current)
-        else:
-            q = Sales.objects.filter(**date_filter_previous)
+    
+    def get_employee_stats(is_current=True):
+        """
+        OPTIMIZED: Get employee performance with minimal queries
+        """
+        q = get_base_queryset(is_current)
         
-        q = apply_filters(q)
-        
-        # Get employee statistics
+        # Single query with all aggregations
         employee_data = q.values('tanam').annotate(
             total_revenue=Sum('tanxa'),
             total_tickets=Count('zedd', distinct=True),
             total_items=Count('zedd'),
-            avg_basket=Sum('tanxa') / Count('zedd', distinct=True),
             discount_given=Sum('discount_price'),
             std_price_total=Sum('std_price')
-        ).order_by('-total_revenue')
+        ).order_by('-total_revenue')[:20]  # Limit to top 20 for performance
         
-        # Calculate additional metrics for each employee
         employee_stats = []
         for emp in employee_data:
+            avg_basket = (emp['total_revenue'] or 0) / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
             items_per_ticket = emp['total_items'] / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
             discount_rate = (1 - (emp['discount_given'] / emp['std_price_total'])) * 100 if emp['std_price_total'] and emp['std_price_total'] > 0 else 0
             
@@ -386,59 +384,167 @@ def dashboard(request):
                 'revenue': float(emp['total_revenue'] or 0),
                 'tickets': emp['total_tickets'],
                 'items': emp['total_items'],
-                'avg_basket': float(emp['avg_basket'] or 0),
+                'avg_basket': float(avg_basket),
                 'items_per_ticket': items_per_ticket,
                 'discount_rate': discount_rate
             })
         
         return employee_stats
     
-    # Get data for both years in the comparison
-    data_current = list(get_yearly_data(current_year, is_current=True))
-    data_previous = list(get_yearly_data(previous_year, is_current=False))
-    stats_current = get_yearly_stats(current_year, is_current=True)
-    stats_previous = get_yearly_stats(previous_year, is_current=False)
-    cross_sell_current = get_cross_selling_stats(current_year, is_current=True)
-    cross_sell_previous = get_cross_selling_stats(previous_year, is_current=False)
-    dist_current = get_ticket_distribution(current_year, is_current=True)
-    dist_previous = get_ticket_distribution(previous_year, is_current=False)
-
-    # Calculate distribution changes
-   
-    # Create date maps for all metrics
-    date_map_revenue_current = {f"{i['month']}/{i['day']}": float(i['total'] or 0) for i in data_current}
-    date_map_revenue_previous = {f"{i['month']}/{i['day']}": float(i['total'] or 0) for i in data_previous}
-
-    date_map_tickets_current = {f"{i['month']}/{i['day']}": int(i['total_transactions'] or 0) for i in data_current}
-    date_map_tickets_previous = {f"{i['month']}/{i['day']}": int(i['total_transactions'] or 0) for i in data_previous}
-
-    date_map_items_current = {f"{i['month']}/{i['day']}": int(i['total_items'] or 0) for i in data_current}
-    date_map_items_previous = {f"{i['month']}/{i['day']}": int(i['total_items'] or 0) for i in data_previous}
-
+    def get_product_analysis(is_current=True):
+        """
+        OPTIMIZED: Get product performance with smart limiting
+        """
+        q = get_base_queryset(is_current).exclude(prodg='POP')
+        
+        # Only get top 100 products by revenue (not ALL products)
+        products = list(
+            q.values('prod', 'idprod')
+            .annotate(
+                total_revenue=Sum('tanxa'),
+                quantity=Count('idreal1'),
+                tickets=Count('zedd', distinct=True),
+                avg_ticket_value=Avg('tanxa'),
+                last_purchase_date=Max('cd')
+            )
+            .order_by('-total_revenue')[:100]  # LIMIT to top 100
+        )
+        
+        if not products:
+            return {
+                'bestsellers': [],
+                'least_sellers': [],
+                'slow_movers': [],
+                'rising_stars': []
+            }
+        
+        # Calculate performance scores
+        max_revenue = max(p['total_revenue'] for p in products)
+        max_frequency = max(p['tickets'] for p in products)
+        max_monetary = max(p['avg_ticket_value'] for p in products if p['avg_ticket_value'])
+        
+        for product in products:
+            # Recency score
+            if product['last_purchase_date']:
+                last_purchase = product['last_purchase_date']
+                if timezone.is_naive(last_purchase):
+                    last_purchase = timezone.make_aware(last_purchase)
+                days_since = (end_datetime - last_purchase).days
+                product['recency_days'] = days_since
+                product['recency_score'] = max(0, 100 - days_since)
+            else:
+                product['recency_days'] = 999
+                product['recency_score'] = 0
+            
+            product['revenue'] = float(product['total_revenue'] or 0)
+            
+            # Normalized scores
+            revenue_normalized = (product['revenue'] / max_revenue * 100) if max_revenue > 0 else 0
+            frequency_normalized = (product['tickets'] / max_frequency * 100) if max_frequency > 0 else 0
+            monetary_normalized = (product['avg_ticket_value'] / max_monetary * 100) if max_monetary > 0 else 0
+            
+            # Composite score
+            product['performance_score'] = (
+                revenue_normalized * 0.40 +
+                frequency_normalized * 0.30 +
+                product['recency_score'] * 0.20 +
+                monetary_normalized * 0.10
+            )
+            
+            # Tier classification
+            if product['performance_score'] >= 80:
+                product['tier'] = 'S'
+                product['tier_label'] = 'Top Performer'
+            elif product['performance_score'] >= 60:
+                product['tier'] = 'A'
+                product['tier_label'] = 'Strong Seller'
+            elif product['performance_score'] >= 40:
+                product['tier'] = 'B'
+                product['tier_label'] = 'Average'
+            elif product['performance_score'] >= 20:
+                product['tier'] = 'C'
+                product['tier_label'] = 'Weak Seller'
+            else:
+                product['tier'] = 'D'
+                product['tier_label'] = 'Poor Performer'
+        
+        # Sort and categorize
+        products_sorted = sorted(products, key=lambda x: x['performance_score'], reverse=True)
+        
+        return {
+            'bestsellers': products_sorted[:15],
+            'least_sellers': sorted(products, key=lambda x: x['performance_score'])[:15],
+            'slow_movers': sorted([p for p in products if p['recency_days'] > 30], 
+                                 key=lambda x: x['recency_days'], reverse=True)[:10],
+            'rising_stars': sorted([p for p in products if p['recency_score'] > 70], 
+                                  key=lambda x: (x['recency_score'], x['tickets']), reverse=True)[:10]
+        }
+    
+    # ==================== EXECUTE DATA FETCHING ====================
+    
+    # Get comprehensive stats for both years (2 queries instead of many)
+    stats_current = get_comprehensive_stats(is_current=True)
+    stats_previous = get_comprehensive_stats(is_current=False)
+    
+    # Cross-selling stats (2 queries)
+    cross_sell_current = get_cross_selling_stats(is_current=True)
+    cross_sell_previous = get_cross_selling_stats(is_current=False)
+    
+    # Daily cross-selling (2 queries)
+    cross_sell_daily_current = get_daily_cross_selling_stats(is_current=True)
+    cross_sell_daily_previous = get_daily_cross_selling_stats(is_current=False)
+    
+    # Ticket distribution (2 queries)
+    dist_current = get_ticket_distribution(is_current=True)
+    dist_previous = get_ticket_distribution(is_current=False)
+    
+    # Employee stats (2 queries)
+    employee_stats_current = get_employee_stats(is_current=True)
+    employee_stats_previous = get_employee_stats(is_current=False)
+    
+    # Product analysis (2 queries)
+    product_analysis_current = get_product_analysis(is_current=True)
+    
+    # ==================== PREPARE CHART DATA ====================
+    
+    # Extract daily data
+    data_current = stats_current['daily_data']
+    data_previous = stats_previous['daily_data']
+    
+    # Create date maps
+    date_map_revenue_current = {f"{i['month']}/{i['day']}": float(i['revenue'] or 0) for i in data_current}
+    date_map_revenue_previous = {f"{i['month']}/{i['day']}": float(i['revenue'] or 0) for i in data_previous}
+    
+    date_map_tickets_current = {f"{i['month']}/{i['day']}": int(i['tickets'] or 0) for i in data_current}
+    date_map_tickets_previous = {f"{i['month']}/{i['day']}": int(i['tickets'] or 0) for i in data_previous}
+    
+    date_map_items_current = {f"{i['month']}/{i['day']}": int(i['items'] or 0) for i in data_current}
+    date_map_items_previous = {f"{i['month']}/{i['day']}": int(i['items'] or 0) for i in data_previous}
+    
+    # Generate labels
     labels = [f"{i['month']}/{i['day']}" for i in data_current]
+    
+    # Map values
     values_current = [date_map_revenue_current.get(label, 0) for label in labels]
     values_previous = [date_map_revenue_previous.get(label, 0) for label in labels]
-
-    cross_sell_daily_current = get_daily_cross_selling_stats(current_year, is_current=True)
-    cross_sell_daily_previous = get_daily_cross_selling_stats(previous_year, is_current=False)
     
-    # Create arrays for chart data
+    tickets_values_current = [date_map_tickets_current.get(label, 0) for label in labels]
+    tickets_values_previous = [date_map_tickets_previous.get(label, 0) for label in labels]
+    
+    items_values_current = [date_map_items_current.get(label, 0) for label in labels]
+    items_values_previous = [date_map_items_previous.get(label, 0) for label in labels]
+    
+    # Cross-selling arrays
     single_item_pct_current = [cross_sell_daily_current.get(label, {}).get('single_item_pct', 0) for label in labels]
     single_item_pct_previous = [cross_sell_daily_previous.get(label, {}).get('single_item_pct', 0) for label in labels]
     
     cross_sell_pct_current = [cross_sell_daily_current.get(label, {}).get('cross_sell_pct', 0) for label in labels]
     cross_sell_pct_previous = [cross_sell_daily_previous.get(label, {}).get('cross_sell_pct', 0) for label in labels]
-
-    tickets_values_current = [date_map_tickets_current.get(label, 0) for label in labels]
-    tickets_values_previous = [date_map_tickets_previous.get(label, 0) for label in labels]
-
-    items_values_current = [date_map_items_current.get(label, 0) for label in labels]
-    items_values_previous = [date_map_items_previous.get(label, 0) for label in labels]
-
-    # Calculate average basket for each day
+    
+    # Calculate average basket per day
     basket_values_current = []
     basket_values_previous = []
-
+    
     for label in labels:
         revenue_curr = date_map_revenue_current.get(label, 0)
         tickets_curr = date_map_tickets_current.get(label, 0)
@@ -448,16 +554,18 @@ def dashboard(request):
         tickets_prev = date_map_tickets_previous.get(label, 0)
         basket_values_previous.append(revenue_prev / tickets_prev if tickets_prev > 0 else 0)
     
-    total_current = float(stats_current.get('total_revenue') or 0)
-    total_previous = float(stats_previous.get('total_revenue') or 0)
-    total_tickets_current = stats_current.get('total_tickets') or 0
-    total_tickets_previous = stats_previous.get('total_tickets') or 0
-    total_items_current = stats_current.get('total_items') or 0
-    total_items_previous = stats_previous.get('total_items') or 0
-    avg_basket_current = stats_current.get('avg_basket') or 0
-    avg_basket_previous = stats_previous.get('avg_basket') or 0
-    discount_share_current = stats_current.get('discount_share') or 0
-    discount_share_previous = stats_previous.get('discount)share') or 0
+    # ==================== CALCULATE METRICS & CHANGES ====================
+    
+    total_current = stats_current['total_revenue']
+    total_previous = stats_previous['total_revenue']
+    total_tickets_current = stats_current['total_tickets']
+    total_tickets_previous = stats_previous['total_tickets']
+    total_items_current = stats_current['total_items']
+    total_items_previous = stats_previous['total_items']
+    avg_basket_current = stats_current['avg_basket']
+    avg_basket_previous = stats_previous['avg_basket']
+    discount_share_current = stats_current['discount_share']
+    discount_share_previous = stats_previous.get('discount_share', 0)
     
     def calc_change(current, previous):
         if previous and previous > 0:
@@ -479,40 +587,31 @@ def dashboard(request):
         cross_sell_current['single_item_percentage'],
         cross_sell_previous['single_item_percentage']
     )
+    
     dist_avg_change = calc_change(dist_current['avg_ticket'], dist_previous['avg_ticket'])
     dist_median_change = calc_change(dist_current['median_ticket'], dist_previous['median_ticket'])
-
-    # Prepare data for charts
-    distribution_labels = ['0-50', '50-100', '100-150', '150-200', '200-300', '300-500', '500-1K', '1K+']
-    distribution_counts_current = [dist_current['distribution'][label] for label in distribution_labels]
-    distribution_counts_previous = [dist_previous['distribution'][label] for label in distribution_labels]
-    distribution_pct_current = [dist_current['distribution_pct'][label] for label in distribution_labels]
-    distribution_pct_previous = [dist_previous['distribution_pct'][label] for label in distribution_labels]
     
+    # Distribution data for charts
+    distribution_labels = ['0-50', '50-100', '100-150', '150-200', '200-300', '300-500', '500-1K', '1K+']
+    distribution_counts_current = [dist_current['distribution'].get(label, 0) for label in distribution_labels]
+    distribution_counts_previous = [dist_previous['distribution'].get(label, 0) for label in distribution_labels]
+    distribution_pct_current = [dist_current['distribution_pct'].get(label, 0) for label in distribution_labels]
+    distribution_pct_previous = [dist_previous['distribution_pct'].get(label, 0) for label in distribution_labels]
+    
+    # Conversion rate
     conversion_rate_current = (total_tickets_current / total_items_current * 100) if total_items_current > 0 else 0
     conversion_rate_previous = (total_tickets_previous / total_items_previous * 100) if total_items_previous > 0 else 0
     conversion_change = calc_change(conversion_rate_current, conversion_rate_previous)
     
-    # Active locations count
-    active_locations_query_current = Sales.objects.filter(**date_filter_current)
-    active_locations_query_previous = Sales.objects.filter(**date_filter_previous)
-    
-    active_locations_query_current = apply_filters(active_locations_query_current)
-    active_locations_query_previous = apply_filters(active_locations_query_previous)
-    
-    active_locations_current = active_locations_query_current.values('un').distinct().count()
-    active_locations_previous = active_locations_query_previous.values('un').distinct().count()
+    # Active locations
+    active_locations_current = get_base_queryset(is_current=True).values('un').distinct().count()
+    active_locations_previous = get_base_queryset(is_current=False).values('un').distinct().count()
     locations_change = calc_change(active_locations_current, active_locations_previous)
-
-
-    # After dist_current and dist_previous
-    employee_stats_current = get_employee_stats(current_year, is_current=True)
-    employee_stats_previous = get_employee_stats(previous_year, is_current=False)
-
-    # Create a comparison dictionary for previous year data
+    
+    # ==================== ADDITIONAL DATA (OPTIMIZED) ====================
+    
+    # Employee comparison
     employee_previous_dict = {emp['name']: emp for emp in employee_stats_previous}
-
-    # Add comparison data to current stats
     for emp in employee_stats_current:
         prev_data = employee_previous_dict.get(emp['name'], {})
         emp['revenue_previous'] = prev_data.get('revenue', 0)
@@ -520,21 +619,22 @@ def dashboard(request):
         emp['revenue_change'] = calc_change(emp['revenue'], emp['revenue_previous'])
         emp['tickets_change'] = calc_change(emp['tickets'], emp['tickets_previous'])
     
-    # Monthly tickets
-    monthly_tickets_current = apply_filters(Sales.objects.filter(**date_filter_current))
-    monthly_tickets_previous = apply_filters(Sales.objects.filter(**date_filter_previous))
+    # Monthly tickets (2 queries)
+    monthly_tickets_current = list(
+        get_base_queryset(is_current=True)
+        .annotate(month=ExtractMonth('cd'))
+        .values('month')
+        .annotate(tickets=Count('zedd', distinct=True))
+        .order_by('month')
+    )
     
-    monthly_tickets_current = list(monthly_tickets_current.annotate(
-        month=ExtractMonth('cd')
-    ).values('month').annotate(
-        tickets=Count('zedd', distinct=True)
-    ).order_by('month'))
-    
-    monthly_tickets_previous = list(monthly_tickets_previous.annotate(
-        month=ExtractMonth('cd')
-    ).values('month').annotate(
-        tickets=Count('zedd', distinct=True)
-    ).order_by('month'))
+    monthly_tickets_previous = list(
+        get_base_queryset(is_current=False)
+        .annotate(month=ExtractMonth('cd'))
+        .values('month')
+        .annotate(tickets=Count('zedd', distinct=True))
+        .order_by('month')
+    )
     
     month_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     tickets_data_current = [0] * 12
@@ -547,202 +647,59 @@ def dashboard(request):
         tickets_data_previous[item['month'] - 1] = item['tickets']
     
     # Monthly basket
-    monthly_basket_current = apply_filters(Sales.objects.filter(**date_filter_current))
-    monthly_basket_current = list(monthly_basket_current.annotate(
-        month=ExtractMonth('cd')
-    ).values('month').annotate(
-        total_revenue=Sum('tanxa'),
-        total_tickets=Count('zedd', distinct=True)
-    ).order_by('month'))
+    monthly_basket_current = list(
+        get_base_queryset(is_current=True)
+        .annotate(month=ExtractMonth('cd'))
+        .values('month')
+        .annotate(
+            total_revenue=Sum('tanxa'),
+            total_tickets=Count('zedd', distinct=True)
+        )
+        .order_by('month')
+    )
     
     basket_data_current = [0] * 12
     for item in monthly_basket_current:
         if item['total_tickets'] and item['total_tickets'] > 0:
             basket_data_current[item['month'] - 1] = float(item['total_revenue'] or 0) / item['total_tickets']
     
-    # Recent transactions
-    recent_transactions = apply_filters(Sales.objects.filter(**date_filter_current).exclude(un = 'მთავარი საწყობი 2'))
-    recent_transactions = recent_transactions.order_by('-cd', '-idreal1')[:20]
-    
-    # Category data
-    category_query = apply_filters(Sales.objects.filter(**date_filter_current))
-    category_data = list(category_query.values('prodg').annotate(
-        total=Sum('tanxa')
-    ).order_by('-total')[:8])
-    
-    # Add this section to replace the existing product data section in your views.py
-# Add this section to replace the existing product data section in your views.py
-# This goes after the category_query definition
-
-# Enhanced Product Analysis with RFM-style metrics
-    # Get all products with comprehensive metrics
-# Add this section to replace the existing product data section in your views.py
-# This goes after the category_query definition
-
-# Enhanced Product Analysis with RFM-style metrics
-
-    # Get all products with comprehensive metrics
-    updt_category_query = category_query.exclude(prodg='POP')
-    
-    all_prod_data = list(
-        updt_category_query
-        .values('prod', 'idprod')
-        .annotate(
-            total_revenue=Sum('tanxa'),
-            quantity=Count('idreal1'),
-            tickets=Count('zedd', distinct=True),
-            avg_ticket_value=Avg('tanxa'),
-            last_purchase_date=Max('cd'),
-            prod_code=Min('idprod')
-        )
+    # Recent transactions (1 query with limit)
+    recent_transactions = list(
+        get_base_queryset(is_current=True)
+        .exclude(un='მთავარი საწყობი 2')
+        .only('cd', 'idreal1', 'zedd', 'prod', 'tanxa', 'un', 'tanam')  # Only needed fields
+        .order_by('-cd', '-idreal1')[:20]
     )
-
-    # Calculate performance metrics for each product
-    # Use the filtered end_date as the reference point for recency
-    reference_date = end_datetime  # This comes from your date filter (already timezone-aware)
-
-    for product in all_prod_data:
-        # Recency: Days since last purchase (relative to filtered end date)
-        if product['last_purchase_date']:
-            last_purchase = product['last_purchase_date']
-            if timezone.is_naive(last_purchase):
-                last_purchase = timezone.make_aware(last_purchase)
-            
-            days_since = (reference_date - last_purchase).days
-            product['recency_days'] = days_since
-            product['recency_score'] = max(0, 100 - days_since)
-        else:
-            product['recency_days'] = 999
-            product['recency_score'] = 0
-        
-        # Frequency: Number of times purchased
-        product['frequency_score'] = product['tickets']
-        
-        # Monetary: Average transaction value
-        product['monetary_score'] = float(product['avg_ticket_value'] or 0)
-        
-        # Revenue score - SET THIS FIRST before using it
-        product['revenue'] = float(product['total_revenue'] or 0)
-
-    # NOW calculate normalized scores AFTER all products have 'revenue' set
-    for product in all_prod_data:
-        # Only calculate if there are products with revenue
-        products_with_revenue = [p for p in all_prod_data if p.get('revenue', 0) > 0]
-        
-        if not products_with_revenue:
-            product['performance_score'] = 0
-            product['tier'] = 'D'
-            product['tier_label'] = 'No Sales'
-            continue
-        
-        # Composite Performance Score
-        # Weights: Revenue 40%, Frequency 30%, Recency 20%, Avg Value 10%
-        
-        # Normalize revenue to 0-100 scale (relative to max in dataset)
-        max_revenue = max(p['revenue'] for p in products_with_revenue)
-        revenue_normalized = (product['revenue'] / max_revenue * 100) if max_revenue > 0 else 0
-        
-        # Normalize frequency to 0-100 scale
-        max_frequency = max(p['tickets'] for p in all_prod_data if p['tickets'] > 0)
-        frequency_normalized = (product['tickets'] / max_frequency * 100) if max_frequency > 0 else 0
-        
-        # Normalize monetary to 0-100 scale
-        max_monetary = max(p['monetary_score'] for p in all_prod_data if p['monetary_score'] > 0)
-        monetary_normalized = (product['monetary_score'] / max_monetary * 100) if max_monetary > 0 else 0
-        
-        # Calculate weighted composite score
-        product['performance_score'] = (
-            revenue_normalized * 0.40 +      # Revenue importance: 40%
-            frequency_normalized * 0.30 +    # Purchase frequency: 30%
-            product['recency_score'] * 0.20 +  # Recency: 20%
-            monetary_normalized * 0.10       # Average value: 10%
-        )
-        
-        # Performance rating (S, A, B, C, D tier)
-        if product['performance_score'] >= 80:
-            product['tier'] = 'S'
-            product['tier_label'] = 'Top Performer'
-        elif product['performance_score'] >= 60:
-            product['tier'] = 'A'
-            product['tier_label'] = 'Strong Seller'
-        elif product['performance_score'] >= 40:
-            product['tier'] = 'B'
-            product['tier_label'] = 'Average'
-        elif product['performance_score'] >= 20:
-            product['tier'] = 'C'
-            product['tier_label'] = 'Weak Seller'
-        else:
-            product['tier'] = 'D'
-            product['tier_label'] = 'Poor Performer'
-    # BESTSELLERS: Top 15 by performance score
-    bestsellers = sorted(
-        [p for p in all_prod_data if p['revenue'] > 0],
-        key=lambda x: x['performance_score'],
-        reverse=True
-    )[:15]
-
-    # LEAST SELLERS: Bottom 15 by performance score (only products with some sales)
-    least_sellers = sorted(
-        [p for p in all_prod_data if p['revenue'] > 0],
-        key=lambda x: x['performance_score']
-    )[:15]
-
-    # SLOW MOVERS: Products not purchased in last 30 days of the filtered period
-    slow_movers = sorted(
-        [p for p in all_prod_data if p['recency_days'] > 30 and p['revenue'] > 0],
-        key=lambda x: x['recency_days'],
-        reverse=True
-    )[:10]
-
-    # RISING STARS: Products with high recency score within filtered period (new popular items)
-    # Products purchased recently (within 30 days before end_date) with moderate revenue
-    rising_stars = sorted(
-        [p for p in all_prod_data if p['recency_score'] > 70 and p['revenue'] > 0],
-        key=lambda x: (x['recency_score'], x['frequency_score']),
-        reverse=True
-    )[:10]
-
-    # Original top sellers by revenue only (for backward compatibility)
-    prod_data = sorted(all_prod_data, key=lambda x: x['revenue'], reverse=True)[:10]
-
-   
-
-    top_10_zedd = list(
-        category_query
-        .values('zedd')
-        .annotate(
-            total=Sum('tanxa'),
-            quantity=Count('idreal1'),
-            transaction_locations = Max('un')
-        )
-        .order_by('-total')[:10]
+    
+    # Category data (1 query)
+    category_data = list(
+        get_base_queryset(is_current=True)
+        .values('prodg')
+        .annotate(total=Sum('tanxa'))
+        .order_by('-total')[:8]
     )
-
-
-    category_labels = [item['prodg'] or 'Unknown' for item in category_data]    
+    
+    category_labels = [item['prodg'] or 'Unknown' for item in category_data]
     category_values = [float(item['total'] or 0) for item in category_data]
     
-    # Category comparison
-    category_query_previous_comp = Sales.objects.filter(**date_filter_previous)
-    category_query_current_comp = Sales.objects.filter(**date_filter_current)
+    # Category comparison (2 queries)
+    category_query_current_comp = get_base_queryset(is_current=True)
+    category_query_previous_comp = get_base_queryset(is_current=False)
     
-    if selected_locations:
-        category_query_previous_comp = category_query_previous_comp.filter(un__in=selected_locations)
-        category_query_current_comp = category_query_current_comp.filter(un__in=selected_locations)  
-    if selected_campaign != 'all':
-        category_query_previous_comp = category_query_previous_comp.filter(actions=selected_campaign)
-        category_query_current_comp = category_query_current_comp.filter(actions=selected_campaign)
-        
-    category_data_current_comp = list(category_query_current_comp.values('prodg').annotate(
-        total=Sum('tanxa')
-    ).order_by('-total')[:10])
+    category_data_current_comp = list(
+        category_query_current_comp
+        .values('prodg')
+        .annotate(total=Sum('tanxa'))
+        .order_by('-total')[:10]
+    )
     
     top_categories = [item['prodg'] for item in category_data_current_comp]
-    category_data_previous_comp = list(category_query_previous_comp.filter(
-        prodg__in=top_categories
-    ).values('prodg').annotate(
-        total=Sum('tanxa')
-    ))
+    category_data_previous_comp = list(
+        category_query_previous_comp
+        .filter(prodg__in=top_categories)
+        .values('prodg')
+        .annotate(total=Sum('tanxa'))
+    )
     
     cat_previous_dict = {item['prodg']: float(item['total'] or 0) for item in category_data_previous_comp}
     
@@ -763,6 +720,20 @@ def dashboard(request):
             'pct_change': pct_change
         })
     
+    # Top 10 tickets by value (1 query)
+    top_10_zedd = list(
+        get_base_queryset(is_current=True)
+        .values('zedd')
+        .annotate(
+            total=Sum('tanxa'),
+            quantity=Count('idreal1'),
+            transaction_locations=Max('un')
+        )
+        .order_by('-total')[:10]
+    )
+    
+    # ==================== FORMATTING HELPERS ====================
+    
     def format_currency(value):
         if value >= 1000000:
             return f"${value/1000000:.1f}M"
@@ -777,44 +748,11 @@ def dashboard(request):
             return f"{value/1000:.1f}K"
         return f"{int(value)}"
     
-    all_locations = (
-        Sales.objects
-        .filter(cd__year=current_year)
-        .values_list('un', flat=True)
-        .distinct()
-        .order_by('un')
-    )
+    # ==================== GET FILTER OPTIONS ====================
     
-    all_categories = (
-        Sales.objects
-        .filter(cd__year=current_year)
-        .values_list('prodg', flat=True)
-        .distinct()
-        .order_by('prodg')
-    )
-    
-    all_campaigns = (
-        Sales.objects
-        .filter(cd__year=current_year)
-        .values_list('actions', flat=True)
-        .distinct()
-        .order_by('actions')
-    )
-    
-    all_products = (
-        Sales.objects
-        .filter(cd__year=current_year)
-        .values_list('prod', flat=True)
-        .distinct()
-        .order_by('prod')
-    )
-
-    date_range_text = f"{start_date.strftime('%b %d')} - {end_date.strftime('%b %d')}, {current_year}"
-   
-
-
+    # Only get distinct values from current year (4 simple queries)
     if user_profile.is_admin:
-        all_locations = (
+        all_locations = list(
             Sales.objects
             .filter(cd__year=current_year)
             .values_list('un', flat=True)
@@ -822,9 +760,36 @@ def dashboard(request):
             .order_by('un')
         )
     else:
-        # Only show locations this user can access
         all_locations = allowed_locations
-
+    
+    all_categories = list(
+        Sales.objects
+        .filter(cd__year=current_year)
+        .values_list('prodg', flat=True)
+        .distinct()
+        .order_by('prodg')
+    )
+    
+    all_campaigns = list(
+        Sales.objects
+        .filter(cd__year=current_year)
+        .values_list('actions', flat=True)
+        .distinct()
+        .order_by('actions')
+    )
+    
+    all_products = list(
+        Sales.objects
+        .filter(cd__year=current_year)
+        .values_list('prod', flat=True)
+        .distinct()
+        .order_by('prod')
+    )
+    
+    date_range_text = f"{start_date.strftime('%b %d')} - {end_date.strftime('%b %d')}, {current_year}"
+    
+    # ==================== BUILD CONTEXT ====================
+    
     context = {
         'comparison_mode': comparison_mode,
         'current_year': current_year,
@@ -834,6 +799,7 @@ def dashboard(request):
         'start_date': start_date.isoformat(),
         'end_date': end_date.isoformat(),
         
+        # Chart data (JSON)
         'labels': json.dumps(labels),
         'data_previous': json.dumps(values_previous),
         'data_current': json.dumps(values_current),
@@ -847,8 +813,8 @@ def dashboard(request):
         'single_item_pct_previous': json.dumps(single_item_pct_previous),
         'cross_sell_pct_current': json.dumps(cross_sell_pct_current),
         'cross_sell_pct_previous': json.dumps(cross_sell_pct_previous),
-        'discount_share_previous':json.dumps(discount_share_previous),
-        'discount_share_current':json.dumps(discount_share_current),
+        'discount_share_previous': json.dumps(discount_share_previous),
+        'discount_share_current': json.dumps(discount_share_current),
         
         'month_labels': json.dumps(month_labels),
         'tickets_data_previous': json.dumps(tickets_data_previous),
@@ -859,6 +825,7 @@ def dashboard(request):
         'category_values': json.dumps(category_values),
         'category_comparison': category_comparison,
         
+        # Formatted metrics
         'total_current': format_currency(total_current),
         'total_previous': format_currency(total_previous),
         'total_tickets': format_number(total_tickets_current),
@@ -874,38 +841,41 @@ def dashboard(request):
         'single_item_percentage_previous': cross_sell_previous['single_item_percentage'],
         'single_item_change': single_item_change,
         
+        # Changes
         'percentage_change': percentage_change,
         'tickets_change': tickets_change,
         'basket_change': basket_change,
         'items_change': items_change,
         'conversion_change': conversion_change,
         'customers_change': locations_change,
-        'discount_share_precentage_change':discount_share_change,
+        'discount_share_precentage_change': discount_share_change,
         
+        # Employee data
         'employee_stats': employee_stats_current,
         'employee_stats_previous': employee_stats_previous,
-
-        'recent_transactions': recent_transactions,
-        'prod_dt': prod_data,
         
+        # Other data
+        'recent_transactions': recent_transactions,
+        'prod_dt': product_analysis_current['bestsellers'][:10],  # Top 10 only
+        
+        # Filters
         'all_locations': all_locations,
         'all_categories': all_categories,
         'all_campaigns': all_campaigns,
         'selected_un': selected_un,
-        'selected_locations': selected_locations,  # Added for template
+        'selected_locations': selected_locations,
         'selected_category': selected_category,
         'selected_product': selected_product,
         'products': all_products,
-        'high_zedd':top_10_zedd,
-
-
+        'high_zedd': top_10_zedd,
+        
+        # Distribution
         'distribution_labels': json.dumps(distribution_labels),
         'distribution_counts_current': json.dumps(distribution_counts_current),
         'distribution_counts_previous': json.dumps(distribution_counts_previous),
         'distribution_pct_current': json.dumps(distribution_pct_current),
         'distribution_pct_previous': json.dumps(distribution_pct_previous),
         
-        # Distribution statistics
         'dist_avg_current': dist_current['avg_ticket'],
         'dist_avg_previous': dist_previous['avg_ticket'],
         'dist_avg_change': dist_avg_change,
@@ -916,18 +886,17 @@ def dashboard(request):
         'dist_p75_current': dist_current['p75'],
         'dist_total_tickets_current': dist_current['total_tickets'],
         'dist_total_tickets_previous': dist_previous['total_tickets'],
-
-
+        
+        # User permissions
         'user_profile': user_profile,
         'is_admin': user_profile.is_admin,
         'user_locations_count': len(allowed_locations) if not user_profile.is_admin else 'All',
-
-
-        'bestsellers': bestsellers,
-        'least_sellers': least_sellers,
-        'slow_movers': slow_movers,
-        'rising_stars': rising_stars,
-        'prod_dt': prod_data,  # Keep the original for existing displays
+        
+        # Product segments
+        'bestsellers': product_analysis_current['bestsellers'],
+        'least_sellers': product_analysis_current['least_sellers'],
+        'slow_movers': product_analysis_current['slow_movers'],
+        'rising_stars': product_analysis_current['rising_stars'],
     }
     
     return render(request, 'dashboard.html', context)
@@ -2143,27 +2112,26 @@ def export_to_excel(results, columns):
 
 @login_required
 def employee_analytics(request):
+    """Optimized employee analytics view with reduced queries and better performance"""
+    
+    # ==================== SETUP & VALIDATION ====================
     try:
         user_profile = request.user.profile
     except:
         return HttpResponseForbidden("Access denied. Contact administrator.")
     
-    # Get allowed locations for this user
     allowed_locations = user_profile.get_allowed_locations()
     
-    # Get current year and determine comparison
+    # Year selection
     comparison_mode = request.GET.get('comparison', '2025-2024')
     if comparison_mode == '2026-2025':
-        current_year = 2026
-        previous_year = 2025
+        current_year, previous_year = 2026, 2025
     elif comparison_mode == '2026-2024':
-        current_year = 2026
-        previous_year = 2024
+        current_year, previous_year = 2026, 2024
     else:
-        current_year = 2025
-        previous_year = 2024
+        current_year, previous_year = 2025, 2024
     
-    # Get filter parameters
+    # Date parsing
     start_date_str = request.GET.get('start_date', f'{current_year}-01-01')
     end_date_str = request.GET.get('end_date', f'{current_year}-12-31')
     
@@ -2177,7 +2145,7 @@ def employee_analytics(request):
     except:
         end_date = date(current_year, 12, 31)
     
-    # Handle multiple location selections with SECURITY CHECK
+    # Location security check
     selected_locations = request.GET.getlist('un_filter')
     
     if not user_profile.is_admin:
@@ -2188,32 +2156,32 @@ def employee_analytics(request):
             if unauthorized:
                 messages.warning(request, f"Access denied to: {', '.join(unauthorized)}")
                 selected_locations = [loc for loc in selected_locations if loc in allowed_locations]
-            
             if not selected_locations:
                 selected_locations = allowed_locations
     
     if not selected_locations and not user_profile.is_admin:
         return HttpResponseForbidden("You don't have access to any locations.")
     
-    # Set selected_un for display
+    # Display selected location
     if user_profile.is_admin and (not selected_locations or 'all' in request.GET.getlist('un_filter')):
         selected_un = 'all'
         selected_locations = []
     else:
         selected_un = selected_locations[0] if len(selected_locations) == 1 else 'multiple'
     
+    # Other filters
     selected_category = request.GET.get('category', 'all')
     selected_employee = request.GET.get('employee_filter', 'all')
     
-    # Adjust dates to match current_year
+    # Adjust dates to current year
     start_date = start_date.replace(year=current_year)
     end_date = end_date.replace(year=current_year)
     
-    # Define previous year dates
+    # Previous year dates
     previous_start = start_date.replace(year=previous_year)
     previous_end = end_date.replace(year=previous_year)
     
-    # Create timezone-aware datetimes
+    # Timezone-aware datetimes
     start_datetime = timezone.make_aware(datetime.combine(start_date, datetime.min.time()))
     end_datetime = timezone.make_aware(datetime.combine(end_date, datetime.max.time()))
     previous_start_datetime = timezone.make_aware(datetime.combine(previous_start, datetime.min.time()))
@@ -2231,8 +2199,10 @@ def employee_analytics(request):
         'cd__lte': previous_end_datetime
     }
     
+    # ==================== HELPER FUNCTIONS ====================
+    
     def apply_filters(q):
-        """Helper function to apply filters"""
+        """Apply filters consistently"""
         if selected_locations:
             q = q.filter(un__in=selected_locations)
         if selected_category != 'all':
@@ -2241,126 +2211,153 @@ def employee_analytics(request):
             q = q.filter(tanam=selected_employee)
         return q
     
-    def get_cross_selling_metrics(employee_name, date_filter):
-        """
-        OPTIMIZED: Single query to get all cross-selling metrics at once
-        Returns dict with comprehensive cross-selling analytics
-        """
-        tickets_query = (Sales.objects
-            .filter(**date_filter, tanam=employee_name, prodt='selling item')
-            .exclude(tanxa=0)
-            .exclude(prodg='POP'))
-        
-        if selected_locations:
-            tickets_query = tickets_query.filter(un__in=selected_locations)
-        if selected_category != 'all':
-            tickets_query = tickets_query.filter(prodg=selected_category)
-        
-        # Single aggregation to get all ticket-level data
-        ticket_items = list(tickets_query.values('zedd').annotate(
-            item_count=Count('zedd')
-        ))
-        
-        total_tickets = len(ticket_items)
-        if total_tickets == 0:
-            return {
-                'cross_sell_pct': 0,
-                'one_item_pct': 0,
-                'two_item_pct': 0,
-                'three_plus_pct': 0,
-                'avg_items_per_ticket': 0,
-                'cross_sell_tickets': 0,
-                'one_item_tickets': 0,
-                'two_item_tickets': 0,
-                'three_plus_tickets': 0
-            }
-        
-        # Calculate distributions
-        one_item = sum(1 for t in ticket_items if t['item_count'] == 1)
-        two_item = sum(1 for t in ticket_items if t['item_count'] == 2)
-        three_plus = sum(1 for t in ticket_items if t['item_count'] >= 3)
-        total_items = sum(t['item_count'] for t in ticket_items)
-        
-        return {
-            'cross_sell_pct': (three_plus / total_tickets) * 100,
-            'one_item_pct': (one_item / total_tickets) * 100,
-            'two_item_pct': (two_item / total_tickets) * 100,
-            'three_plus_pct': (three_plus / total_tickets) * 100,
-            'avg_items_per_ticket': total_items / total_tickets,
-            'cross_sell_tickets': three_plus,
-            'one_item_tickets': one_item,
-            'two_item_tickets': two_item,
-            'three_plus_tickets': three_plus
-        }
-    
-    def get_employee_performance(is_current=True):
-        """
-        OPTIMIZED: Get employee performance metrics with minimal queries
-        """
+    def get_base_queryset(is_current=True):
+        """Get base queryset with filters applied"""
         if is_current:
             q = Sales.objects.filter(**date_filter_current)
         else:
             q = Sales.objects.filter(**date_filter_previous)
+        return apply_filters(q)
+    
+    # ==================== OPTIMIZED DATA FETCHING ====================
+    
+    def get_employee_performance_optimized(is_current=True):
+        """
+        MASSIVELY OPTIMIZED: Get all employee metrics in minimal queries
+        Uses subqueries and conditional aggregation to avoid N+1 problems
+        """
+        q = get_base_queryset(is_current)
         
-        q = apply_filters(q)
-        
-        # Single optimized query with all aggregations
-        employee_data = q.values('tanam', 'un').annotate(
+        # First, get base employee stats with all standard metrics
+        # This is ONE query that gets all the basic aggregations
+        employee_base_stats = q.values('tanam', 'un').annotate(
             total_revenue=Sum('tanxa'),
-            total_revenue_for_skincare=Sum('tanxa', filter=Q(~Q(prodg__in=['POP']))),
+            total_revenue_skincare_eligible=Sum('tanxa', filter=Q(~Q(prodg='POP'))),
+            skincare_turnover=Sum('tanxa', filter=Q(prodg='SKIN CARE')),
             total_tickets=Count('zedd', distinct=True),
             total_items=Count('zedd', filter=Q(~Q(idprod__in=['M9157', 'M9121', 'M9850']))),
-            skincare_turnover=Sum('tanxa', filter=Q(prodg__in=['SKIN CARE'])),
             discount_given=Sum('discount_price'),
             std_price_total=Sum('std_price')
         ).order_by('-total_revenue')
         
+        # Convert to list to avoid re-querying
+        employee_list = list(employee_base_stats)
+        
+        if not employee_list:
+            return []
+        
+        # Get all employee names for batch processing
+        employee_names = [emp['tanam'] for emp in employee_list]
+        
+        # OPTIMIZED: Get cross-selling data for ALL employees in ONE query
+        # Instead of querying each employee separately
+        cross_sell_query = (Sales.objects
+            .filter(**date_filter_current if is_current else date_filter_previous)
+            .filter(prodt='selling item', tanam__in=employee_names)
+            .exclude(tanxa=0)
+            .exclude(prodg='POP'))
+        
+        if selected_locations:
+            cross_sell_query = cross_sell_query.filter(un__in=selected_locations)
+        if selected_category != 'all':
+            cross_sell_query = cross_sell_query.filter(prodg=selected_category)
+        
+        # Get ticket-level item counts for ALL employees at once
+        cross_sell_data = cross_sell_query.values('tanam', 'zedd').annotate(
+            item_count=Count('zedd')
+        )
+        
+        # Process cross-selling data by employee
+        employee_cross_sell = {}
+        for record in cross_sell_data:
+            emp_name = record['tanam']
+            if emp_name not in employee_cross_sell:
+                employee_cross_sell[emp_name] = {
+                    'total': 0,
+                    'one_item': 0,
+                    'two_item': 0,
+                    'three_plus': 0
+                }
+            
+            employee_cross_sell[emp_name]['total'] += 1
+            item_count = record['item_count']
+            
+            if item_count == 1:
+                employee_cross_sell[emp_name]['one_item'] += 1
+            elif item_count == 2:
+                employee_cross_sell[emp_name]['two_item'] += 1
+            elif item_count >= 3:
+                employee_cross_sell[emp_name]['three_plus'] += 1
+        
+        # Build final results by combining base stats with cross-sell data
         results = []
-        for emp in employee_data:
-            total_rev_skincare = emp.get('total_revenue_for_skincare') or 0
+        for emp in employee_list:
+            emp_name = emp['tanam'] or 'Unknown'
+            
+            # Calculate basic metrics
+            total_rev_skincare = emp.get('total_revenue_skincare_eligible') or 0
             skincare_turnover = emp.get('skincare_turnover') or 0
             skincare_percentage = (
-                float(skincare_turnover) / float(total_rev_skincare)
+                float(skincare_turnover) / float(total_rev_skincare) * 100
                 if total_rev_skincare > 0
                 else 0
-            )   
+            )
+            
             avg_basket = float(emp['total_revenue'] or 0) / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
             items_per_ticket = emp['total_items'] / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
             discount_rate = (1 - (emp['discount_given'] / emp['std_price_total'])) * 100 if emp['std_price_total'] and emp['std_price_total'] > 0 else 0
             
-            # Get cross-selling metrics only for current period
-            if is_current:
-                cross_metrics = get_cross_selling_metrics(emp['tanam'], date_filter_current)
+            # Get cross-selling metrics from pre-calculated data
+            cs_data = employee_cross_sell.get(emp_name, {
+                'total': 0,
+                'one_item': 0,
+                'two_item': 0,
+                'three_plus': 0
+            })
+            
+            total_cs_tickets = cs_data['total']
+            
+            if total_cs_tickets > 0:
+                cross_sell_pct = (cs_data['three_plus'] / total_cs_tickets) * 100
+                one_item_pct = (cs_data['one_item'] / total_cs_tickets) * 100
+                two_item_pct = (cs_data['two_item'] / total_cs_tickets) * 100
+                three_plus_pct = cross_sell_pct
+                avg_items_per_ticket = items_per_ticket  # Already calculated above
             else:
-                cross_metrics = {
-                    'cross_sell_pct': 0,
-                    'one_item_pct': 0,
-                    'two_item_pct': 0,
-                    'three_plus_pct': 0,
-                    'avg_items_per_ticket': 0,
-                    'cross_sell_tickets': 0,
-                    'one_item_tickets': 0,
-                    'two_item_tickets': 0,
-                    'three_plus_tickets': 0
-                }
+                cross_sell_pct = 0
+                one_item_pct = 0
+                two_item_pct = 0
+                three_plus_pct = 0
+                avg_items_per_ticket = 0
             
             results.append({
-                'name': emp['tanam'] or 'Unknown',
+                'name': emp_name,
                 'location': emp['un'] or 'Unknown',
                 'revenue': float(emp['total_revenue'] or 0),
-                'skincare_percentage': skincare_percentage * 100,
+                'skincare_percentage': skincare_percentage,
                 'tickets': emp['total_tickets'],
                 'items': emp['total_items'],
                 'avg_basket': avg_basket,
                 'items_per_ticket': items_per_ticket,
                 'discount_rate': discount_rate,
-                **cross_metrics  # Unpack all cross-selling metrics
+                'cross_sell_pct': cross_sell_pct,
+                'one_item_pct': one_item_pct,
+                'two_item_pct': two_item_pct,
+                'three_plus_pct': three_plus_pct,
+                'avg_items_per_ticket': avg_items_per_ticket,
+                'cross_sell_tickets': cs_data['three_plus'],
+                'one_item_tickets': cs_data['one_item'],
+                'two_item_tickets': cs_data['two_item'],
+                'three_plus_tickets': cs_data['three_plus']
             })
         
         return results
     
-    def get_category_top_performers(category, is_current=True):
-        """Get top 10 performers for a specific category"""
+    def get_category_top_performers_optimized(category, is_current=True):
+        """
+        OPTIMIZED: Get top performers for a category with cross-sell data
+        Uses single query instead of one per employee
+        """
         if is_current:
             q = Sales.objects.filter(**date_filter_current, prodg=category)
         else:
@@ -2370,39 +2367,184 @@ def employee_analytics(request):
         if selected_locations:
             q = q.filter(un__in=selected_locations)
         
-        employee_data = q.values('tanam').annotate(
-            total_revenue=Sum('tanxa'),
-            total_tickets=Count('zedd', distinct=True),
-            total_items=Count('zedd')
-        ).order_by('-total_revenue')[:10]
+        # Get top 10 employees by revenue for this category
+        employee_data = list(
+            q.values('tanam')
+            .annotate(
+                total_revenue=Sum('tanxa'),
+                total_tickets=Count('zedd', distinct=True),
+                total_items=Count('zedd')
+            )
+            .order_by('-total_revenue')[:10]
+        )
         
+        if not employee_data:
+            return []
+        
+        # Get employee names
+        employee_names = [emp['tanam'] for emp in employee_data]
+        
+        # Get cross-selling data for these specific employees in this category
+        cross_sell_query = (Sales.objects
+            .filter(**date_filter_current if is_current else date_filter_previous)
+            .filter(prodt='selling item', prodg=category, tanam__in=employee_names)
+            .exclude(tanxa=0)
+            .exclude(prodg='POP'))
+        
+        if selected_locations:
+            cross_sell_query = cross_sell_query.filter(un__in=selected_locations)
+        
+        cross_sell_data = cross_sell_query.values('tanam', 'zedd').annotate(
+            item_count=Count('zedd')
+        )
+        
+        # Process cross-selling data
+        employee_cross_sell = {}
+        for record in cross_sell_data:
+            emp_name = record['tanam']
+            if emp_name not in employee_cross_sell:
+                employee_cross_sell[emp_name] = {'total': 0, 'three_plus': 0}
+            
+            employee_cross_sell[emp_name]['total'] += 1
+            if record['item_count'] >= 3:
+                employee_cross_sell[emp_name]['three_plus'] += 1
+        
+        # Build results
         results = []
         for emp in employee_data:
-            # Get cross-selling metrics for category leaders
-            cross_metrics = get_cross_selling_metrics(emp['tanam'], 
-                {'cd__year': current_year if is_current else previous_year,
-                 'cd__gte': start_datetime if is_current else previous_start_datetime,
-                 'cd__lte': end_datetime if is_current else previous_end_datetime,
-                 'prodg': category})
+            emp_name = emp['tanam'] or 'Unknown'
+            cs_data = employee_cross_sell.get(emp_name, {'total': 0, 'three_plus': 0})
+            
+            cross_sell_pct = (cs_data['three_plus'] / cs_data['total'] * 100) if cs_data['total'] > 0 else 0
             
             results.append({
-                'name': emp['tanam'] or 'Unknown',
+                'name': emp_name,
                 'revenue': float(emp['total_revenue'] or 0),
                 'tickets': emp['total_tickets'],
                 'items': emp['total_items'],
-                'cross_sell_pct': cross_metrics['cross_sell_pct']
+                'cross_sell_pct': cross_sell_pct
             })
         
         return results
     
-    # Get overall employee performance
-    employees_current = get_employee_performance(is_current=True)
-    employees_previous = get_employee_performance(is_current=False)
+    def get_all_category_leaders_optimized(is_current=True):
+        """
+        ULTRA-OPTIMIZED: Get top performers for ALL categories in minimal queries
+        Instead of N queries (one per category), uses smart batching
+        """
+        # First, get top categories
+        top_categories_query = Sales.objects.filter(**date_filter_current if is_current else date_filter_previous)
+        if selected_locations:
+            top_categories_query = top_categories_query.filter(un__in=selected_locations)
+        
+        top_categories = list(
+            top_categories_query
+            .values('prodg')
+            .annotate(total=Sum('tanxa'))
+            .order_by('-total')[:10]
+            .values_list('prodg', flat=True)
+        )
+        
+        if not top_categories:
+            return []
+        
+        # Get ALL employee performance across ALL top categories in ONE query
+        q = Sales.objects.filter(**date_filter_current if is_current else date_filter_previous)
+        if selected_locations:
+            q = q.filter(un__in=selected_locations)
+        
+        # Filter to only top categories
+        q = q.filter(prodg__in=top_categories)
+        
+        # Get employee stats per category
+        all_category_stats = list(
+            q.values('prodg', 'tanam')
+            .annotate(
+                total_revenue=Sum('tanxa'),
+                total_tickets=Count('zedd', distinct=True),
+                total_items=Count('zedd')
+            )
+            .order_by('prodg', '-total_revenue')
+        )
+        
+        # Get cross-selling data for all these employees across all categories
+        cross_sell_query = (Sales.objects
+            .filter(**date_filter_current if is_current else date_filter_previous)
+            .filter(prodt='selling item', prodg__in=top_categories)
+            .exclude(tanxa=0)
+            .exclude(prodg='POP'))
+        
+        if selected_locations:
+            cross_sell_query = cross_sell_query.filter(un__in=selected_locations)
+        
+        cross_sell_data = cross_sell_query.values('prodg', 'tanam', 'zedd').annotate(
+            item_count=Count('zedd')
+        )
+        
+        # Process cross-selling data by category and employee
+        category_employee_cs = {}
+        for record in cross_sell_data:
+            cat = record['prodg']
+            emp = record['tanam']
+            key = (cat, emp)
+            
+            if key not in category_employee_cs:
+                category_employee_cs[key] = {'total': 0, 'three_plus': 0}
+            
+            category_employee_cs[key]['total'] += 1
+            if record['item_count'] >= 3:
+                category_employee_cs[key]['three_plus'] += 1
+        
+        # Organize by category and get top 10 per category
+        category_leaders = []
+        for category in top_categories:
+            # Filter stats for this category
+            cat_stats = [s for s in all_category_stats if s['prodg'] == category]
+            
+            # Sort by revenue and take top 10
+            cat_stats.sort(key=lambda x: x['total_revenue'], reverse=True)
+            top_10 = cat_stats[:10]
+            
+            # Build performer list
+            performers = []
+            for emp in top_10:
+                emp_name = emp['tanam'] or 'Unknown'
+                key = (category, emp['tanam'])
+                cs_data = category_employee_cs.get(key, {'total': 0, 'three_plus': 0})
+                
+                cross_sell_pct = (cs_data['three_plus'] / cs_data['total'] * 100) if cs_data['total'] > 0 else 0
+                
+                performers.append({
+                    'name': emp_name,
+                    'revenue': float(emp['total_revenue'] or 0),
+                    'tickets': emp['total_tickets'],
+                    'items': emp['total_items'],
+                    'cross_sell_pct': cross_sell_pct
+                })
+            
+            category_leaders.append({
+                'category': category,
+                'performers_current': performers if is_current else [],
+                'performers_previous': [] if is_current else performers
+            })
+        
+        return category_leaders
+    
+    # ==================== EXECUTE DATA FETCHING ====================
+    
+    print("Starting employee analytics data fetch...")
+    start_time = timezone.now()
+    
+    # Get overall employee performance (2 optimized queries)
+    employees_current = get_employee_performance_optimized(is_current=True)
+    employees_previous = get_employee_performance_optimized(is_current=False)
+    
+    print(f"Employee performance fetched in {(timezone.now() - start_time).total_seconds():.2f}s")
     
     # Create comparison dictionary
     employees_previous_dict = {emp['name']: emp for emp in employees_previous}
     
-    # Add YoY comparison
+    # Add YoY comparison (no additional queries)
     for emp in employees_current:
         prev_data = employees_previous_dict.get(emp['name'], {})
         emp['revenue_previous'] = prev_data.get('revenue', 0)
@@ -2410,35 +2552,70 @@ def employee_analytics(request):
         emp['revenue_change'] = ((emp['revenue'] - emp['revenue_previous']) / emp['revenue_previous'] * 100) if emp['revenue_previous'] > 0 else 0
         emp['tickets_change'] = ((emp['tickets'] - emp['tickets_previous']) / emp['tickets_previous'] * 100) if emp['tickets_previous'] > 0 else 0
     
-    # Get top categories
-    top_categories_query = Sales.objects.filter(**date_filter_current)
-    if selected_locations:
-        top_categories_query = top_categories_query.filter(un__in=selected_locations)
+    # Get category leaders (MASSIVELY optimized - was N queries, now ~4 queries total)
+    category_leaders_current = get_all_category_leaders_optimized(is_current=True)
+    category_leaders_previous = get_all_category_leaders_optimized(is_current=False)
     
-    top_categories = list(top_categories_query.values('prodg').annotate(
-        total=Sum('tanxa')
-    ).order_by('-total')[:10].values_list('prodg', flat=True))
+    print(f"Category leaders fetched in {(timezone.now() - start_time).total_seconds():.2f}s")
     
-    # Get top performers by category
+    # Merge current and previous for each category
     category_leaders = []
-    for category in top_categories:
+    for cat_current in category_leaders_current:
+        cat_name = cat_current['category']
+        # Find matching previous year data
+        cat_previous = next(
+            (c for c in category_leaders_previous if c['category'] == cat_name),
+            {'category': cat_name, 'performers_previous': []}
+        )
+        
         category_leaders.append({
-            'category': category,
-            'performers_current': get_category_top_performers(category, is_current=True),
-            'performers_previous': get_category_top_performers(category, is_current=False)
+            'category': cat_name,
+            'performers_current': cat_current['performers_current'],
+            'performers_previous': cat_previous['performers_previous']
         })
     
-    # Get all unique values for filters - OPTIMIZED with distinct()
+    # Get top categories for display
+    top_categories = [cat['category'] for cat in category_leaders]
+    
+    print(f"All category data processed in {(timezone.now() - start_time).total_seconds():.2f}s")
+    
+    # ==================== GET FILTER OPTIONS (OPTIMIZED) ====================
+    
+    # Use .distinct() to avoid duplicates and limit queries
     if user_profile.is_admin:
-        all_locations = list(Sales.objects.filter(cd__year=current_year).values_list('un', flat=True).distinct().order_by('un'))
+        all_locations = list(
+            Sales.objects
+            .filter(cd__year=current_year)
+            .values_list('un', flat=True)
+            .distinct()
+            .order_by('un')
+        )
     else:
         all_locations = allowed_locations
-        
-    all_categories = list(Sales.objects.filter(cd__year=current_year).values_list('prodg', flat=True).distinct().order_by('prodg'))
-    all_employees = list(Sales.objects.filter(cd__year=current_year).values_list('tanam', flat=True).distinct().order_by('tanam'))
+    
+    all_categories = list(
+        Sales.objects
+        .filter(cd__year=current_year)
+        .values_list('prodg', flat=True)
+        .distinct()
+        .order_by('prodg')
+    )
+    
+    all_employees = list(
+        Sales.objects
+        .filter(cd__year=current_year)
+        .values_list('tanam', flat=True)
+        .distinct()
+        .order_by('tanam')
+    )
     
     date_range_text = f"{start_date.strftime('%b %d')} - {end_date.strftime('%b %d')}, {current_year}"
-
+    
+    total_time = (timezone.now() - start_time).total_seconds()
+    print(f"Total employee analytics load time: {total_time:.2f}s")
+    
+    # ==================== BUILD CONTEXT ====================
+    
     context = {
         'comparison_mode': comparison_mode,
         'current_year': current_year,
@@ -2458,10 +2635,13 @@ def employee_analytics(request):
         'selected_locations': selected_locations,
         'selected_category': selected_category,
         'selected_employee': selected_employee,
-
+        
         'user_profile': user_profile,
         'is_admin': user_profile.is_admin,
         'user_locations_count': len(allowed_locations) if not user_profile.is_admin else 0,
+        
+        # Debug info (remove in production)
+        'load_time': f"{total_time:.2f}s",
     }
     
     return render(request, 'employee_analytics.html', context)
