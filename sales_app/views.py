@@ -1,4 +1,6 @@
 import json
+import pandas as pd
+from openpyxl import Workbook, load_workbook
 from django.shortcuts import render
 from .models import Sales
 from django.db.models import Sum, Count, Avg, FloatField, ExpressionWrapper, F, Q, Min,OuterRef, Max
@@ -903,8 +905,7 @@ def dashboard(request):
 
 @login_required
 def plan_workflow(request):
-    import pandas as pd
-    from openpyxl import Workbook, load_workbook
+
     try:
         user_profile = request.user.profile
     except:
@@ -1561,8 +1562,6 @@ def plan_workflow(request):
 
 @login_required
 def export_location_csv(request):    
-    import pandas as pd
-    from openpyxl import Workbook, load_workbook
     try:
         user_profile = request.user.profile
     except:
@@ -2040,9 +2039,6 @@ def query(request):
     return render(request, 'query.html', context)
 
 def export_to_excel(results, columns):
-    """Export query results to Excel with formatting"""
-    import pandas as pd
-    from openpyxl import Workbook, load_workbook
     # Create workbook and worksheet
     wb = Workbook()
     ws = wb.active
