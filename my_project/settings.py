@@ -23,14 +23,29 @@ SECRET_KEY = os.environ.get(
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 DEBUG = ENVIRONMENT != "production"
 
-# FIX 3: Proper ALLOWED_HOSTS configuration
-if ENVIRONMENT == "production":
-    ALLOWED_HOSTS = os.environ.get(
-        "ALLOWED_HOSTS",
-        "yr-dep-ss.onrender.com,.onrender.com"
-    ).split(",")
+IS_RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "production" if IS_RENDER else "local")
+
+DEBUG = ENVIRONMENT != "production"
+
+# ALLOWED_HOSTS configuration
+if ENVIRONMENT == "production" or IS_RENDER:
+    # Production mode or on Render
+    ALLOWED_HOSTS = [
+        'yr-dep-ss.onrender.com',
+        '.onrender.com',  # Allow all Render subdomains
+        '127.0.0.1',      # Keep localhost for health checks
+        'localhost'
+    ]
 else:
+    # Local development
     ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
+print(f"🔧 ENVIRONMENT: {ENVIRONMENT}")
+print(f"🔧 IS_RENDER: {IS_RENDER}")
+print(f"🔧 DEBUG: {DEBUG}")
+print(f"🔧 ALLOWED_HOSTS: {ALLOWED_HOSTS}")
+
 
 
 # Application definition
