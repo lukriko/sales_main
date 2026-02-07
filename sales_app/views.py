@@ -903,6 +903,8 @@ def dashboard(request):
 
 @login_required
 def plan_workflow(request):
+    import pandas as pd
+    from openpyxl import Workbook, load_workbook
     try:
         user_profile = request.user.profile
     except:
