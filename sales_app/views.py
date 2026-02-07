@@ -26,7 +26,10 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.db.models import Prefetch
 
+from sales_app.decorators import cache_dashboard_view
 
+
+@cache_dashboard_view(timeout=900)
 @login_required
 def dashboard(request):
     """Optimized dashboard view with reduced queries and better performance"""
@@ -669,7 +672,7 @@ def dashboard(request):
     recent_transactions = list(
         get_base_queryset(is_current=True)
         .exclude(un='მთავარი საწყობი 2')
-        .only('cd', 'idreal1', 'zedd', 'prod', 'tanxa', 'un', 'tanam')  # Only needed fields
+        .values('cd', 'idreal1', 'zedd', 'prod', 'tanxa', 'un', 'tanam')  # Changed
         .order_by('-cd', '-idreal1')[:20]
     )
     

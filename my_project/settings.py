@@ -69,6 +69,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'sales_app.middleware.QueryTimingMiddleware', 
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'sales_app.middleware.LocationAccessMiddleware',
 ]
@@ -105,22 +106,33 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     # Production: Use DATABASE_URL from Render
     DATABASES = {
-        'default': dj_database_url.parse(
+    'default': dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=60,  # Connection pooling
-            ssl_require=True  # Render requires SSL
+            conn_max_age=600,  # Changed from 60 to 600
+            ssl_require=True
         )
+    }
+
+    # Add these immediately after:
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+        'options': '-c statement_timeout=30000',
     }
 else:
     # Local development
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME', 'main_db'),
-            'USER': os.environ.get('DB_USER', 'postgres'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', 'overall'),
-            'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('PGDATABASE'),
+        'USER': os.getenv('PGUSER'),
+        'PASSWORD': os.getenv('PGPASSWORD'),
+        'HOST': os.getenv('PGHOST'),
+        'PORT': os.getenv('PGPORT', 5432),
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'options': '-c statement_timeout=300000',  # 5 minutes (was 2 min)
+        },
+        'CONN_MAX_AGE': 600,  # Reuse connections
         }
     }
 
@@ -204,14 +216,14 @@ if ENVIRONMENT == "production":
                     "OPTIONS": {
                         "CLIENT_CLASS": "django_redis.client.DefaultClient",
                         "CONNECTION_POOL_KWARGS": {
-                            "max_connections": 20,
-                            "retry_on_timeout": True,
-                        },
+                        "max_connections": 50,  # Changed from 20
+                        "retry_on_timeout": True,
+                    },
                         "SOCKET_CONNECT_TIMEOUT": 5,  # Add timeout
                         "SOCKET_TIMEOUT": 5,
                     },
                     "KEY_PREFIX": "sales_dashboard",
-                    "TIMEOUT": 300,
+                    "TIMEOUT": 900, 
                 }
             }
             SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
@@ -298,6 +310,15 @@ CSRF_TRUSTED_ORIGINS = [
     'https://yr-dep-ss.onrender.com',
     'https://*.onrender.com',
 ]
+
+
+# At the bottom of settings.py
+if os.environ.get('LOG_QUERIES', 'false').lower() == 'true':
+    LOGGING['loggers']['django.db.backends'] = {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+        'propagate': False,
+    }
 
 # File upload settings (if you handle file uploads)
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB

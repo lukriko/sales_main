@@ -146,3 +146,8 @@ if old in u.profile.allowed_locations:
     print("✓ Updated:", u.profile.allowed_locations)
 else:
     print("Location not found")
+
+
+
+
+commmit : git add . && git commit -m "Fix pandas import" && git push
