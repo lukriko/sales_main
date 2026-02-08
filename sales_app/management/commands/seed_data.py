@@ -10,8 +10,8 @@ class Command(BaseCommand):
             ("batumi_metro", "batumi_metro_2000", ["ბათუმი მეტრო მოლი"]),
             ("batumi_grandi", "batumi_grandi_2001", ["ბათუმი გრანდ მოლი"]),
             ("vake", "vake_200_2002", ["ვაკე 1"]),
-            ("plexanovi", "plexanovi_200_2003", ["პლეხანოვი"]),
-            ("gudvili2", "gudvili2_200_2004", ["გუდვილი 2"]),
+            ("plexanovi", "plexanovi_200_2003", ["პლეხანოვი "]),
+            ("gudvili2", "gudvili2_200_2004", ["გუდვილი 2 "]),
             ("gldani", "gldani_200_2005", ["გლდანი"]),
             ("rustavi", "rustavi_201_2000", ["რუსთავი"]),
             ("gori", "gori_201_2001", ["გორი"]),
@@ -20,7 +20,7 @@ class Command(BaseCommand):
             ("galerea", "galerea_200_2008", ["გალერია"]),
             ("east_point", "east_point_200_2009", ["ისტ პოინტი"]),
             ("merani", "merani_200_2010", ["მერანი"]),
-            ("pekini", "pekini_200_2011", ["პეკინი"]),
+            ("pekini", "pekini_200_2011", ["პეკინი "]),
         ]
 
         for username, password, allowed_locations in USERS:

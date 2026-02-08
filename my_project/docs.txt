@@ -101,8 +101,8 @@ USERS = [
     ("batumi_metro", "batumi_metro_2000", ["ბათუმი მეტრო მოლი"]), good
     ("batumi_grandi", "batumi_grandi_2001", ["ბათუმი გრანდ მოლი"]), good
     ("vake", "vake_200_2002", ["ვაკე 1"]), good
-    ("plexanovi", "plexanovi_200_2003", ["პლეხანოვი"]), good
-    ("gudvili2", "gudvili2_200_2004", ["გუდვილი 2"]), good
+    ("plexanovi", "plexanovi_200_2003", ["პლეხანოვი"]), ----
+    ("gudvili2", "gudvili2_200_2004", ["გუდვილი 2"]), ----
     ("gldani", "gldani_200_2005", ["გლდანი"]), good
     ("rustavi", "rustavi_201_2000", ["რუსთავი"]), good
     ("gori", "gori_201_2001", ["გორი"]), good
@@ -111,7 +111,7 @@ USERS = [
     ("galerea", "galerea_200_2008", ["გალერია"]), good
     ("east_point", "east_point_200_2009", ["ისტ პოინტი"]), good
     ("merani", "merani_200_2010", ["მერანი"]), good
-    ("pekini", "pekini_200_2011", ["პეკინი"]), good
+    ("pekini", "pekini_200_2011", ["პეკინი"]), ----
 ]
 
 for username, password, locations in USERS:
