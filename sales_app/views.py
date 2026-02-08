@@ -29,6 +29,42 @@ from django.db.models import Prefetch
 from sales_app.decorators import cache_dashboard_view
 
 
+def user_login(request):
+    # If already logged in, go to dashboard
+    if request.user.is_authenticated:
+        return redirect('sales_dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Check if user has profile
+            try:
+                profile = user.profile
+                login(request, user)
+                messages.success(request, f'Welcome back, {user.username}!')
+                
+                # Try to redirect to 'next' parameter, otherwise dashboard
+                next_url = request.GET.get('next', 'another')
+                return redirect(next_url)
+                
+            except Exception as e:
+                print(f"Profile error: {e}")  # Debug
+                messages.error(request, "Your account is not configured. Contact administrator.")
+                return redirect('login')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    
+    return render(request, 'login.html')
+
+def user_logout(request):
+    logout(request)
+    messages.info(request, 'You have been logged out.')
+    return redirect('login')
+
 @cache_dashboard_view(timeout=900)
 @login_required
 def dashboard(request):
@@ -3167,38 +3203,5 @@ def insights(request):
     
     return render(request, 'insights.html', context)
 
-def user_login(request):
-    # If already logged in, go to dashboard
-    if request.user.is_authenticated:
-        return redirect('sales_dashboard')
-    
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            # Check if user has profile
-            try:
-                profile = user.profile
-                login(request, user)
-                messages.success(request, f'Welcome back, {user.username}!')
-                
-                # Try to redirect to 'next' parameter, otherwise dashboard
-                next_url = request.GET.get('next', 'sales_dashboard')
-                return redirect(next_url)
-                
-            except Exception as e:
-                print(f"Profile error: {e}")  # Debug
-                messages.error(request, "Your account is not configured. Contact administrator.")
-                return redirect('login')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    
-    return render(request, 'login.html')
-
-def user_logout(request):
-    logout(request)
-    messages.info(request, 'You have been logged out.')
-    return redirect('login')
+def health(request):
+    return HttpResponse("ok")

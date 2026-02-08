@@ -14,4 +14,6 @@ urlpatterns = [
     path('query/', views.query, name='query'),
     path('export/csv/', views.export_location_csv, name='export_location_csv'),
     path('insights/', views.insights, name='insights'),
+    path("health/", health),
+
 ]
