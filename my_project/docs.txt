@@ -151,3 +151,12 @@ else:
 
 
 commmit : git add . && git commit -m "Fix pandas import" && git push
+
+
+
+to check active users:
+
+from django.core.cache import cache
+
+keys = cache.keys("active:*")
+print(len(keys))

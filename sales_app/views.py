@@ -79,7 +79,7 @@ def dashboard(request):
     allowed_locations = user_profile.get_allowed_locations()
     
     # Year selection
-    comparison_mode = request.GET.get('comparison', '2025-2024')
+    comparison_mode = request.GET.get('comparison', '2026-2025')
     if comparison_mode == '2026-2025':
         current_year, previous_year = 2026, 2025
     elif comparison_mode == '2026-2024':
@@ -941,7 +941,7 @@ def plan_workflow(request):
     allowed_locations_user = user_profile.get_allowed_locations()
     
     # Get filter parameters
-    selected_year = request.GET.get('year', '2024')
+    selected_year = request.GET.get('year', '2026')
     selected_start_month = request.GET.get('start_month', '1')
     selected_end_month = request.GET.get('end_month', '12')
     selected_geo = request.GET.get('location', 'all')
@@ -2147,7 +2147,7 @@ def employee_analytics(request):
     allowed_locations = user_profile.get_allowed_locations()
     
     # Year selection
-    comparison_mode = request.GET.get('comparison', '2025-2024')
+    comparison_mode = request.GET.get('comparison', '2026-2025')
     if comparison_mode == '2026-2025':
         current_year, previous_year = 2026, 2025
     elif comparison_mode == '2026-2024':
