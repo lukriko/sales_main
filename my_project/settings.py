@@ -120,7 +120,7 @@ if DATABASE_URL:
     }
 else:
     # Local development
-    DATABASES = {
+   DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('PGDATABASE'),
@@ -130,11 +130,12 @@ else:
         'PORT': os.getenv('PGPORT', 5432),
         'OPTIONS': {
             'connect_timeout': 10,
-            'options': '-c statement_timeout=300000',  # 5 minutes (was 2 min)
+            'options': '-c statement_timeout=600000',  # 10 minutes instead of 2
         },
-        'CONN_MAX_AGE': 600,  # Reuse connections
-        }
+        'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
+        'ATOMIC_REQUESTS': True,
     }
+}
 
 # FIX 5: Database optimization (moved after DATABASES definition)
 if 'default' in DATABASES:
