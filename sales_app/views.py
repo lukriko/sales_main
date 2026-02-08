@@ -2262,7 +2262,7 @@ def employee_analytics(request):
             total_items=Count('zedd', filter=Q(~Q(idprod__in=['M9157', 'M9121', 'M9850']))),
             discount_given=Sum('discount_price'),
             std_price_total=Sum('std_price')
-        ).order_by('-total_revenue')
+        ).order_by('-total_revenue')[:20]
         
         # Convert to list to avoid re-querying
         employee_list = list(employee_base_stats)
