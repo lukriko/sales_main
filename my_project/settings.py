@@ -101,41 +101,35 @@ WSGI_APPLICATION = 'my_project.wsgi.application'
 
 # Database
 # FIX 4: Proper database configuration with fallback
+# Database
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # Production: Use DATABASE_URL from Render
+    # Production
     DATABASES = {
-    'default': dj_database_url.parse(
+        'default': dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=600,  # Changed from 60 to 600
+            conn_max_age=600,
             ssl_require=True
         )
     }
-
-    # Add these immediately after:
     DATABASES['default']['OPTIONS'] = {
         'connect_timeout': 10,
-        'options': '-c statement_timeout=30000',
+        'options': '-c statement_timeout=300000',
     }
 else:
-    # Local development
-   DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('PGDATABASE'),
-        'USER': os.getenv('PGUSER'),
-        'PASSWORD': os.getenv('PGPASSWORD'),
-        'HOST': os.getenv('PGHOST'),
-        'PORT': os.getenv('PGPORT', 5432),
-        'OPTIONS': {
-            'connect_timeout': 10,
-            'options': '-c statement_timeout=600000',  # 10 minutes instead of 2
-        },
-        'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
-        'ATOMIC_REQUESTS': True,
+    # Local development - use .env variables
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('PGDATABASE', default='main_db'),
+            'USER': config('PGUSER', default='postgres'),
+            'PASSWORD': config('PGPASSWORD', default='overall'),
+            'HOST': config('PGHOST', default='localhost'),
+            'PORT': config('PGPORT', default='5432'),
+        }
     }
-}
+
 
 # FIX 5: Database optimization (moved after DATABASES definition)
 if 'default' in DATABASES:

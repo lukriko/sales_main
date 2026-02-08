@@ -1486,59 +1486,6 @@
 </div>
 
 <!-- needed here -->
-
-<div class="section-divider">
-  <div class="section-divider-line"></div>
-  <div class="section-title-wrapper">
-    <div class="section-icon"><i class="fas fa-trophy"></i></div>
-    <span class="section-title">Outlier</span>
-    <span class="section-subtitle">Basket Analysis</span>
-  </div>
-  <div class="section-divider-line"></div>
-</div>
-<div style="margin-top: 20px;" class="table-card">
-      <h3 style="margin-bottom: 20px; color: #f1f5f9;"><i class="fas fa-trophy"></i> Top 10 trasactions by amount</h3>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Zedd</th>
-            <th>Amount</th>
-            <th>Quantity</th>
-            <th>location of transaction</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for trans in high_zedd %}
-          <tr class="
-            {% if forloop.counter == 1 %}first-place
-            {% elif forloop.counter == 2 %}second-place
-            {% elif forloop.counter == 3 %}third-place
-            {% endif %}
-          ">
-            <td>
-              {% if forloop.counter == 1 %}🥇
-              {% elif forloop.counter == 2 %}🥈
-              {% elif forloop.counter == 3 %}🥉
-              {% else %}{{ forloop.counter }}.
-              {% endif %}
-            </td>
-            <td><strong>{{ trans.zedd }}</strong></td>
-            <td>${{ trans.total|floatformat:2 }}</td>
-            <td>{{ trans.quantity }}</td>
-            <td>{{ trans.transaction_locations }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6" style="text-align:center; padding:40px; color:#64748b;">
-              No products found
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-</div>
-
   </main>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
