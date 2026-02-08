@@ -1,14 +1,19 @@
 from django.db import migrations
 
-
 class Migration(migrations.Migration):
     atomic = False
-
+    
     dependencies = [
         ("sales_app", "0001_initial"),
     ]
-
+    
     operations = [
+        # Set statement timeout to 10 minutes for index creation
+        migrations.RunSQL(
+            'SET statement_timeout = 600000;',
+            migrations.RunSQL.noop,
+        ),
+        
         migrations.RunSQL(
             'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sales_cd ON sales_main_web ("CD");',
             'DROP INDEX CONCURRENTLY IF EXISTS idx_sales_cd;',
@@ -44,5 +49,11 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sales_prodt ON sales_main_web ("ProdT");',
             'DROP INDEX CONCURRENTLY IF EXISTS idx_sales_prodt;',
+        ),
+        
+        # Reset timeout
+        migrations.RunSQL(
+            'SET statement_timeout = 30000;',
+            migrations.RunSQL.noop,
         ),
     ]
