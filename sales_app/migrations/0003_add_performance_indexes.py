@@ -4,17 +4,17 @@ class Migration(migrations.Migration):
     atomic = False
     
     dependencies = [
-        ("sales_app", "0002_auto_20250208_0647"),  # Update to your last migration
+        ("sales_app", "0001_initial"),  # ← Change this to match your actual last migration
     ]
     
     operations = [
-        # Most critical index - date filtering
+        # Composite index for common filter patterns
         migrations.RunSQL(
             'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sales_cd_composite ON sales_main_web (cd, un, prodg);',
             'DROP INDEX CONCURRENTLY IF EXISTS idx_sales_cd_composite;',
         ),
         
-        # Zedd for DISTINCT counts (critical for performance)
+        # Index for ticket counting
         migrations.RunSQL(
             'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sales_zedd_cd ON sales_main_web (zedd, cd);',
             'DROP INDEX CONCURRENTLY IF EXISTS idx_sales_zedd_cd;',
