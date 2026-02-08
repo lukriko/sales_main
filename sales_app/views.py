@@ -29,7 +29,7 @@ from django.db.models import Prefetch
 from sales_app.decorators import cache_dashboard_view
 
 
-# @cache_dashboard_view(timeout=900)
+@cache_dashboard_view(timeout=900)
 @login_required
 def dashboard(request):
     """Optimized dashboard view with reduced queries and better performance"""
@@ -215,8 +215,9 @@ def dashboard(request):
             print(f"⚠️ Ticket count timed out, estimating: {e}")
             total_tickets = max(1, (totals['total_items'] or 0) // 3)
         
-        # STEP 3: Simplified daily data
+        # STEP 3: Simplified daily data with ticket counts per day
         try:
+            # Get daily revenue and items
             daily_data = list(
                 q.annotate(
                     month=ExtractMonth('cd'),
@@ -225,20 +226,13 @@ def dashboard(request):
                     revenue=Sum('tanxa'),
                     items=Count('idreal1'),
                     discount_total=Sum('discount_price'),
-                    std_price_total=Sum('std_price')
+                    std_price_total=Sum('std_price'),
+                    tickets=Count('zedd', distinct=True)  # FIXED: Get actual daily ticket count
                 ).order_by('month', 'day')[:366]
             )
         except Exception as e:
             print(f"❌ Daily data failed: {e}")
             daily_data = []
-        
-        # Distribute tickets across days proportionally
-        total_daily_revenue = sum(d['revenue'] or 0 for d in daily_data)
-        for day in daily_data:
-            if total_daily_revenue > 0:
-                day['tickets'] = int((day['revenue'] or 0) / total_daily_revenue * total_tickets)
-            else:
-                day['tickets'] = 0
         
         # Calculate final metrics
         total_revenue = float(totals['total_revenue'] or 0)
@@ -415,44 +409,6 @@ def dashboard(request):
             'p75': sorted_tickets[3 * len(sorted_tickets) // 4]
         }
     
-    def get_employee_stats(is_current=True):
-        """
-        OPTIMIZED: Get employee performance with timeout protection
-        """
-        q = get_base_queryset(is_current)
-        
-        try:
-            # Simple query with LIMIT to prevent timeout
-            employee_data = q.values('tanam').annotate(
-                total_revenue=Sum('tanxa'),
-                total_tickets=Count('zedd', distinct=True),
-                total_items=Count('idreal1'),
-                discount_given=Sum('discount_price'),
-                std_price_total=Sum('std_price')
-            ).order_by('-total_revenue')[:20]  # Only top 20 employees
-            
-            employee_stats = []
-            for emp in employee_data:
-                avg_basket = (emp['total_revenue'] or 0) / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
-                items_per_ticket = emp['total_items'] / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
-                discount_rate = (1 - (emp['discount_given'] / emp['std_price_total'])) * 100 if emp['std_price_total'] and emp['std_price_total'] > 0 else 0
-                
-                employee_stats.append({
-                    'name': emp['tanam'] or 'Unknown',
-                    'revenue': float(emp['total_revenue'] or 0),
-                    'tickets': emp['total_tickets'],
-                    'items': emp['total_items'],
-                    'avg_basket': float(avg_basket),
-                    'items_per_ticket': items_per_ticket,
-                    'discount_rate': discount_rate
-                })
-            
-            return employee_stats
-        
-        except Exception as e:
-            print(f"❌ Employee stats query failed: {e}")
-            return []
-
     def get_product_analysis(is_current=True):
         """
         OPTIMIZED: Get product performance with smart limiting
@@ -560,10 +516,6 @@ def dashboard(request):
     dist_current = get_ticket_distribution(is_current=True)
     dist_previous = get_ticket_distribution(is_current=False)
     
-    # Employee stats (2 queries)
-    employee_stats_current = get_employee_stats(is_current=True)
-    employee_stats_previous = get_employee_stats(is_current=False)
-    
     # Product analysis (2 queries)
     product_analysis_current = get_product_analysis(is_current=True)
     
@@ -603,7 +555,7 @@ def dashboard(request):
     cross_sell_pct_current = [cross_sell_daily_current.get(label, {}).get('cross_sell_pct', 0) for label in labels]
     cross_sell_pct_previous = [cross_sell_daily_previous.get(label, {}).get('cross_sell_pct', 0) for label in labels]
     
-    # Calculate average basket per day
+    # Calculate average basket per day - FIXED LOGIC
     basket_values_current = []
     basket_values_previous = []
     
@@ -672,15 +624,6 @@ def dashboard(request):
     
     # ==================== ADDITIONAL DATA (OPTIMIZED) ====================
     
-    # Employee comparison
-    employee_previous_dict = {emp['name']: emp for emp in employee_stats_previous}
-    for emp in employee_stats_current:
-        prev_data = employee_previous_dict.get(emp['name'], {})
-        emp['revenue_previous'] = prev_data.get('revenue', 0)
-        emp['tickets_previous'] = prev_data.get('tickets', 0)
-        emp['revenue_change'] = calc_change(emp['revenue'], emp['revenue_previous'])
-        emp['tickets_change'] = calc_change(emp['tickets'], emp['tickets_previous'])
-    
     # Monthly tickets (2 queries)
     monthly_tickets_current = list(
         get_base_queryset(is_current=True)
@@ -724,14 +667,6 @@ def dashboard(request):
     for item in monthly_basket_current:
         if item['total_tickets'] and item['total_tickets'] > 0:
             basket_data_current[item['month'] - 1] = float(item['total_revenue'] or 0) / item['total_tickets']
-    
-    # Recent transactions (1 query with limit)
-    recent_transactions = list(
-        get_base_queryset(is_current=True)
-        .exclude(un='მთავარი საწყობი 2')
-        .values('cd', 'idreal1', 'zedd', 'prod', 'tanxa', 'un', 'tanam')
-        .order_by('-cd', '-idreal1')[:20]
-    )
     
     # Category data (1 query)
     category_data = list(
@@ -781,6 +716,19 @@ def dashboard(request):
             'change': change,
             'pct_change': pct_change
         })
+    
+    # Top 10 tickets by value (1 query)
+    top_10_zedd = list(
+        get_base_queryset(is_current=True)
+        .values('zedd')
+        .annotate(
+            total=Sum('tanxa'),
+            quantity=Count('idreal1'),
+            transaction_locations=Max('un')
+        )
+        .order_by('-total')[:10]
+    )
+    
     # ==================== FORMATTING HELPERS ====================
     
     def format_currency(value):
@@ -899,12 +847,7 @@ def dashboard(request):
         'customers_change': locations_change,
         'discount_share_precentage_change': discount_share_change,
         
-        # Employee data
-        'employee_stats': employee_stats_current,
-        'employee_stats_previous': employee_stats_previous,
-        
         # Other data
-        'recent_transactions': recent_transactions,
         'prod_dt': product_analysis_current['bestsellers'][:10],  # Top 10 only
         
         # Filters
@@ -916,6 +859,7 @@ def dashboard(request):
         'selected_category': selected_category,
         'selected_product': selected_product,
         'products': all_products,
+        'high_zedd': top_10_zedd,
         
         # Distribution
         'distribution_labels': json.dumps(distribution_labels),
