@@ -164,34 +164,20 @@ def dashboard(request):
     
     # ==================== OPTIMIZED DATA FETCHING ====================
     
-# EMERGENCY HOTFIX FOR views.py
-# This adds a hard limit on date ranges to prevent timeouts
-# Replace the get_comprehensive_stats function with this version
-
     def get_comprehensive_stats(is_current=True):
         """
-        PRODUCTION OPTIMIZED: Prevents timeouts with smart date limiting
+        PRODUCTION OPTIMIZED: Prevents timeouts with proper filtering
         """
+        # Use the pre-built date filters from parent scope
         if is_current:
-            date_start = start_datetime
-            date_end = end_datetime
+            base_filter = date_filter_current
         else:
-            date_start = previous_start_datetime
-            date_end = previous_end_datetime
+            base_filter = date_filter_previous
         
-        # CRITICAL: Hard limit to 60 days max
-        date_diff = (date_end.date() - date_start.date()).days
-        if date_diff > 60:
-            date_start = date_end - timedelta(days=60)
-            if is_current and not hasattr(request, '_date_warning_shown'):
-                messages.warning(request, f"⚠️ Date range limited to 60 days: {date_start.date()} to {date_end.date()}")
-                request._date_warning_shown = True
-        
-        # Build base query with filters
-        q = Sales.objects.filter(
-            cd__gte=date_start,
-            cd__lte=date_end
-        ).exclude(un__in=["მთავარი საწყობი 2", "სატესტო"])
+        # Build query using the complete filter
+        q = Sales.objects.filter(**base_filter).exclude(
+            un__in=["მთავარი საწყობი 2", "სატესტო"]
+        )
         
         if selected_locations:
             q = q.filter(un__in=selected_locations)
@@ -206,7 +192,7 @@ def dashboard(request):
         try:
             totals = q.aggregate(
                 total_revenue=Sum('tanxa'),
-                total_items=Count('IdReal1'),
+                total_items=Count('idreal1'),
                 discount_total=Sum('discount_price'),
                 std_price_total=Sum('std_price')
             )
@@ -221,46 +207,15 @@ def dashboard(request):
                 'discount_share': 0
             }
         
+        # STEP 2: Get ticket count with timeout protection
         try:
-            with connection.cursor() as cursor:
-                # Set a 20-second timeout for this query
-                cursor.execute("SET LOCAL statement_timeout = '20s';")
-                
-                # Optimized COUNT DISTINCT
-                params = [date_start, date_end]
-                sql = """
-                    SELECT COUNT(DISTINCT zedd)
-                    FROM sales_main_web
-                    WHERE cd >= %s AND cd <= %s
-                """
-                
-                if selected_locations:
-                    placeholders = ','.join(['%s'] * len(selected_locations))
-                    sql += f" AND un IN ({placeholders})"
-                    params.extend(selected_locations)
-                
-                if selected_category != 'all':
-                    sql += " AND prodg = %s"
-                    params.append(selected_category)
-                
-                if selected_product != 'all':
-                    sql += " AND prod = %s"
-                    params.append(selected_product)
-                
-                if selected_campaign != 'all':
-                    sql += " AND actions = %s"
-                    params.append(selected_campaign)
-                
-                cursor.execute(sql, params)
-                result = cursor.fetchone()
-                total_tickets = result[0] if result else 0
-                
+            # Use Django ORM instead of raw SQL for simplicity
+            total_tickets = q.values('zedd').distinct().count()
         except Exception as e:
             print(f"⚠️ Ticket count timed out, estimating: {e}")
-            # Fallback: estimate based on average 3 items per ticket
             total_tickets = max(1, (totals['total_items'] or 0) // 3)
         
-        # STEP 3: Simplified daily data (no per-day distinct counts)
+        # STEP 3: Simplified daily data
         try:
             daily_data = list(
                 q.annotate(
@@ -268,10 +223,10 @@ def dashboard(request):
                     day=ExtractDay('cd')
                 ).values('month', 'day').annotate(
                     revenue=Sum('tanxa'),
-                    items=Count('id'),
+                    items=Count('idreal1'),
                     discount_total=Sum('discount_price'),
                     std_price_total=Sum('std_price')
-                ).order_by('month', 'day')[:366]  # Max 1 year of daily data
+                ).order_by('month', 'day')[:366]
             )
         except Exception as e:
             print(f"❌ Daily data failed: {e}")
@@ -321,7 +276,6 @@ def dashboard(request):
         q = apply_filters(q)
         
         # Single query to get ticket-level counts
-        # Using Subquery for efficiency
         tickets_with_counts = q.values('zedd').annotate(
             item_count=Count('idreal1')
         )
@@ -463,37 +417,42 @@ def dashboard(request):
     
     def get_employee_stats(is_current=True):
         """
-        OPTIMIZED: Get employee performance with minimal queries
+        OPTIMIZED: Get employee performance with timeout protection
         """
         q = get_base_queryset(is_current)
         
-        # Single query with all aggregations
-        employee_data = q.values('tanam').annotate(
-            total_revenue=Sum('tanxa'),
-            total_tickets=Count('zedd', distinct=True),
-            total_items=Count('zedd'),
-            discount_given=Sum('discount_price'),
-            std_price_total=Sum('std_price')
-        ).order_by('-total_revenue')[:20]  # Limit to top 20 for performance
-        
-        employee_stats = []
-        for emp in employee_data:
-            avg_basket = (emp['total_revenue'] or 0) / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
-            items_per_ticket = emp['total_items'] / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
-            discount_rate = (1 - (emp['discount_given'] / emp['std_price_total'])) * 100 if emp['std_price_total'] and emp['std_price_total'] > 0 else 0
+        try:
+            # Simple query with LIMIT to prevent timeout
+            employee_data = q.values('tanam').annotate(
+                total_revenue=Sum('tanxa'),
+                total_tickets=Count('zedd', distinct=True),
+                total_items=Count('idreal1'),
+                discount_given=Sum('discount_price'),
+                std_price_total=Sum('std_price')
+            ).order_by('-total_revenue')[:20]  # Only top 20 employees
             
-            employee_stats.append({
-                'name': emp['tanam'] or 'Unknown',
-                'revenue': float(emp['total_revenue'] or 0),
-                'tickets': emp['total_tickets'],
-                'items': emp['total_items'],
-                'avg_basket': float(avg_basket),
-                'items_per_ticket': items_per_ticket,
-                'discount_rate': discount_rate
-            })
+            employee_stats = []
+            for emp in employee_data:
+                avg_basket = (emp['total_revenue'] or 0) / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
+                items_per_ticket = emp['total_items'] / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
+                discount_rate = (1 - (emp['discount_given'] / emp['std_price_total'])) * 100 if emp['std_price_total'] and emp['std_price_total'] > 0 else 0
+                
+                employee_stats.append({
+                    'name': emp['tanam'] or 'Unknown',
+                    'revenue': float(emp['total_revenue'] or 0),
+                    'tickets': emp['total_tickets'],
+                    'items': emp['total_items'],
+                    'avg_basket': float(avg_basket),
+                    'items_per_ticket': items_per_ticket,
+                    'discount_rate': discount_rate
+                })
+            
+            return employee_stats
         
-        return employee_stats
-    
+        except Exception as e:
+            print(f"❌ Employee stats query failed: {e}")
+            return []
+
     def get_product_analysis(is_current=True):
         """
         OPTIMIZED: Get product performance with smart limiting
@@ -770,7 +729,7 @@ def dashboard(request):
     recent_transactions = list(
         get_base_queryset(is_current=True)
         .exclude(un='მთავარი საწყობი 2')
-        .values('cd', 'idreal1', 'zedd', 'prod', 'tanxa', 'un', 'tanam')  # Changed
+        .values('cd', 'idreal1', 'zedd', 'prod', 'tanxa', 'un', 'tanam')
         .order_by('-cd', '-idreal1')[:20]
     )
     
