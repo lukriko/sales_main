@@ -4,7 +4,7 @@ class Migration(migrations.Migration):
     atomic = False  # Required for CONCURRENTLY
     
     dependencies = [
-        ("sales_app", "0003_add_composite_indexes"),
+        ("sales_app", "0003_add_performance_indexes"),
     ]
     
     operations = [
