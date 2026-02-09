@@ -684,14 +684,14 @@
       <span class="toggle-label"><i class="fas fa-exchange-alt"></i> Comparison Period</span>
       <div class="btn-group">
         <button type="button" 
-                class="btn-toggle {% if comparison_mode == '2025-2024' or not comparison_mode %}active{% endif %}"
-                onclick="changeComparison('2025-2024')">
-          2025 vs 2024
-        </button>
-        <button type="button" 
                 class="btn-toggle {% if comparison_mode == '2026-2025' %}active{% endif %}"
                 onclick="changeComparison('2026-2025')">
           2026 vs 2025
+        </button>
+        <button type="button" 
+                class="btn-toggle {% if comparison_mode == '2025-2024' %}active{% endif %}"
+                onclick="changeComparison('2025-2024')">
+          2025 vs 2024
         </button>
           <button type="button" 
                 class="btn-toggle {% if comparison_mode == '2026-2024' %}active{% endif %}"
