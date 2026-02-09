@@ -139,7 +139,7 @@ if 'default' in DATABASES:
     
     # Only add statement_timeout for PostgreSQL
     if DATABASES['default'].get('ENGINE') == 'django.db.backends.postgresql':
-        DATABASES['default']['OPTIONS']['options'] = '-c statement_timeout=30000'
+        DATABASES['default']['OPTIONS']['options'] = '-c statement_timeout=300000'
 
 
 # Password validation
