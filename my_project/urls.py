@@ -17,11 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from sales_app.views import dashboard  # Make sure this import is here!
-
 from sales_app import views
+from sales_app.admin_upload_view import admin_upload  # ADD THIS LINE - Import the admin_upload view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/upload/', admin_upload, name='admin_upload'),  # Custom route - check first
+    path('admin/', admin.site.urls),  # Django admin - catches everything else  
     
     # Authentication
     path('login/', views.user_login, name='login'),
@@ -30,10 +31,12 @@ urlpatterns = [
     # Dashboard - THIS IS IMPORTANT
     path('', views.dashboard, name='sales_dashboard'),  # Root URL
     path('dashboard/', views.dashboard, name='sales_dashboard'),  # Also accessible at /dashboard/
-    
     path('another/', views.plan_workflow, name='another'),
     path('employees/', views.employee_analytics, name='employee_analytics'),
     path('query/', views.query, name='query'),
     path('export/csv/', views.export_location_csv, name='export_location_csv'),
     path('insights/', views.insights, name='insights'),
+    
+    # Admin Upload - Data upload with deduplication
+    # CORRECT ORDER:
 ]
