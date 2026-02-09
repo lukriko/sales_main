@@ -318,3 +318,105 @@ if os.environ.get('LOG_QUERIES', 'false').lower() == 'true':
 # File upload settings (if you handle file uploads)
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+
+
+# ============================================================================
+# REDIS CACHING - OPTIMIZED CONFIGURATION
+# ============================================================================
+
+# Dashboard configuration based on environment
+if IS_RENDER:
+    DASHBOARD_MAX_PRODUCTS = 30
+    DASHBOARD_MAX_CATEGORIES = 8
+    DASHBOARD_USE_APPROXIMATION = True
+    DASHBOARD_SAMPLE_SIZE = 0.1  # Use 10% sample for estimates
+else:
+    DASHBOARD_MAX_PRODUCTS = 100
+    DASHBOARD_MAX_CATEGORIES = 10
+    DASHBOARD_USE_APPROXIMATION = False
+    DASHBOARD_SAMPLE_SIZE = 1.0
+
+# Cache timeout settings
+CACHE_TIMEOUT_SHORT = 900      # 15 minutes
+CACHE_TIMEOUT_MEDIUM = 1800    # 30 minutes
+CACHE_TIMEOUT_LONG = 3600      # 1 hour
+
+if ENVIRONMENT == "production" or IS_RENDER:
+    REDIS_URL = os.environ.get("REDIS_URL")
+    
+    if REDIS_URL:
+        # Redis is available - use it
+        print("✓ Redis URL found - using Redis for caching")
+        try:
+            CACHES = {
+                "default": {
+                    "BACKEND": "django_redis.cache.RedisCache",
+                    "LOCATION": REDIS_URL,
+                    "OPTIONS": {
+                        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                        "CONNECTION_POOL_KWARGS": {
+                            "max_connections": 50,
+                            "retry_on_timeout": True,
+                            "socket_keepalive": True,
+                            "socket_keepalive_options": {
+                                1: 1,  # TCP_KEEPIDLE
+                                2: 1,  # TCP_KEEPINTVL
+                                3: 3,  # TCP_KEEPCNT
+                            },
+                        },
+                        "SOCKET_CONNECT_TIMEOUT": 5,
+                        "SOCKET_TIMEOUT": 5,
+                        "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+                        "IGNORE_EXCEPTIONS": True,  # Fail gracefully
+                    },
+                    "KEY_PREFIX": "sales_dashboard",
+                    "TIMEOUT": CACHE_TIMEOUT_MEDIUM,  # Default 30 min
+                }
+            }
+            SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+            SESSION_CACHE_ALIAS = "default"
+            print(f"✓ Redis cache configured with {CACHE_TIMEOUT_MEDIUM}s timeout")
+        except Exception as e:
+            # Fallback if Redis fails
+            print(f"⚠ Redis connection failed: {e} - falling back to in-memory cache")
+            CACHES = {
+                "default": {
+                    "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                    "LOCATION": "unique-snowflake",
+                    "TIMEOUT": CACHE_TIMEOUT_SHORT,
+                }
+            }
+            SESSION_ENGINE = "django.contrib.sessions.backends.db"
+    else:
+        # Redis not configured - use in-memory cache
+        print("⚠ Redis URL not found - using in-memory cache (limited, slower)")
+        CACHES = {
+            "default": {
+                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                "LOCATION": "unique-snowflake",
+                "TIMEOUT": CACHE_TIMEOUT_SHORT,
+                "OPTIONS": {
+                    "MAX_ENTRIES": 1000,  # Limit memory usage
+                }
+            }
+        }
+        SESSION_ENGINE = "django.contrib.sessions.backends.db"
+else:
+    # Local development: Use in-memory cache (fast enough for dev)
+    print("📍 Local development - using in-memory cache")
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+            "TIMEOUT": CACHE_TIMEOUT_SHORT,
+        }
+    }
+    SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+# Cache key versioning (increment when you want to invalidate all caches)
+CACHE_VERSION = 1
+
+# Print cache configuration
+print(f"📦 Cache Backend: {CACHES['default']['BACKEND']}")
+print(f"⏱️  Default Cache Timeout: {CACHES['default']['TIMEOUT']}s")
