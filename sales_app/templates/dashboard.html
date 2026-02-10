@@ -1101,7 +1101,7 @@
             <span style="color: #fb923c;">{{ product.recency_days }}d ago</span>
           {% endif %}
         </td>
-        <td>${{ product.monetary_score|floatformat:2 }}</td>
+        <td>${{ product.avg_ticket_value|floatformat:2 }}</td>
         <td>
           <div style="display: flex; align-items: center; gap: 8px;">
             <div style="flex: 1; background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;">
@@ -1244,7 +1244,7 @@
             {{ product.recency_days }}d ago
           </span>
         </td>
-        <td>${{ product.monetary_score|floatformat:2 }}</td>
+        <td>${{ product.avg_ticket_value|floatformat:2 }}</td>
         <td>
           <div style="display: flex; align-items: center; gap: 8px;">
             <div style="flex: 1; background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;">

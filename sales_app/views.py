@@ -101,10 +101,11 @@ def dashboard(request):
     except:
         end_date = date(current_year, 12, 31)
     
-    # Location security check
+    # Location security check - UPDATED FOR ADMIN PERFORMANCE
     selected_locations = request.GET.getlist('un_filter')
     
     if not user_profile.is_admin:
+        # Non-admin logic (unchanged)
         if not selected_locations or 'all' in selected_locations:
             selected_locations = allowed_locations
         else:
@@ -114,6 +115,25 @@ def dashboard(request):
                 selected_locations = [loc for loc in selected_locations if loc in allowed_locations]
             if not selected_locations:
                 selected_locations = allowed_locations
+    else:
+        # ADMIN: Default to top location to avoid slow "all" query
+        if not selected_locations:
+            # First visit - auto-select top location by revenue
+            top_location = Sales.objects.filter(
+                cd__year=current_year
+            ).values('un').annotate(
+                total=Sum('tanxa')
+            ).order_by('-total').values_list('un', flat=True).first()
+            
+            if top_location:
+                selected_locations = [top_location]
+                messages.info(request, f"Showing data for {top_location}. Use filters to view other locations or all data.")
+            else:
+                selected_locations = []
+        elif 'all' in selected_locations:
+            # Explicitly selected "all" - allow but warn about performance
+            selected_locations = []
+            messages.warning(request, "Loading all locations - this may take 1-2 minutes. Consider selecting specific locations for faster results.")
     
     if not selected_locations and not user_profile.is_admin:
         return HttpResponseForbidden("You don't have access to any locations. Contact administrator.")
@@ -121,7 +141,6 @@ def dashboard(request):
     # Display selected location
     if user_profile.is_admin and (not selected_locations or 'all' in request.GET.getlist('un_filter')):
         selected_un = 'all'
-        selected_locations = []
     else:
         selected_un = selected_locations[0] if len(selected_locations) == 1 else 'multiple'
     
@@ -448,6 +467,7 @@ def dashboard(request):
     def get_product_analysis(is_current=True):
         """
         OPTIMIZED: Get product performance with smart limiting
+        FIXED: Added avg_ticket_value calculation
         """
         q = get_base_queryset(is_current).exclude(prodg='POP')
         
@@ -458,7 +478,6 @@ def dashboard(request):
                 total_revenue=Sum('tanxa'),
                 quantity=Count('idreal1'),
                 tickets=Count('zedd', distinct=True),
-                avg_ticket_value=Avg('tanxa'),
                 last_purchase_date=Max('cd')
             )
             .order_by('-total_revenue')[:100]  # LIMIT to top 100
@@ -471,6 +490,13 @@ def dashboard(request):
                 'slow_movers': [],
                 'rising_stars': []
             }
+        
+        # Calculate avg_ticket_value for each product (total_revenue / tickets)
+        for product in products:
+            product['avg_ticket_value'] = (
+                float(product['total_revenue'] or 0) / product['tickets'] 
+                if product['tickets'] > 0 else 0
+            )
         
         # Calculate performance scores
         max_revenue = max(p['total_revenue'] for p in products)
@@ -534,6 +560,8 @@ def dashboard(request):
                                   key=lambda x: (x['recency_score'], x['tickets']), reverse=True)[:10]
         }
     
+    # Rest of your code continues exactly as before...
+        
     # ==================== EXECUTE DATA FETCHING ====================
     
     # Get comprehensive stats for both years (2 queries instead of many)
