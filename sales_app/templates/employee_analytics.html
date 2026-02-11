@@ -3,10 +3,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  {% load static %}
+  <link rel="icon" type="image/png" href="{% static 'images/unnamed.png' %}">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <title>Employee Analytics - Cross-Selling Performance</title>
+  <title>Employee Analytics</title>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -348,7 +350,7 @@
 
   <main class="main-content">
     <div class="top-bar">
-      <h1 class="page-title"><i class="fas fa-chart-pie"></i> Cross-Selling Performance Analytics</h1>
+      <h1 class="page-title"><i class="fas fa-chart-pie"></i> Employee Analytics</h1>
       <div style="display: flex; gap: 12px;">
         <span style="padding: 10px 16px; background: rgba(102, 126, 234, 0.1); color: #667eea; border-radius: 8px; font-size: 14px; font-weight: 600;">
           {{ date_range_text }}
@@ -445,6 +447,16 @@
               </div>
             </div>
           </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Product</label>
+            <select name="prod_filter" id="product-select" class="filter-select">
+              <option value="all">All Products</option>
+              {% for prod in all_products %}
+                <option value="{{ prod }}" {% if prod == selected_product %}selected{% endif %}>{{ prod }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
         
         <button type="submit" class="btn-apply">
@@ -473,7 +485,7 @@
               <th>Cross-Sell Rate</th>
               <th>Ticket Distribution</th>
               <th>Avg Items/Ticket</th>
-              <th>Skincare_percentage</th>
+              <th>Skincare %</th>
             </tr>
           </thead>
           <tbody>

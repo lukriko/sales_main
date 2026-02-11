@@ -2224,6 +2224,7 @@ def employee_analytics(request):
     # Other filters
     selected_category = request.GET.get('category', 'all')
     selected_employee = request.GET.get('employee_filter', 'all')
+    selected_product = request.GET.get('prod_filter', 'all')
     
     # Adjust dates to current year
     start_date = start_date.replace(year=current_year)
@@ -2254,13 +2255,21 @@ def employee_analytics(request):
     # ==================== HELPER FUNCTIONS ====================
     
     def apply_filters(q):
-        """Apply filters consistently"""
+        if selected_employee != "all" and not selected_locations:
+            return q.none()   # force no cross-location results
+
         if selected_locations:
             q = q.filter(un__in=selected_locations)
-        if selected_category != 'all':
+
+        if selected_category != "all":
             q = q.filter(prodg=selected_category)
-        if selected_employee != 'all':
+
+        if selected_employee != "all":
             q = q.filter(tanam=selected_employee)
+        
+        if selected_product != "all":
+            q = q.filter(prod=selected_product)
+
         return q
     
     def get_base_queryset(is_current=True):
@@ -2645,20 +2654,32 @@ def employee_analytics(request):
     else:
         all_locations = allowed_locations
     
+    # Base query for filter options - respects location selection
+    filter_base_query = Sales.objects.filter(cd__year=current_year)
+    
+    # Apply location filter to categories and employees
+    if selected_locations:
+        filter_base_query = filter_base_query.filter(un__in=selected_locations)
+    
     all_categories = list(
-        Sales.objects
-        .filter(cd__year=current_year)
+        filter_base_query
         .values_list('prodg', flat=True)
         .distinct()
         .order_by('prodg')
     )
     
     all_employees = list(
-        Sales.objects
-        .filter(cd__year=current_year)
+        filter_base_query
         .values_list('tanam', flat=True)
         .distinct()
         .order_by('tanam')
+    )
+    
+    all_products = list(
+        filter_base_query
+        .values_list('prod', flat=True)
+        .distinct()
+        .order_by('prod')
     )
     
     date_range_text = f"{start_date.strftime('%b %d')} - {end_date.strftime('%b %d')}, {current_year}"
@@ -2683,10 +2704,12 @@ def employee_analytics(request):
         'all_locations': all_locations,
         'all_categories': all_categories,
         'all_employees': all_employees,
+        'all_products': all_products,
         'selected_un': selected_un,
         'selected_locations': selected_locations,
         'selected_category': selected_category,
         'selected_employee': selected_employee,
+        'selected_product': selected_product,
         
         'user_profile': user_profile,
         'is_admin': user_profile.is_admin,
@@ -3235,3 +3258,4 @@ def health(request):
     return HttpResponse("ok")
 
 
+    
