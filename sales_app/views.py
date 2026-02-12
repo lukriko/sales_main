@@ -781,18 +781,22 @@ def dashboard(request):
             'pct_change': pct_change
         })
     
-    # Top 10 tickets by value (1 query)
-    top_10_zedd = list(
+    # Top 10 Campaigns by value (1 query)
+    top_10_campaigns = list(
         get_base_queryset(is_current=True)
-        .values('zedd')
+        .values('actions')
         .annotate(
             total=Sum('tanxa'),
             quantity=Count('idreal1'),
-            transaction_locations=Max('un')
+            zedd_unique=Count('zedd', distinct=True),
+            avg_basket=ExpressionWrapper(
+                Sum('tanxa') / Count('zedd', distinct=True),
+                output_field=FloatField()
+            )
         )
         .order_by('-total')[:10]
     )
-    
+
     # ==================== FORMATTING HELPERS ====================
     
     def format_currency(value):
@@ -846,7 +850,6 @@ def dashboard(request):
         .distinct()
         .order_by('prod')
     )
-    
     date_range_text = f"{start_date.strftime('%b %d')} - {end_date.strftime('%b %d')}, {current_year}"
     
     # ==================== BUILD CONTEXT ====================
@@ -910,6 +913,7 @@ def dashboard(request):
         'conversion_change': conversion_change,
         'customers_change': locations_change,
         'discount_share_precentage_change': discount_share_change,
+        'campaign_top_10':top_10_campaigns,
         
         # Other data
         'prod_dt': product_analysis_current['bestsellers'][:10],  # Top 10 only
@@ -923,7 +927,7 @@ def dashboard(request):
         'selected_category': selected_category,
         'selected_product': selected_product,
         'products': all_products,
-        'high_zedd': top_10_zedd,
+        # 'high_zedd': top_10_zedd,
         
         # Distribution
         'distribution_labels': json.dumps(distribution_labels),
@@ -3257,22 +3261,21 @@ def insights(request):
 def health(request):
     return HttpResponse("ok")
 
+@login_required
 def stat_main(request):
     with connection.cursor() as cursor:
         cursor.execute("""
             WITH base AS (
                 SELECT "UN", SUM("Tanxa") AS total
                 FROM sales_main_web
-                WHERE extract(year form "CD") = 2026
+                WHERE extract(year from "CD") = 2026
                 GROUP BY "UN"
             )
             SELECT * FROM base ORDER BY total DESC LIMIT 20;
         """)
-
-    rows = cursor.fetchall()
+        rows = cursor.fetchall()
+    
     context = {
         'location': rows
     }
-
-
     return render(request, 'stat_main.html', context)

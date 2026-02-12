@@ -1494,6 +1494,73 @@
   </table>
 </div>
 
+
+
+
+
+
+
+
+
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-trophy"></i></div>
+    <span class="section-title">Campaigns</span>
+    <span class="section-subtitle">__</span>
+  </div>
+  <div class="section-divider-line"></div>
+</div>
+
+
+
+<div style="margin-top: 20px;" class="table-card">
+  <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 12px;">
+    <i class="fas fa-trophy" style="color: #ffd700;"></i> 
+    Top Campaigns ({{ current_year }})
+    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">HH</span>
+  </h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Tier</th>
+        <th>Campaign</th>
+        <th>Total</th>
+        <th>Times_bought</th>
+        <th>avg.basket</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for camp in campaign_top_10 %}
+      <tr>
+        <td>
+          {% if forloop.counter == 1 %}🥇
+          {% elif forloop.counter == 2 %}🥈
+          {% elif forloop.counter == 3 %}🥉
+          {% else %}{{ forloop.counter }}.
+          {% endif %}
+        </td>
+        <td><strong>{{ camp.actions }}</strong></td>
+        <td>${{ camp.total|floatformat:2 }}</td>
+         <td>
+          <span style="display: flex; align-items: center; gap: 8px;">
+            {{ camp.zedd_unique }}
+            <span style="font-size: 11px; color: #94a3b8;">({{ camp.quantity }} items)</span>
+          </span>
+        </td>
+        <td>{{ camp.avg_basket| floatformat:2 }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center; padding:40px; color:#64748b;">
+          No bestseller data available
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 <!-- needed here -->
   </main>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
