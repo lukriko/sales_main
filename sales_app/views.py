@@ -1299,10 +1299,10 @@ def plan_workflow(request):
         
         # Aggregate current year data
         current_data = aggregate_data(plan_daily_records, daily_actual, aggregation, start_date, end_date)
-        
+
         # Aggregate previous year data
         prev_data = aggregate_data(plan_daily_records_py, daily_actual_py, aggregation, start_date_py, end_date_py)
-        
+
         # ===== CALCULATE KPIs - REVENUE =====
         total_plan = sum(current_data['plan_values'])
         total_plan_85 = sum(current_data['plan_85_values'])
