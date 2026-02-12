@@ -65,7 +65,7 @@ def user_logout(request):
     messages.info(request, 'You have been logged out.')
     return redirect('login')
 
-@cache_dashboard_view(timeout=900)
+# @cache_dashboard_view(timeout=900)
 @login_required
 def dashboard(request):
     """Optimized dashboard view with reduced queries and better performance"""
