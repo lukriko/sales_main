@@ -36,6 +36,7 @@ urlpatterns = [
     path('query/', views.query, name='query'),
     path('export/csv/', views.export_location_csv, name='export_location_csv'),
     path('insights/', views.insights, name='insights'),
+    path('hypothesis_testing_me_/', views.stat_main, name='stat_main'),
     
     # Admin Upload - Data upload with deduplication
     # CORRECT ORDER:

@@ -3257,5 +3257,22 @@ def insights(request):
 def health(request):
     return HttpResponse("ok")
 
+def stat_main(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            WITH base AS (
+                SELECT "UN", SUM("Tanxa") AS total
+                FROM sales_main_web
+                WHERE extract(year form "CD") = 2026
+                GROUP BY "UN"
+            )
+            SELECT * FROM base ORDER BY total DESC LIMIT 20;
+        """)
 
-    
+    rows = cursor.fetchall()
+    context = {
+        'location': rows
+    }
+
+
+    return render(request, 'stat_main.html', context)

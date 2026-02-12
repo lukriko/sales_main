@@ -160,3 +160,25 @@ from django.core.cache import cache
 
 keys = cache.keys("active:*")
 print(len(keys))
+
+
+
+
+------------------------------------------------
+for sql in act
+------------------------------------------------
+
+from django.db import connection
+
+with connection.cursor() as cursor:
+    cursor.execute("""
+        WITH base AS (
+            SELECT "UN", SUM("Tanxa") AS total
+            FROM sales_main_web
+            WHERE "CD" BETWEEN %s AND %s
+            GROUP BY "UN"
+        )
+        SELECT * FROM base ORDER BY total DESC LIMIT 20;
+    """, [start_date, end_date])
+
+    rows = cursor.fetchall()
