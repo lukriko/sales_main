@@ -136,7 +136,7 @@ msgstr "საშუალო ჩეკი"
 #: sales_app/templates/another.html:359 sales_app/templates/another.html:367
 #: sales_app/templates/another.html:502 sales_app/templates/another.html:510
 msgid "Plan Target"
-msgstr "გეგმა 100%"
+msgstr "გეგმა"
 
 #: sales_app/templates/another.html:313 sales_app/templates/another.html:475
 #: sales_app/templates/another.html:612
