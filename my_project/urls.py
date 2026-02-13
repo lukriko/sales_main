@@ -23,7 +23,7 @@ from sales_app.admin_upload_view import admin_upload  # ADD THIS LINE - Import t
 urlpatterns = [
     path('admin/upload/', admin_upload, name='admin_upload'),  # Custom route - check first
     path('admin/', admin.site.urls),  # Django admin - catches everything else  
-    
+    path('i18n/', include('django.conf.urls.i18n')),
     # Authentication
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),

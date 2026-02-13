@@ -5,6 +5,7 @@ FIXED VERSION for Render deployment with Redis fallback
 import dj_database_url
 from pathlib import Path
 from decouple import config, Csv
+from django.utils.translation import gettext_lazy as _
 import os
 
 
@@ -68,6 +69,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.locale.LocaleMiddleware', 
     'django.contrib.messages.middleware.MessageMiddleware',
     'sales_app.middleware.QueryTimingMiddleware', 
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -161,9 +163,22 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
+
+LANGUAGES = [
+    ('en', _('English')),
+    ('ka', _('ქართული'))
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
+
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+USE_L10N = True
+
 
 
 # Static files (CSS, JavaScript, Images)

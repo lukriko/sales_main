@@ -1,5 +1,6 @@
 {% load humanize %}
 {% load custom_filters %}
+{% load i18n %} 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <title>Employee Analytics</title>
+  <title>{% trans "Employee Analytics" %}</title>
   
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -336,21 +337,39 @@
 </head>
 <body>
   <aside class="sidebar">
-    <div class="sidebar-header"><div class="logo">YR Sales</div></div>
+    <div class="sidebar-header"><div class="logo">YR</div></div>
     <nav class="nav-menu">
-      <ul>
-        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
-        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link"><i class="fas fa-bullseye"></i><span>Plan vs Actual</span></a></li>
-        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-search"></i><span>Query</span></a></li>
-        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link active"><i class="fas fa-users"></i><span>Employee Analytics</span></a></li>
-        <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>Insights</span></a></li>
+       <div style="margin-top: 16px;">
+      <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <select name="language" onchange="this.form.submit()" 
+                style="width: 100%; padding: 8px; background: #1e293b; border: 1px solid #334155; 
+                       border-radius: 6px; color: #e4e4e7; font-size: 13px; cursor: pointer;">
+          {% get_current_language as LANGUAGE_CODE %}
+          {% get_available_languages as LANGUAGES %}
+          {% for lang_code, lang_name in LANGUAGES %}
+            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>
+              {{ lang_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+      <ul style="margin-top: 20px;">
+           <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link"><i class="fas fa-chart-line"></i><span>{% trans "Dashboard" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link active"><i class="fas fa-bullseye"></i><span>{% trans "Plan vs Actual" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Query" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>{% trans "Employee Analytics" %}</span></a></li>
+        <!-- <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "Insights" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'stat_main' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "stat" %}</span></a></li> -->
       </ul>
     </nav>
   </aside>
 
   <main class="main-content">
     <div class="top-bar">
-      <h1 class="page-title"><i class="fas fa-chart-pie"></i> Employee Analytics</h1>
+      <h1 class="page-title"><i class="fas fa-chart-pie"></i> {% trans "Employee Analytics" %} </h1>
       <div style="display: flex; gap: 12px;">
         <span style="padding: 10px 16px; background: rgba(102, 126, 234, 0.1); color: #667eea; border-radius: 8px; font-size: 14px; font-weight: 600;">
           {{ date_range_text }}
@@ -375,7 +394,7 @@
         </div>
       </div>
       <a href="{% url 'logout' %}" class="btn-primary" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
-        <i class="fas fa-sign-out-alt"></i> Logout
+        <i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}
       </a>
     </div>
 
@@ -383,13 +402,13 @@
     <div class="filters-section">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
         <i class="fas fa-filter" style="color: #667eea;"></i>
-        <span style="font-size: 16px; font-weight: 600;">Filters</span>
+        <span style="font-size: 16px; font-weight: 600;">{% trans "Filters and Controls" %}</span>
       </div>
       
       <form method="GET" action="{% url 'employee_analytics' %}" id="filterForm">
         <div class="filters-grid">
           <div class="filter-group">
-            <label class="filter-label">Comparison Mode</label>
+            <label class="filter-label">{% trans "Comparison Mode" %}</label>
             <select name="comparison" class="filter-select">
               <option value="2025-2024" {% if comparison_mode == '2025-2024' %}selected{% endif %}>2025 vs 2024</option>
               <option value="2026-2025" {% if comparison_mode == '2026-2025' %}selected{% endif %}>2026 vs 2025</option>
@@ -398,19 +417,19 @@
           </div>
           
           <div class="filter-group">
-            <label class="filter-label">Start Date</label>
+            <label class="filter-label">{% trans "Start Date" %}</label>
             <input type="date" name="start_date" value="{{ start_date }}" class="filter-input">
           </div>
           
           <div class="filter-group">
-            <label class="filter-label">End Date</label>
+            <label class="filter-label">{% trans "End Date" %}</label>
             <input type="date" name="end_date" value="{{ end_date }}" class="filter-input">
           </div>
           
           <div class="filter-group">
-            <label class="filter-label">Location</label>
+            <label class="filter-label">{% trans "Location" %}</label>
             <select name="un_filter" class="filter-select" size="1">
-              <option value="all" {% if selected_un == 'all' %}selected{% endif %}>All Locations</option>
+              <option value="all" {% if selected_un == 'all' %}selected{% endif %}>{% trans "All Locations" %}</option>
               {% for location in all_locations %}
                 <option value="{{ location }}" {% if location in selected_locations %}selected{% endif %}>{{ location }}</option>
               {% endfor %}
@@ -418,9 +437,9 @@
           </div>
           
           <div class="filter-group">
-            <label class="filter-label">Category</label>
+            <label class="filter-label">{% trans "Categoy" %}</label>
             <select name="category" class="filter-select">
-              <option value="all">All Categories</option>
+              <option value="all">{% trans "All Categories" %}</option>
               {% for category in all_categories %}
                 <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>
               {% endfor %}
@@ -428,7 +447,7 @@
           </div>
           
           <div class="filter-group">
-            <label class="filter-label">Employee</label>
+            <label class="filter-label">{% trans "Employees" %}</label>
             <div class="search-wrapper">
               <input 
                 type="text" 
@@ -440,7 +459,7 @@
               <i class="fas fa-search search-icon"></i>
               <input type="hidden" name="employee_filter" id="employeeFilterValue" value="{{ selected_employee|default:'all' }}">
               <div class="search-dropdown" id="employeeDropdown">
-                <div class="search-option" data-value="all">All Employees</div>
+                <div class="search-option" data-value="all">{% trans "All Employees" %}</div>
                 {% for employee in all_employees %}
                   <div class="search-option" data-value="{{ employee }}">{{ employee }}</div>
                 {% endfor %}
@@ -449,9 +468,9 @@
           </div>
           
           <div class="filter-group">
-            <label class="filter-label">Product</label>
+            <label class="filter-label">{% trans "Product" %}</label>
             <select name="prod_filter" id="product-select" class="filter-select">
-              <option value="all">All Products</option>
+              <option value="all">{% trans "All Products" %}</option>
               {% for prod in all_products %}
                 <option value="{{ prod }}" {% if prod == selected_product %}selected{% endif %}>{{ prod }}</option>
               {% endfor %}
@@ -460,7 +479,7 @@
         </div>
         
         <button type="submit" class="btn-apply">
-          <i class="fas fa-sync-alt"></i> Apply Filters
+          <i class="fas fa-sync-alt"></i> {% trans "Apply Filters" %}
         </button>
       </form>
     </div>
@@ -468,24 +487,24 @@
     <!-- Overall Employee Performance -->
     <div class="card">
       <div class="card-header">
-        <i class="fas fa-trophy"></i> Employee Performance Leaderboard ({{ current_year }})
+        <i class="fas fa-trophy"></i> {% trans "Employee Performance Dashboard" %} ({{ current_year }})
       </div>
       
       <div class="table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Employee</th>
-              <th>Location</th>
-              <th>Revenue ({{ current_year }})</th>
-              <th>YoY Change</th>
-              <th>Tickets</th>
-              <th>Avg Basket</th>
-              <th>Cross-Sell Rate</th>
-              <th>Ticket Distribution</th>
-              <th>Avg Items/Ticket</th>
-              <th>Skincare %</th>
+              <th>{% trans "Rank" %}</th>
+              <th>{% trans "Employee" %}</th>
+              <th>{% trans "Location" %}</th>
+              <th>{% trans "Revenue" %} ({{ current_year }})</th>
+              <th>{% trans "YOY Change" %}</th>
+              <th>{% trans "Tickets" %}</th>
+              <th>{% trans "Avg Basket" %}</th>
+              <th>{% trans "Cross-Selling rate" %}</th>
+              <th>{% trans "Cross Stats" %}</th>
+              <th>{% trans "Avg items Per Ticket" %}</th>
+              <th>{% trans "Skincare" %} %</th>
             </tr>
           </thead>
           <tbody>
@@ -522,7 +541,7 @@
               <td>
                 <div class="ticket-distribution">
                   <div class="dist-row">
-                    <span class="dist-label">1 item:</span>
+                    <span class="dist-label">1 {% trans "Quant" %}</span>
                     <div class="dist-bar">
                       <div class="dist-fill one-item" style="width: {{ emp.one_item_pct }}%">
                         {% if emp.one_item_pct > 15 %}{{ emp.one_item_pct|floatformat:0 }}%{% endif %}
@@ -530,7 +549,7 @@
                     </div>
                   </div>
                   <div class="dist-row">
-                    <span class="dist-label">2 items:</span>
+                    <span class="dist-label">2 {% trans "Quant" %}</span>
                     <div class="dist-bar">
                       <div class="dist-fill two-item" style="width: {{ emp.two_item_pct }}%">
                         {% if emp.two_item_pct > 15 %}{{ emp.two_item_pct|floatformat:0 }}%{% endif %}
@@ -538,7 +557,7 @@
                     </div>
                   </div>
                   <div class="dist-row">
-                    <span class="dist-label">3+ items:</span>
+                    <span class="dist-label">3+ {% trans "Quant" %}</span>
                     <div class="dist-bar">
                       <div class="dist-fill three-plus" style="width: {{ emp.three_plus_pct }}%">
                         {% if emp.three_plus_pct > 15 %}{{ emp.three_plus_pct|floatformat:0 }}%{% endif %}
@@ -560,7 +579,7 @@
     <!-- Category Leaders -->
     <div class="card">
       <div class="card-header">
-        <i class="fas fa-medal"></i> Top 10 Performers by Category
+        <i class="fas fa-medal"></i> {% trans "Top 10 Performance by Category" %}
       </div>
       
       {% for cat_data in category_leaders %}
@@ -582,19 +601,19 @@
             <div class="podium-name">{{ emp.name }}</div>
             <div class="podium-stats">
               <div class="podium-stat">
-                <span class="podium-stat-label">Revenue</span>
+                <span class="podium-stat-label">{% trans "Revenue" %}</span>
                 <span class="podium-stat-value">₾{{ emp.revenue|floatformat:0|intcomma }}</span>
               </div>
               <div class="podium-stat">
-                <span class="podium-stat-label">Tickets</span>
+                <span class="podium-stat-label">{% trans "Tickets" %}</span>
                 <span class="podium-stat-value">{{ emp.tickets|intcomma }}</span>
               </div>
               <div class="podium-stat">
-                <span class="podium-stat-label">Items Sold</span>
+                <span class="podium-stat-label">{% trans "Quantity" %}</span>
                 <span class="podium-stat-value">{{ emp.items|intcomma }}</span>
               </div>
               <div class="podium-stat">
-                <span class="podium-stat-label">Cross-Sell %</span>
+                <span class="podium-stat-label">{% trans "Cross Selling" %}</span>
                 <span class="podium-stat-value {% if emp.cross_sell_pct >= 30 %}text-success{% elif emp.cross_sell_pct >= 15 %}text-warning{% else %}text-danger{% endif %}">
                   {{ emp.cross_sell_pct|floatformat:1 }}%
                 </span>
@@ -614,12 +633,12 @@
                 <td style="width: 60px;"><span class="badge badge-rank">#{{ forloop.counter|add:3 }}</span></td>
                 <td style="font-weight: 600; width: 25%;">{{ emp.name }}</td>
                 <td style="color: #667eea; font-weight: 600;">₾{{ emp.revenue|floatformat:0|intcomma }}</td>
-                <td style="color: #94a3b8;">{{ emp.tickets|intcomma }} tickets</td>
-                <td style="color: #94a3b8;">{{ emp.items|intcomma }} items</td>
+                <td style="color: #94a3b8;">{{ emp.tickets|intcomma }} {% trans "Tickets" %}</td>
+                <td style="color: #94a3b8;">{{ emp.items|intcomma }} {% trans "Quantity" %}</td>
                 <td>
                   <span class="{% if emp.cross_sell_pct >= 30 %}text-success{% elif emp.cross_sell_pct >= 15 %}text-warning{% else %}text-danger{% endif %}" 
                         style="font-weight: 600;">
-                    {{ emp.cross_sell_pct|floatformat:1 }}% cross-sell
+                    {{ emp.cross_sell_pct|floatformat:1 }}%
                   </span>
                 </td>
               </tr>

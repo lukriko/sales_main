@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   {% load static %}
+  {% load i18n %} 
   <link rel="icon" type="image/png" href="{% static 'images/unnamed.png' %}">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -131,21 +132,39 @@
   <aside class="sidebar">
     <div class="sidebar-header"><div class="logo">YR Sales</div></div>
     <nav class="nav-menu">
-      <ul>
-        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
-        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link active"><i class="fas fa-bullseye"></i><span>Plan vs Actual</span></a></li>
-        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>Query</span></a></li>
-        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>Employee Analytics</span></a></li>
-        <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>Insights</span></a></li>
+      <div style="margin-top: 16px;">
+      <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <select name="language" onchange="this.form.submit()" 
+                style="width: 100%; padding: 8px; background: #1e293b; border: 1px solid #334155; 
+                       border-radius: 6px; color: #e4e4e7; font-size: 13px; cursor: pointer;">
+          {% get_current_language as LANGUAGE_CODE %}
+          {% get_available_languages as LANGUAGES %}
+          {% for lang_code, lang_name in LANGUAGES %}
+            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>
+              {{ lang_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+      <ul style="margin-top: 20px;">
+        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link"><i class="fas fa-chart-line"></i><span>{% trans "Dashboard" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link active"><i class="fas fa-bullseye"></i><span>{% trans "Plan vs Actual" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Query" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>{% trans "Employee Analytics" %}</span></a></li>
+        <!-- <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "Insights" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'stat_main' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "stat" %}</span></a></li> -->
       </ul>
     </nav>
   </aside>
 
   <main class="main-content">
     <div class="top-bar">
-      <h1 class="page-title">Plan vs Actual Performance</h1>
+      <h1 class="page-title">{% trans "Plan vs Actual Performance" %}</h1>
       <a href="{% url 'sales_dashboard' %}" class="btn-primary">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <i class="fas fa-arrow-left"></i> {% trans "Back to Dashboard" %}
       </a>
     </div>
      <div style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -165,7 +184,7 @@
     </div>
   </div>
   <a href="{% url 'logout' %}" class="btn-primary" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
-    <i class="fas fa-sign-out-alt"></i> Logout
+    <i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}
   </a>
 </div>
 
@@ -177,13 +196,13 @@
     {% endif %}
 
     <div class="filter-section">
-      <div class="filter-header"><i class="fas fa-sliders-h"></i> Filters & Controls</div>
+      <div class="filter-header"><i class="fas fa-sliders-h"></i> {% trans "Filters & Controls" %}</div>
       <form method="GET" id="filterForm">
         <div class="filter-controls">
           <div class="filter-group">
-            <label class="filter-label">Location</label>
+            <label class="filter-label">{% trans "Location" %}</label>
             <select name="location" class="filter-select">
-              <option value="all" {% if selected_geo == 'all' %}selected{% endif %}>All Locations</option>
+              <option value="all" {% if selected_geo == 'all' %}selected{% endif %}>{% trans "All Locations" %}</option>
               {% for geo in all_geos %}
                 <option value="{{ geo }}" {% if geo == selected_geo %}selected{% endif %}>{{ geo }}</option>
               {% endfor %}
@@ -191,7 +210,7 @@
           </div>
 
           <div class="filter-group">
-            <label class="filter-label">Year</label>
+            <label class="filter-label">{% trans "Year" %}</label>
             <select name="year" class="filter-select">
               <option value="2024" {% if selected_year == '2024' %}selected{% endif %}>2024</option>
               <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
@@ -200,7 +219,7 @@
           </div>
 
           <div class="filter-group">
-            <label class="filter-label">Start Month</label>
+            <label class="filter-label">{% trans "Start Month" %}</label>
             <select name="start_month" class="filter-select">
               {% for month in month_options %}
                 <option value="{{ month.value }}" {% if month.value == selected_start_month %}selected{% endif %}>
@@ -211,7 +230,7 @@
           </div>
 
           <div class="filter-group">
-            <label class="filter-label">End Month</label>
+            <label class="filter-label">{% trans "End Month" %}</label>
             <select name="end_month" class="filter-select">
               {% for month in month_options %}
                 <option value="{{ month.value }}" {% if month.value == selected_end_month %}selected{% endif %}>
@@ -225,7 +244,7 @@
         <input type="hidden" name="aggregation" value="{{ aggregation }}">
         <input type="hidden" name="show_prev_year" value="{{ show_prev_year }}">
         <button type="submit" style="margin-top: 20px;" class="btn-primary">
-          <i class="fas fa-filter"></i> Apply Filters
+          <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
         </button>
       </form>
     </div>
@@ -234,13 +253,13 @@
     <div class="tabs-container">
       <div class="tabs">
         <button class="tab active" onclick="switchTab('revenue')">
-          <i class="fas fa-dollar-sign"></i> Revenue
+          <i class="fas fa-dollar-sign"></i> {% trans "Revenue" %}
         </button>
         <button class="tab" onclick="switchTab('tickets')">
-          <i class="fas fa-ticket-alt"></i> Tickets
+          <i class="fas fa-ticket-alt"></i> {% trans "Tickets" %}
         </button>
         <button class="tab" onclick="switchTab('basket')">
-          <i class="fas fa-shopping-basket"></i> Avg Basket
+          <i class="fas fa-shopping-basket"></i> {% trans "Avg Basket" %}
         </button>
       </div>
     </div>
@@ -252,46 +271,46 @@
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Plan Target</div>
+              <div class="kpi-title">{% trans "Plan Target" %}</div>
               <div class="kpi-value">{{ total_plan }}</div>
             </div>
             <div class="kpi-icon blue"><i class="fas fa-bullseye"></i></div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">Target revenue</span>
+            <!-- <span class="kpi-comparison" style="color: #64748b;">Target revenue</span> -->
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Plan Target 85%</div>
+              <div class="kpi-title">{% trans "Plan Target" %} 85%</div>
               <div class="kpi-value">{{ total_plan_85 }}</div>
             </div>
             <div class="kpi-icon blue"><i class="fas fa-bullseye"></i></div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">Target 85% revenue</span>
+            <span class="kpi-comparison" style="color: #64748b;">85%</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Actual Revenue</div>
+              <div class="kpi-title">{% trans "Revenue" %}</div>
               <div class="kpi-value">{{ total_actual }}</div>
             </div>
             <div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">Achieved revenue</span>
+            <span class="kpi-comparison" style="color: #64748b;">{% trans "Revenue" %}</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Achievement</div>
+              <div class="kpi-title">{% trans "Achievement" %}</div>
               <div class="kpi-value">{{ plan_achievement }}%</div>
             </div>
             <div class="kpi-icon {% if plan_achievement|floatformat:0|add:'0' >= 100 %}green{% else %}orange{% endif %}">
@@ -299,14 +318,14 @@
             </div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">of target reached</span>
+            <span class="kpi-comparison" style="color: #64748b;">{% trans "Of Target Reached" %}</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Variance</div>
+              <div class="kpi-title">{% trans "Variance" %}</div>
               <div class="kpi-value">{{ variance }}</div>
             </div>
             <div class="kpi-icon {% if variance_pct|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
@@ -318,14 +337,14 @@
               <i class="fas fa-arrow-{% if variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
               {{ variance_pct }}%
             </span>
-            <span style="color: #64748b; font-size: 12px;">vs plan</span>
+            <span style="color: #64748b; font-size: 12px;">{% trans "vs Plan" %}</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Variance 85%</div>
+              <div class="kpi-title">{% trans "Variance" %} 85%</div>
               <div class="kpi-value">{{ variance_85 }}</div>
             </div>
             <div class="kpi-icon {% if variance_pct_85|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
@@ -337,7 +356,7 @@
               <i class="fas fa-arrow-{% if variance_pct_85|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
               {{ variance_pct_85 }}%
             </span>
-            <span style="color: #64748b; font-size: 12px;">vs plan 85%</span>
+            <span style="color: #64748b; font-size: 12px;">vs {% trans "Plan Target" %} 85%</span>
           </div>
         </div>
       </div>
@@ -345,13 +364,13 @@
       <!-- Plan vs Actual Chart - Revenue -->
       <div class="chart-card">
         <div class="chart-header">
-          <div class="chart-title"><i class="fas fa-chart-area"></i> Revenue: Plan vs Actual Trend</div>
+          <div class="chart-title"><i class="fas fa-chart-area"></i> {% trans "Revenue" %}: {% trans "Plan Target" %} vs {% trans "Revenue" %}</div>
           <div class="chart-actions">
-            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">Daily</button>
-            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">Weekly</button>
-            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">Monthly</button>
+            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">{% trans "Day" %}</button>
+            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">{% trans "Week" %}</button>
+            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">{% trans "Month" %}</button>
             <button class="chart-btn {% if show_prev_year == 'true' %}active{% endif %}" onclick="togglePrevYear()">
-              <i class="fas fa-calendar-alt"></i> Prev Year
+              <i class="fas fa-calendar-alt"></i> {% trans "Prev Year" %}
             </button>
           </div>
         </div>
@@ -362,21 +381,21 @@
       {% if location_performance %}
       <div class="table-card">
         <h3 style="margin-bottom: 20px; color: #f1f5f9;">
-          <i class="fas fa-map-marker-alt"></i> Location Performance Ranking - Revenue
+          <i class="fas fa-map-marker-alt"></i> {% trans "Location Performance" %}
         </h3>
         <table class="data-table">
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Location</th>
-              <th>Plan CY</th>
-              <th>Actual CY</th>
-              <th>Plan PY</th>
-              <th>Actual PY</th>
-              <th>Variance CY</th>
-              <th>Achievement</th>
-              <th>YoY Growth</th>
-              <th>YoY Growth Plan</th>
+              <th>{% trans "Rank" %}</th>
+              <th>{% trans "Location" %}</th>
+              <th>{% trans "Plan CY" %}</th>
+              <th>{% trans "Actual CY" %}</th>
+              <th>{% trans "Plan PY" %}</th>
+              <th>{% trans "Actual PY" %}</th>
+              <th>{% trans "Variance CY" %}</th>
+              <th>{% trans "Achievement CY" %}</th>
+              <th>{% trans "YOY Growth" %}</th>
+              <th>{% trans "YOY Plan Growth" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -427,33 +446,33 @@
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Tickets Plan</div>
+              <div class="kpi-title">{% trans "Tickets Plan" %}</div>
               <div class="kpi-value">{{ total_tickets_plan }}</div>
             </div>
             <div class="kpi-icon purple"><i class="fas fa-ticket-alt"></i></div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">Target tickets</span>
+            <!-- <span class="kpi-comparison" style="color: #64748b;">{% trans "Insights" %}</span> -->
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Tickets Actual</div>
+              <div class="kpi-title">{% trans "Ticket" %}</div>
               <div class="kpi-value">{{ total_tickets_actual }}</div>
             </div>
             <div class="kpi-icon green"><i class="fas fa-check-circle"></i></div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">Achieved tickets</span>
+            <!-- <span class="kpi-comparison" style="color: #64748b;">Achieved tickets</span> -->
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Achievement</div>
+              <div class="kpi-title">{% trans "Achievement" %}</div>
               <div class="kpi-value">{{ tickets_achievement }}%</div>
             </div>
             <div class="kpi-icon {% if tickets_achievement|floatformat:0|add:'0' >= 100 %}green{% else %}orange{% endif %}">
@@ -461,14 +480,14 @@
             </div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">of target reached</span>
+            <span class="kpi-comparison" style="color: #64748b;">{% trans "Of Target Reached" %}</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Variance</div>
+              <div class="kpi-title">{% trans "Variance" %}</div>
               <div class="kpi-value">{{ tickets_variance }}</div>
             </div>
             <div class="kpi-icon {% if tickets_variance_pct|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
@@ -480,7 +499,7 @@
               <i class="fas fa-arrow-{% if tickets_variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
               {{ tickets_variance_pct }}%
             </span>
-            <span style="color: #64748b; font-size: 12px;">vs plan</span>
+            <span style="color: #64748b; font-size: 12px;">vs {% trans "Plan Target" %}</span>
           </div>
         </div>
       </div>
@@ -488,13 +507,13 @@
       <!-- Tickets Chart -->
       <div class="chart-card">
         <div class="chart-header">
-          <div class="chart-title"><i class="fas fa-chart-area"></i> Tickets: Plan vs Actual Trend</div>
+          <div class="chart-title"><i class="fas fa-chart-area"></i> {% trans "Tickets" %}: {% trans "Plan Target" %} vs {% trans "Revenue" %} Trend</div>
           <div class="chart-actions">
-            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">Daily</button>
-            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">Weekly</button>
-            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">Monthly</button>
+            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">{% trans "Day" %}</button>
+            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">{% trans "Week" %}</button>
+            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">{% trans "Month" %}</button>
             <button class="chart-btn {% if show_prev_year == 'true' %}active{% endif %}" onclick="togglePrevYear()">
-              <i class="fas fa-calendar-alt"></i> Prev Year
+              <i class="fas fa-calendar-alt"></i> {% trans "Prev Year" %}
             </button>
           </div>
         </div>
@@ -505,20 +524,20 @@
       {% if tickets_location_performance %}
       <div class="table-card">
         <h3 style="margin-bottom: 20px; color: #f1f5f9;">
-          <i class="fas fa-map-marker-alt"></i> Location Performance Ranking - Tickets
+          <i class="fas fa-map-marker-alt"></i> {% trans "Location Performance Ranking - Tickets" %}
         </h3>
         <table class="data-table">
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Location</th>
-              <th>Plan CY</th>
-              <th>Actual CY</th>
-              <th>Plan PY</th>
-              <th>Actual PY</th>
-              <th>Variance CY</th>
-              <th>Achievement</th>
-              <th>YoY Growth</th>
+                   <th>{% trans "Rank" %}</th>
+              <th>{% trans "Location" %}</th>
+              <th>{% trans "Plan CY" %}</th>
+              <th>{% trans "Actual CY" %}</th>
+              <th>{% trans "Plan PY" %}</th>
+              <th>{% trans "Actual PY" %}</th>
+              <th>{% trans "Variance CY" %}</th>
+              <th>{% trans "Achievement CY" %}</th>
+              <th>{% trans "YOY Growth" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -564,33 +583,33 @@
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Avg Basket Plan</div>
+              <div class="kpi-title">{% trans "Avg Basket Plan" %}</div>
               <div class="kpi-value">${{ avg_basket_plan }}</div>
             </div>
             <div class="kpi-icon cyan"><i class="fas fa-shopping-basket"></i></div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">Target basket</span>
+            <span class="kpi-comparison" style="color: #64748b;">{% trans "Target Basket" %}</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Avg Basket Actual</div>
+              <div class="kpi-title">{% trans "Avg Basket Actual" %}</div>
               <div class="kpi-value">${{ avg_basket_actual }}</div>
             </div>
             <div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">Achieved basket</span>
+            <span class="kpi-comparison" style="color: #64748b;">{% trans "Achieved Basket" %}</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Achievement</div>
+              <div class="kpi-title">{% trans "Achievement" %}</div>
               <div class="kpi-value">{{ basket_achievement }}%</div>
             </div>
             <div class="kpi-icon {% if basket_achievement|floatformat:0|add:'0' >= 100 %}green{% else %}orange{% endif %}">
@@ -598,14 +617,14 @@
             </div>
           </div>
           <div class="kpi-meta">
-            <span class="kpi-comparison" style="color: #64748b;">of target reached</span>
+            <span class="kpi-comparison" style="color: #64748b;">{% trans "Of Target Reached" %}</span>
           </div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-header">
             <div>
-              <div class="kpi-title">Variance</div>
+              <div class="kpi-title">{% trans "Variance" %}</div>
               <div class="kpi-value">${{ basket_variance }}</div>
             </div>
             <div class="kpi-icon {% if basket_variance_pct|floatformat:0|add:'0' >= 0 %}green{% else %}red{% endif %}">
@@ -617,7 +636,7 @@
               <i class="fas fa-arrow-{% if basket_variance_pct|floatformat:0|add:'0' >= 0 %}up{% else %}down{% endif %}"></i>
               {{ basket_variance_pct }}%
             </span>
-            <span style="color: #64748b; font-size: 12px;">vs plan</span>
+            <span style="color: #64748b; font-size: 12px;">{% trans "Vs Plan" %}</span>
           </div>
         </div>
       </div>
@@ -625,13 +644,13 @@
       <!-- Basket Chart -->
       <div class="chart-card">
         <div class="chart-header">
-          <div class="chart-title"><i class="fas fa-chart-area"></i> Average Basket: Plan vs Actual Trend</div>
+          <div class="chart-title"><i class="fas fa-chart-area"></i> {% trans "Average Basket: Plan vs Actual Trend" %}</div>
           <div class="chart-actions">
-            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">Daily</button>
-            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">Weekly</button>
-            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">Monthly</button>
+            <button class="chart-btn {% if aggregation == 'daily' %}active{% endif %}" onclick="changeAggregation('daily')">{% trans "Day" %}</button>
+            <button class="chart-btn {% if aggregation == 'weekly' %}active{% endif %}" onclick="changeAggregation('weekly')">{% trans "Week" %}</button>
+            <button class="chart-btn {% if aggregation == 'monthly' %}active{% endif %}" onclick="changeAggregation('monthly')">{% trans "Month" %}</button>
             <button class="chart-btn {% if show_prev_year == 'true' %}active{% endif %}" onclick="togglePrevYear()">
-              <i class="fas fa-calendar-alt"></i> Prev Year
+              <i class="fas fa-calendar-alt"></i> {% trans "Prev Year" %}
             </button>
           </div>
         </div>
@@ -642,20 +661,20 @@
       {% if basket_location_performance %}
       <div class="table-card">
         <h3 style="margin-bottom: 20px; color: #f1f5f9;">
-          <i class="fas fa-map-marker-alt"></i> Location Performance Ranking - Average Basket
+          <i class="fas fa-map-marker-alt"></i> {% trans "Location Performance Ranking - Average Basket" %}
         </h3>
         <table class="data-table">
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Location</th>
-              <th>Plan CY</th>
-              <th>Actual CY</th>
-              <th>Plan PY</th>
-              <th>Actual PY</th>
-              <th>Variance CY</th>
-              <th>Achievement</th>
-              <th>YoY Change</th>
+                     <th>{% trans "Rank" %}</th>
+              <th>{% trans "Location" %}</th>
+              <th>{% trans "Plan CY" %}</th>
+              <th>{% trans "Actual CY" %}</th>
+              <th>{% trans "Plan PY" %}</th>
+              <th>{% trans "Actual PY" %}</th>
+              <th>{% trans "Variance CY" %}</th>
+              <th>{% trans "Achievement CY" %}</th>
+              <th>{% trans "YOY Growth" %}</th>
             </tr>
           </thead>
           <tbody>

@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %} 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -623,15 +624,32 @@
 
 {% load humanize %}
   <aside class="sidebar">
-    <div class="sidebar-header"><div class="logo">YR sales</div></div>
+    <div class="sidebar-header"><div class="logo">YR</div></div>
     <nav class="nav-menu">
-      <ul>
-        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link active"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
-        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link"><i class="fas fa-bullseye"></i><span>Plan vs Actual</span></a></li>
-        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>Query</span></a></li>
-        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>Employee Analytics</span></a></li>
-        <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>Insights</span></a></li>
-        <li class="nav-item"><a href="{% url 'stat_main' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>stat</span></a></li>
+      <div style="margin-top: 16px;">
+      <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <select name="language" onchange="this.form.submit()" 
+                style="width: 100%; padding: 8px; background: #1e293b; border: 1px solid #334155; 
+                       border-radius: 6px; color: #e4e4e7; font-size: 13px; cursor: pointer;">
+          {% get_current_language as LANGUAGE_CODE %}
+          {% get_available_languages as LANGUAGES %}
+          {% for lang_code, lang_name in LANGUAGES %}
+            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>
+              {{ lang_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+      <ul style="margin-top: 20px;">
+        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link active"><i class="fas fa-chart-line"></i><span>{% trans "Dashboard" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link"><i class="fas fa-bullseye"></i><span>{% trans "Plan vs Actual" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Query" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>{% trans "Employee Analytics" %}</span></a></li>
+        <!-- <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "Insights" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'stat_main' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "stat" %}</span></a></li> -->
       </ul>
     </nav>
   </aside>
@@ -643,7 +661,7 @@
         <div class="date-range"><i class="fas fa-calendar"></i><span id="date-range-text">{{ date_range_text }}</span></div>
       <!-- Make sure your export button looks like this: -->
         <a href="{% url 'export_location_csv' %}?{{ request.GET.urlencode }}" class="btn-primary">
-          <i class="fas fa-download"></i> Export Excel
+          <i class="fas fa-download"></i> {% trans "Export Excel" %}
         </a>
       </div>
     </div>
@@ -664,7 +682,7 @@
     </div>
   </div>
   <a href="{% url 'logout' %}" class="btn-primary" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
-    <i class="fas fa-sign-out-alt"></i> Logout
+    <i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}
   </a>
 </div>
 
@@ -690,7 +708,7 @@
 
     <!-- NEW: Comparison Toggle -->
     <div class="comparison-toggle">
-      <span class="toggle-label"><i class="fas fa-exchange-alt"></i> Comparison Period</span>
+      <span class="toggle-label"><i class="fas fa-exchange-alt"></i> {% trans "Comparison Period" %}</span>
       <div class="btn-group">
         <button type="button" 
                 class="btn-toggle {% if comparison_mode == '2026-2025' %}active{% endif %}"
@@ -713,7 +731,7 @@
 <!-- Preset Location Groups -->
 <div class="preset-section" style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
   <div class="filter-header" style="margin-bottom: 16px;">
-    <i class="fas fa-map-marked-alt"></i> Quick Location Groups
+    <i class="fas fa-map-marked-alt"></i> {% trans "Quick Location Groups" %}
   </div>
   <div style="display: flex; gap: 12px; flex-wrap: wrap;">
     <button type="button" class="preset-btn" onclick="selectLocationGroup('LFL_2025')">
@@ -731,12 +749,12 @@
   </div>
 </div>
     <div class="filter-section">
-      <div class="filter-header"><i class="fas fa-sliders-h"></i>Filters & Controls</div>
+      <div class="filter-header"><i class="fas fa-sliders-h"></i>{% trans "Filters & Controls" %}</div>
       <form method="GET" id="filterForm">
         <input type="hidden" name="comparison" value="{{ comparison_mode|default:'2025-2024' }}">
         <div class="filter-controls">
          <div class="filter-group">
-          <label class="filter-label">Location</label>
+          <label class="filter-label">{% trans "Location" %}</label>
           <select name="un_filter" id="location-select" class="filter-select" multiple>
             {% for loc in all_locations %}
               <option value="{{ loc }}" {% if loc in selected_locations %}selected{% endif %}>{{ loc }}</option>
@@ -744,18 +762,18 @@
           </select>
         </div>  
           <div class="filter-group">
-            <label class="filter-label">Category</label>
+            <label class="filter-label">{% trans "Category" %}</label>
             <select name="category" class="filter-select">
-              <option value="all">All Categories</option>
+              <option value="all">{%trans "All Categories" %}</option>
               {% for cat in all_categories %}
                 <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
               {% endfor %}
             </select>
           </div>
          <div class="filter-group">
-          <label class="filter-label">Product</label>
+          <label class="filter-label">{% trans "Product" %}</label>
           <select name="prod_filter" id="product-select" class="filter-select">
-            <option value="all">All Products</option>
+            <option value="all">{% trans "All Products" %}</option>
             {% for prod in products %}
               <option value="{{ prod }}" {% if prod == selected_product %}selected{% endif %}>{{ prod }}</option>
             {% endfor %}
@@ -763,9 +781,9 @@
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Campaign</label>
+          <label class="filter-label">{% trans "Campaign" %}</label>
           <select name="campaign_filter" id="campaign-select" class="filter-select">
-            <option value="all">All Campaigns</option>
+            <option value="all">{% trans "All Campaigns" %}</option>
             {% for campaign in all_campaigns %}
               <option value="{{ campaign }}" {% if campaign == selected_campaign %}selected{% endif %}>{{ campaign }}</option>
             {% endfor %}
@@ -774,14 +792,14 @@
         </div>
         <div class="slider-wrapper">
           <div class="slider-label">
-            <span>Date Range</span>
+            <span>{% trans "Date Range" %}</span>
             <span id="date-range-display">Jan 1 - Dec 31</span>
           </div>
           <div id="date-slider"></div>
         </div>
         <input type="hidden" name="start_date" id="start_date" value="{{ start_date|default:'2025-01-01' }}">
         <input type="hidden" name="end_date" id="end_date" value="{{ end_date|default:'2025-12-31' }}">
-        <button type="submit" style="margin-top: 40px;" class="btn-primary"><i class="fas fa-filter"></i>Apply Filters</button>
+        <button type="submit" style="margin-top: 40px;" class="btn-primary"><i class="fas fa-filter"></i>{% trans "Apply Filters" %}</button>
       </form>
     </div>
     <!-- divider -->
@@ -789,8 +807,8 @@
   <div class="section-divider-line"></div>
   <div class="section-title-wrapper">
     <div class="section-icon"><i class="fas fa-money"></i></div>
-    <span class="section-title">Overall Performance</span>
-    <span class="section-subtitle">Graph Breakdown</span>
+    <span class="section-title">{% trans "Overall Performance" %}</span>
+    <!-- <span class="section-subtitle">Graph Breakdown</span> -->
   </div>
   <div class="section-divider-line"></div>
 </div>
@@ -798,7 +816,7 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">Total Revenue</div>
+            <div class="kpi-title">{% trans "Total Revenue" %}</div>
             <div class="kpi-value">{{ total_current|default:"$847.2K" }}</div>
           </div>
           <div class="kpi-icon purple"><i class="fas fa-dollar-sign"></i></div>
@@ -815,7 +833,7 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">Total Tickets</div>
+            <div class="kpi-title">{% trans "Total Tickets" %}</div>
             <div class="kpi-value">{{ total_tickets|default:"24,847" }}</div>
           </div>
           <div class="kpi-icon green"><i class="fas fa-ticket-alt"></i></div>
@@ -832,7 +850,7 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">Total Quantity</div>
+            <div class="kpi-title">{% trans "Total Quantity" %}</div>
             <div class="kpi-value">{{ total_items|default:"24,847" }}</div>
           </div>
           <div class="kpi-icon red"><i class="fas fa-clipboard-list"></i></div>
@@ -849,7 +867,7 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">Avg Basket</div>
+            <div class="kpi-title">{% trans "Avg Basket" %}</div>
             <div class="kpi-value">{{ avg_basket|default:"$34.12" }}</div>
           </div>
           <div class="kpi-icon blue"><i class="fas fa-shopping-basket"></i></div>
@@ -867,19 +885,19 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">{{ previous_year }} Performance</div>
+            <div class="kpi-title">{{ previous_year }} {% trans "Performance" %}</div>
             <div class="kpi-value">{{ total_previous|default:"$753.1K" }}</div>
           </div>
           <div class="kpi-icon cyan"><i class="fas fa-calendar-alt"></i></div>
         </div>
-        <div class="kpi-meta"><span class="kpi-comparison">{{ previous_year }} Total Revenue</span></div>
+        <div class="kpi-meta"><span class="kpi-comparison">{{ previous_year }} {% trans "Total Revenue" %}</span></div>
       </div>
 
 
        <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">discount_share</div>
+            <div class="kpi-title">{% trans "Discount Share" %}</div>
             <div class="kpi-value">{{ discount_share_current|floatformat:2|default:"28.3" }}%</div>
           </div>
           <div class="kpi-icon red"><i class="fas fa-minus-circle"></i></div>
@@ -889,7 +907,7 @@
             <i class="fas fa-arrow-{% if single_item_change <= 0 %}up{% else %}down{% endif %}"></i>
             {{ discount_share_percentage_change|floatformat:1|default:"-2.1" }}%
           </span>
-          <span class="kpi-comparison">share as %</span>
+          <!-- <span class="kpi-comparison">share as %</span> -->
         </div>
       </div>
     </div>
@@ -899,11 +917,11 @@
   <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px;">
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title"><i class="fas fa-chart-area"></i>Revenue Trend: {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-title"><i class="fas fa-chart-area"></i>{% trans "Revenue Trend" %} {{ current_year }} vs {{ previous_year }}</div>
         <div class="chart-actions">
-          <button class="chart-btn active" onclick="aggregateChart('day')">Daily</button>
-          <button class="chart-btn" onclick="aggregateChart('week')">Week</button>
-          <button class="chart-btn" onclick="aggregateChart('month')">Month</button>
+          <button class="chart-btn active" onclick="aggregateChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateChart('month')">{% trans "Month" %}</button>
         </div>
       </div>
       <div class="chart-wrapper"><canvas id="yoyChart"></canvas></div>
@@ -911,11 +929,11 @@
   <!-- Row 2: Three equal columns -->
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title"><i class="fas fa-ticket-alt"></i>Tickets: {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-title"><i class="fas fa-ticket-alt"></i>{% trans "Tickets" %} {{ current_year }} vs {{ previous_year }}</div>
         <div class="chart-actions">
-          <button class="chart-btn active" onclick="aggregateTicketsChart('day')">Daily</button>
-          <button class="chart-btn" onclick="aggregateTicketsChart('week')">Week</button>
-          <button class="chart-btn" onclick="aggregateTicketsChart('month')">Month</button>
+          <button class="chart-btn active" onclick="aggregateTicketsChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateTicketsChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateTicketsChart('month')">{% trans "Month" %}</button>
         </div>
       </div>
       <div class="chart-wrapper"><canvas id="ticketsChart"></canvas></div>
@@ -923,11 +941,11 @@
     
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title"><i class="fas fa-shopping-basket"></i>Avg Basket: {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-title"><i class="fas fa-shopping-basket"></i>{% trans "Avg Basket" %} {{ current_year }} vs {{ previous_year }}</div>
         <div class="chart-actions">
-          <button class="chart-btn active" onclick="aggregateBasketChart('day')">Daily</button>
-          <button class="chart-btn" onclick="aggregateBasketChart('week')">Week</button>
-          <button class="chart-btn" onclick="aggregateBasketChart('month')">Month</button>
+          <button class="chart-btn active" onclick="aggregateBasketChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateBasketChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateBasketChart('month')">{% trans "Month" %}</button>
         </div>
       </div>
       <div class="chart-wrapper"><canvas id="basketChart"></canvas></div>
@@ -935,11 +953,11 @@
     
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title"><i class="fas fa-clipboard-list"></i>Quantity: {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-title"><i class="fas fa-clipboard-list"></i>{% trans "Quantity" %} {{ current_year }} vs {{ previous_year }}</div>
         <div class="chart-actions">
-          <button class="chart-btn active" onclick="aggregateQuantityChart('day')">Daily</button>
-          <button class="chart-btn" onclick="aggregateQuantityChart('week')">Week</button>
-          <button class="chart-btn" onclick="aggregateQuantityChart('month')">Month</button>
+          <button class="chart-btn active" onclick="aggregateQuantityChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateQuantityChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateQuantityChart('month')">{% trans "Month" %}</button>
         </div>
       </div>
       <div class="chart-wrapper"><canvas id="quantityChart"></canvas></div>
@@ -953,22 +971,22 @@
   <div class="section-divider-line"></div>
   <div class="section-title-wrapper">
     <div class="section-icon"><i class="fas fa-chart-pie"></i></div>
-    <span class="section-title">Category Analytics</span>
-    <span class="section-subtitle">Performance Breakdown</span>
+    <span class="section-title">{% trans "Category Analytics" %}</span>
+    <!-- <span class="section-subtitle">Performance Breakdown</span> -->
   </div>
   <div class="section-divider-line"></div>
 </div>
 <!-- category section -->
    <div style="margin-top: 20px;" class="table-card">
-      <h3 style="margin-bottom: 20px; color: #f1f5f9;"><i class="fas fa-exchange-alt"></i> Category Performance: {{ previous_year }} vs {{ current_year }}</h3>
+      <h3 style="margin-bottom: 20px; color: #f1f5f9;"><i class="fas fa-exchange-alt"></i> {% trans "Category Performance" %}: {{ previous_year }} vs {{ current_year }}</h3>
       <table class="data-table">
         <thead>
           <tr>
-            <th>Category</th>
-            <th>{{ previous_year }} Revenue</th>
-            <th>{{ current_year }} Revenue</th>
-            <th>Change ($)</th>
-            <th>Trend</th>
+            <th>{% trans "Category" %}</th>
+            <th>{{ previous_year }} {% trans "Revenue" %}</th>
+            <th>{{ current_year }} {% trans "Category" %}</th>
+            <th>{% trans "Change" %} ($)</th>
+            <th>{% trans "Trend" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -988,7 +1006,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">No category data available</td></tr>
+          <tr><td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">{% trans "No Data Available" %}</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -996,7 +1014,7 @@
 <div style="display: grid; gap: 30px; margin-bottom: 28px;">
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title"><i class="fas fa-chart-pie"></i>Sales by Category ({{ current_year }})</div>
+        <div class="chart-title"><i class="fas fa-chart-pie"></i>{% trans "Sales By Category" %} ({{ current_year }})</div>
       </div>
       <div style="height: 400px; width: 100%;" class="chart-wrapper"><canvas id="categoryChart"></canvas></div>
     </div> 
@@ -1009,8 +1027,8 @@
   <div class="section-divider-line"></div>
   <div class="section-title-wrapper">
     <div class="section-icon"><i class="fas fa-trophy"></i></div>
-    <span class="section-title">Product Performance</span>
-    <span class="section-subtitle">Bestsellers, Slow Movers & Rising Stars</span>
+    <span class="section-title">{% trans "Product Performance" %}</span>
+    <span class="section-subtitle">{% trans "Best Sellers" %}</span>
   </div>
   <div class="section-divider-line"></div>
 </div>
@@ -1019,33 +1037,33 @@
 <div style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
   <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
     <div style="font-size: 14px; font-weight: 600; color: #94a3b8;">
-      <i class="fas fa-medal"></i> Performance Tiers:
+      <i class="fas fa-medal"></i> {% trans "Performance Tiers" %}
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
       <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: #0a0e27;">S</span>
-      <span style="font-size: 13px; color: #e4e4e7;">Top Performer (80-100)</span>
+      <span style="font-size: 13px; color: #e4e4e7;">80-100</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
       <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">A</span>
-      <span style="font-size: 13px; color: #e4e4e7;">Strong (60-80)</span>
+      <span style="font-size: 13px; color: #e4e4e7;">60-80</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
       <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">B</span>
-      <span style="font-size: 13px; color: #e4e4e7;">Average (40-60)</span>
+      <span style="font-size: 13px; color: #e4e4e7;">40-60</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
       <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #fb923c, #f97316); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">C</span>
-      <span style="font-size: 13px; color: #e4e4e7;">Weak (20-40)</span>
+      <span style="font-size: 13px; color: #e4e4e7;">20-40</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
       <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">D</span>
-      <span style="font-size: 13px; color: #e4e4e7;">Poor (0-20)</span>
+      <span style="font-size: 13px; color: #e4e4e7;">0-20</span>
     </div>
   </div>
   <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #334155; font-size: 12px; color: #94a3b8;">
-    <i class="fas fa-info-circle"></i> Score calculated from: Revenue (40%), Purchase Frequency (30%), Recency (20%), Avg Value (10%)
+    <i class="fas fa-info-circle"></i> {% trans "Score calculated from: Revenue (40%), Purchase Frequency (30%), Recency (20%), Avg Value (10%)" %}
     <br>
-    <i class="fas fa-calendar-alt"></i> Recency is relative to your filtered end date, not today
+    <i class="fas fa-calendar-alt"></i> {% trans "Recency is relative to your filtered end date, not today" %}
   </div>
 </div>
 
@@ -1053,20 +1071,20 @@
 <div style="margin-top: 20px;" class="table-card">
   <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 12px;">
     <i class="fas fa-trophy" style="color: #ffd700;"></i> 
-    Top Performers ({{ current_year }})
-    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">Based on multi-factor performance score</span>
+    {% trans "Best Sellers" %} ({{ current_year }})
+    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "Based on multi-factor performance score" %}</span>
   </h3>
   <table class="data-table">
     <thead>
       <tr>
-        <th>Rank</th>
-        <th>Tier</th>
-        <th>Product</th>
-        <th>Revenue</th>
-        <th>Times Bought</th>
-        <th>Last Purchase</th>
-        <th>Avg Value</th>
-        <th>Score</th>
+        <th>{% trans "Rank" %}</th>
+        <th>{% trans "Tier" %}</th>
+        <th>{% trans "Products" %}</th>
+        <th>{% trans "Revenue" %}</th>
+        <th>{% trans "Times Bought" %}</th>
+        <th>{% trans "Last Bought" %}</th>
+        <th>{% trans "Avg Value" %}</th>
+        <th>{% trans "Score" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -1131,7 +1149,7 @@
       {% empty %}
       <tr>
         <td colspan="8" style="text-align:center; padding:40px; color:#64748b;">
-          No bestseller data available
+          {% trans "No Data Available" %}
         </td>
       </tr>
       {% endfor %}
@@ -1145,16 +1163,16 @@
   <!-- Rising Stars -->
   <div class="table-card">
     <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
-      <i class="fas fa-rocket" style="color: #10b981;"></i> Rising Stars
-      <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">Recent in filtered period</span>
+      <i class="fas fa-rocket" style="color: #10b981;"></i> {% trans "Rising Stars" %}
+      <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "Filtered based on given interval" %}</span>
     </h3>
     <table class="data-table">
       <thead>
         <tr>
-          <th>Product</th>
-          <th>Revenue</th>
-          <th>Frequency</th>
-          <th>Last Buy</th>
+          <th>{% trans "Product" %}</th>
+          <th>{% trans "Revenue" %}</th>
+          <th>{% trans "Frequency" %}</th>
+          <th>{% trans "Last Bought" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -1168,7 +1186,7 @@
         {% empty %}
         <tr>
           <td colspan="4" style="text-align:center; padding:20px; color:#64748b;">
-            No rising stars identified
+            {% trans "No Data Available" %}
           </td>
         </tr>
         {% endfor %}
@@ -1179,16 +1197,16 @@
   <!-- Slow Movers -->
   <div class="table-card">
     <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
-      <i class="fas fa-exclamation-triangle" style="color: #fb923c;"></i> Slow Movers
-      <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">Not bought in period's last 30d</span>
+      <i class="fas fa-exclamation-triangle" style="color: #fb923c;"></i> {% trans "Slow Movers" %}
+      <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "No purchase made given 30 Days" %}</span>
     </h3>
     <table class="data-table">
       <thead>
         <tr>
-          <th>Product</th>
-          <th>Revenue</th>
-          <th>Frequency</th>
-          <th>Last Buy</th>
+          <th>{% trans "Product" %}</th>
+          <th>{% trans "Revenue" %}</th>
+          <th>{% trans "Frequency" %}</th>
+          <th>L{% trans "Last Bought" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -1202,7 +1220,7 @@
         {% empty %}
         <tr>
           <td colspan="4" style="text-align:center; padding:20px; color:#64748b;">
-            No slow movers identified
+            {% trans "No Data Available" %}
           </td>
         </tr>
         {% endfor %}
@@ -1216,21 +1234,21 @@
 <div style="margin-top: 20px;" class="table-card">
   <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 12px;">
     <i class="fas fa-chart-line" style="color: #ef4444; transform: scaleY(-1);"></i>
-    Underperformers ({{ current_year }})
-    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">Products needing attention</span>
+    {% trans "Underperformers" %} ({{ current_year }})
+    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "Least Bought Items" %}</span>
   </h3>
   <table class="data-table">
     <thead>
       <tr>
-        <th>Rank</th>
-        <th>Tier</th>
-        <th>Product</th>
-        <th>Revenue</th>
-        <th>Times Bought</th>
-        <th>Last Purchase</th>
-        <th>Avg Value</th>
-        <th>Score</th>
-        <th>Issue</th>
+        <th>{% trans "Rank" %}</th>
+        <th>{% trans "Tier" %}</th>
+        <th>{% trans "Product" %}</th>
+        <th>{% trans "Revenue" %}</th>
+        <th>{% trans "Times Bought" %}</th>
+        <th>{% trans "Last Bought" %}</th>
+        <th>{% trans "Avg Value" %}</th>
+        <th>{% trans "Score" %}</th>
+        <th>{% trans "Issue" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -1271,13 +1289,13 @@
             background: {% if product.recency_days > 60 %}rgba(239, 68, 68, 0.15){% elif product.tickets < 5 %}rgba(251, 146, 60, 0.15){% else %}rgba(59, 130, 246, 0.15){% endif %}; 
             color: {% if product.recency_days > 60 %}#ef4444{% elif product.tickets < 5 %}#fb923c{% else %}#3b82f6{% endif %};">
             {% if product.recency_days > 60 %}
-              <i class="fas fa-clock"></i> Stale
+              <i class="fas fa-clock"></i> {% trans "60+ days past" %}
             {% elif product.tickets < 5 %}
-              <i class="fas fa-chart-line"></i> Low Freq
+              <i class="fas fa-chart-line"></i> {% trans "Low Freq" %}
             {% elif product.monetary_score < 10 %}
-              <i class="fas fa-dollar-sign"></i> Low Value
+              <i class="fas fa-dollar-sign"></i> {% trans "Low Value" %}
             {% else %}
-              <i class="fas fa-trending-down"></i> Declining
+              <i class="fas fa-trending-down"></i> {% trans "Declining" %}
             {% endif %}
           </span>
         </td>
@@ -1285,7 +1303,7 @@
       {% empty %}
       <tr>
         <td colspan="9" style="text-align:center; padding:40px; color:#64748b;">
-          No underperformer data available
+          {% trans "No Data Available" %}
         </td>
       </tr>
       {% endfor %}
@@ -1299,8 +1317,8 @@
   <div class="section-divider-line"></div>
   <div class="section-title-wrapper">
     <div class="section-icon"><i class="fas fa-chart-pie"></i></div>
-    <span class="section-title">Cross_selling</span>
-    <span class="section-subtitle">NN</span>
+    <span class="section-title">{% trans "Cross Selling" %}</span>
+    <span class="section-subtitle"></span>
   </div>
   <div class="section-divider-line"></div>
 </div>
@@ -1311,7 +1329,7 @@
  <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">Single-Item Tickets</div>
+            <div class="kpi-title">{% trans "Single Item Tickets" %}</div>
             <div class="kpi-value">{{ single_item_percentage_current|floatformat:1|default:"28.3" }}%</div>
           </div>
           <div class="kpi-icon red"><i class="fas fa-minus-circle"></i></div>
@@ -1321,14 +1339,14 @@
             <i class="fas fa-arrow-{% if single_item_change <= 0 %}up{% else %}down{% endif %}"></i>
             {{ single_item_change|floatformat:1|default:"-2.1" }}%
           </span>
-          <span class="kpi-comparison">1 item per ticket</span>
+          <span class="kpi-comparison">{% trans "1 Item Per Ticket" %}</span>
         </div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-header">
           <div>
-            <div class="kpi-title">Cross-Selling</div>
+            <div class="kpi-title">{% trans "Cross Selling" %}</div>
             <div class="kpi-value">{{ cross_sell_percentage_current|floatformat:1|default:"32.5" }}%</div>
           </div>
           <div class="kpi-icon orange"><i class="fas fa-layer-group"></i></div>
@@ -1338,7 +1356,7 @@
             <i class="fas fa-arrow-{% if cross_sell_change >= 0 %}up{% else %}down{% endif %}"></i>
             {{ cross_sell_change|floatformat:1|default:"5.2" }}%
           </span>
-          <span class="kpi-comparison">3+ items per ticket</span>
+          <span class="kpi-comparison">{% trans "3+ Items Per Ticket" %}</span>
         </div>
       </div>
 
@@ -1352,11 +1370,11 @@
   <!-- Single Item Tickets Chart -->
   <div class="chart-card">
     <div class="chart-header">
-      <div class="chart-title"><i class="fas fa-minus-circle"></i>Single-Item Tickets %: {{ current_year }} vs {{ previous_year }}</div>
+      <div class="chart-title"><i class="fas fa-minus-circle"></i>{% trans "Single Items Tickets" %}% {{ current_year }} vs {{ previous_year }}</div>
       <div class="chart-actions">
-        <button class="chart-btn active" onclick="aggregateSingleItemChart('day')">Daily</button>
-        <button class="chart-btn" onclick="aggregateSingleItemChart('week')">Week</button>
-        <button class="chart-btn" onclick="aggregateSingleItemChart('month')">Month</button>
+        <button class="chart-btn active" onclick="aggregateSingleItemChart('day')">{% trans "Day" %}</button>
+        <button class="chart-btn" onclick="aggregateSingleItemChart('week')">{% trans "Week" %}</button>
+        <button class="chart-btn" onclick="aggregateSingleItemChart('month')">{% trans "Month" %}</button>
       </div>
     </div>
     <div class="chart-wrapper"><canvas id="singleItemChart"></canvas></div>
@@ -1365,11 +1383,11 @@
   <!-- Cross-Sell (3+) Chart -->
   <div class="chart-card">
     <div class="chart-header">
-      <div class="chart-title"><i class="fas fa-layer-group"></i>Cross-Selling (3+) %: {{ current_year }} vs {{ previous_year }}</div>
+      <div class="chart-title"><i class="fas fa-layer-group"></i>{% trans "Cross Selling" %}% {{ current_year }} vs {{ previous_year }}</div>
       <div class="chart-actions">
-        <button class="chart-btn active" onclick="aggregateCrossSellChart('day')">Daily</button>
-        <button class="chart-btn" onclick="aggregateCrossSellChart('week')">Week</button>
-        <button class="chart-btn" onclick="aggregateCrossSellChart('month')">Month</button>
+        <button class="chart-btn active" onclick="aggregateCrossSellChart('day')">{% trans "Day" %}</button>
+        <button class="chart-btn" onclick="aggregateCrossSellChart('week')">{% trans "Week" %}</button>
+        <button class="chart-btn" onclick="aggregateCrossSellChart('month')">{% trans "Month" %}</button>
       </div>
     </div>
     <div class="chart-wrapper"><canvas id="crossSellChart"></canvas></div>
@@ -1381,8 +1399,8 @@
   <div class="section-divider-line"></div>
   <div class="section-title-wrapper">
     <div class="section-icon"><i class="fas fa-trophy"></i></div>
-    <span class="section-title">Distribution</span>
-    <span class="section-subtitle">Basket Analysis</span>
+    <span class="section-title">{% trans "Basket Analytics" %}</span>
+    <!-- <span class="section-subtitle">Basket Analysis</span> -->
   </div>
   <div class="section-divider-line"></div>
 </div>
@@ -1390,7 +1408,7 @@
   <div class="kpi-card">
     <div class="kpi-header">
       <div>
-        <div class="kpi-title">Avg Ticket Value</div>
+        <div class="kpi-title">{% trans "Avg Ticket Value" %}</div>
         <div class="kpi-value">${{ dist_avg_current|floatformat:2|default:"0.00" }}</div>
       </div>
       <div class="kpi-icon purple"><i class="fas fa-chart-bar"></i></div>
@@ -1407,7 +1425,7 @@
   <div class="kpi-card">
     <div class="kpi-header">
       <div>
-        <div class="kpi-title">Median Ticket</div>
+        <div class="kpi-title">{% trans "Median Ticket" %}</div>
         <div class="kpi-value">${{ dist_median_current|floatformat:2|default:"0.00" }}</div>
       </div>
       <div class="kpi-icon green"><i class="fas fa-chart-line"></i></div>
@@ -1424,26 +1442,26 @@
   <div class="kpi-card">
     <div class="kpi-header">
       <div>
-        <div class="kpi-title">25th Percentile</div>
+        <div class="kpi-title">{% trans "25th Percentile" %}</div>
         <div class="kpi-value">${{ dist_p25_current|floatformat:2|default:"0.00" }}</div>
       </div>
       <div class="kpi-icon blue"><i class="fas fa-percentage"></i></div>
     </div>
     <div class="kpi-meta">
-      <span class="kpi-comparison">Bottom quarter threshold</span>
+      <span class="kpi-comparison">{% trans "Lower Threshold" %}</span>
     </div>
   </div>
 
   <div class="kpi-card">
     <div class="kpi-header">
       <div>
-        <div class="kpi-title">75th Percentile</div>
+        <div class="kpi-title">{% trans "75th Percentile" %}</div>
         <div class="kpi-value">${{ dist_p75_current|floatformat:2|default:"0.00" }}</div>
       </div>
       <div class="kpi-icon orange"><i class="fas fa-percentage"></i></div>
     </div>
     <div class="kpi-meta">
-      <span class="kpi-comparison">Top quarter threshold</span>
+      <span class="kpi-comparison">{% trans "Upper Threshold" %}</span>
     </div>
   </div>
 </div>
@@ -1454,7 +1472,7 @@
   <div class="chart-card">
     <div class="chart-header">
       <div class="chart-title">
-        <i class="fas fa-chart-bar"></i>Ticket Count by Amount Range
+        <i class="fas fa-chart-bar"></i>{% trans "Ticket Count by Amount and Range" %}
       </div>
     </div>
     <div class="chart-wrapper"><canvas id="distributionCountChart"></canvas></div>
@@ -1464,7 +1482,7 @@
   <div class="chart-card">
     <div class="chart-header">
       <div class="chart-title">
-        <i class="fas fa-percent"></i>Distribution % by Amount Range
+        <i class="fas fa-percent"></i>{% trans "by Amount and Range" %}
       </div>
     </div>
     <div class="chart-wrapper"><canvas id="distributionPctChart"></canvas></div>
@@ -1474,18 +1492,18 @@
 <!-- Distribution Table -->
 <div class="table-card">
   <h3 style="margin-bottom: 20px; color: #f1f5f9;">
-    <i class="fas fa-table"></i> Ticket Distribution Breakdown: {{ previous_year }} vs {{ current_year }}
+    <i class="fas fa-table"></i> {% trans "Ticket Distribution" %}: {{ previous_year }} vs {{ current_year }}
   </h3>
   <table class="data-table">
     <thead>
       <tr>
-        <th>Price Range</th>
-        <th>{{ previous_year }} Count</th>
-        <th>{{ current_year }} Count</th>
-        <th>Count Change</th>
+        <th>{% trans "Price Range" %}</th>
+        <th>{{ previous_year }} {% trans "Count" %}</th>
+        <th>{{ current_year }} {% trans "Count" %}</th>
+        <th>{% trans "Count Change" %}</th>
         <th>{{ previous_year }} %</th>
         <th>{{ current_year }} %</th>
-        <th>% Change</th>
+        <th>% {% trans "Change" %}</th>
       </tr>
     </thead>
     <tbody id="distributionTableBody">
@@ -1506,7 +1524,7 @@
   <div class="section-divider-line"></div>
   <div class="section-title-wrapper">
     <div class="section-icon"><i class="fas fa-trophy"></i></div>
-    <span class="section-title">Campaigns</span>
+    <span class="section-title">{% trans "Campaign" %}</span>
     <span class="section-subtitle">__</span>
   </div>
   <div class="section-divider-line"></div>
@@ -1517,17 +1535,17 @@
 <div style="margin-top: 20px;" class="table-card">
   <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 12px;">
     <i class="fas fa-trophy" style="color: #ffd700;"></i> 
-    Top Campaigns ({{ current_year }})
-    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">HH</span>
+    {% trans "Top Campaigns" %} ({{ current_year }})
+    <!-- <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;"></span> -->
   </h3>
   <table class="data-table">
     <thead>
       <tr>
-        <th>Tier</th>
-        <th>Campaign</th>
-        <th>Total</th>
-        <th>Times_bought</th>
-        <th>avg.basket</th>
+        <th>{% trans "Tier" %}</th>
+        <th>{% trans "Campaign" %}</th>
+        <th>{% trans "Revenue" %}</th>
+        <th>{% trans "Times Bought" %}</th>
+        <th>{% trans "Avg Basket" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -1553,7 +1571,7 @@
       {% empty %}
       <tr>
         <td colspan="8" style="text-align:center; padding:40px; color:#64748b;">
-          No bestseller data available
+          {% trans "No Data Available" %}
         </td>
       </tr>
       {% endfor %}
