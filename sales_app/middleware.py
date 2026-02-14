@@ -37,14 +37,20 @@ class QueryTimingMiddleware(MiddlewareMixin):
             # Get username
             username = request.user.username if request.user.is_authenticated else 'Anonymous'
             
-            # Log with user info
+            # Get location filter if present
+            locations = request.GET.getlist('un_filter')
+            location_str = f" | 📍 {', '.join(locations[:2])}" if locations else ""
+            if len(locations) > 2:
+                location_str += f" +{len(locations)-2} more"
+            
+            # Log with user and location info
             if duration > 1:
                 logger.warning(
-                    f"👤 {username} | ⚠️ Slow request: {request.path} took {duration:.2f}s"
+                    f"👤 {username}{location_str} | ⚠️ Slow: {request.path} - {duration:.2f}s"
                 )
             else:
                 logger.info(
-                    f"👤 {username} | {request.method} {request.path} - {duration:.2f}s"
+                    f"👤 {username}{location_str} | {request.method} {request.path} - {duration:.2f}s"
                 )
         
         return response
