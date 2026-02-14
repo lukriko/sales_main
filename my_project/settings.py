@@ -287,17 +287,22 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO' if DEBUG else 'WARNING',
+        'level': 'INFO',  # Changed: Always INFO to see user logs
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO' if DEBUG else 'WARNING',
+            'level': 'INFO',  # Changed: Always INFO
             'propagate': False,
         },
         'django.db.backends': {
             'handlers': ['console'],
             'level': 'DEBUG' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'sales_app.middleware': {  # NEW: Ensure middleware logs show
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
