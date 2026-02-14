@@ -2842,5 +2842,111 @@ distLabels.forEach((label, i) => {
   tableBody.appendChild(row);
 });
 </script>
+
+
+<!-- filtering -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const locationSelect = document.getElementById('location-select');
+    const categorySelect = document.querySelector('select[name="category"]');
+    const productSelect = document.getElementById('product-select');
+    const campaignSelect = document.getElementById('campaign-select');
+    
+    // Function to update filter options via AJAX
+    function updateFilterOptions() {
+        // Get current selections
+        const formData = new FormData(document.getElementById('filterForm'));
+        const params = new URLSearchParams(formData);
+        
+        // Show loading state
+        [categorySelect, productSelect, campaignSelect].forEach(select => {
+            select.style.opacity = '0.6';
+            select.disabled = true;
+        });
+        
+        // Fetch new options
+        fetch(`/api/filter-options/?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update Categories
+                updateSelectOptions(categorySelect, data.categories, 'category', '{% trans "All Categories" %}');
+                
+                // Update Products
+                updateSelectOptions(productSelect, data.products, 'prod_filter', '{% trans "All Products" %}');
+                
+                // Update Campaigns
+                updateSelectOptions(campaignSelect, data.campaigns, 'campaign_filter', '{% trans "All Campaigns" %}');
+                
+                // Update Locations (if admin)
+                if (locationSelect && data.locations) {
+                    updateMultiSelectOptions(locationSelect, data.locations);
+                }
+                
+                // Remove loading state
+                [categorySelect, productSelect, campaignSelect].forEach(select => {
+                    select.style.opacity = '1';
+                    select.disabled = false;
+                });
+            })
+            .catch(error => {
+                console.error('Error updating filters:', error);
+                // Remove loading state on error
+                [categorySelect, productSelect, campaignSelect].forEach(select => {
+                    select.style.opacity = '1';
+                    select.disabled = false;
+                });
+            });
+    }
+    
+    // Helper function to update single-select dropdowns
+    function updateSelectOptions(selectElement, options, paramName, allLabel) {
+        const currentValue = selectElement.value;
+        
+        // Clear existing options
+        selectElement.innerHTML = '<option value="all">' + allLabel + '</option>';
+        
+        // Add new options
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = option;
+            if (option === currentValue) {
+                optionElement.selected = true;
+            }
+            selectElement.appendChild(optionElement);
+        });
+        
+        // If current selection is not in new options, reset to 'all'
+        if (currentValue !== 'all' && !options.includes(currentValue)) {
+            selectElement.value = 'all';
+        }
+    }
+    
+    // Helper function to update multi-select dropdowns
+    function updateMultiSelectOptions(selectElement, options) {
+        const currentValues = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+        
+        // Clear existing options
+        selectElement.innerHTML = '';
+        
+        // Add new options
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = option;
+            if (currentValues.includes(option)) {
+                optionElement.selected = true;
+            }
+            selectElement.appendChild(optionElement);
+        });
+    }
+    
+    // Attach change listeners to all filters
+    locationSelect?.addEventListener('change', updateFilterOptions);
+    categorySelect.addEventListener('change', updateFilterOptions);
+    productSelect.addEventListener('change', updateFilterOptions);
+    campaignSelect.addEventListener('change', updateFilterOptions);
+});
+</script>
 </body>
 </html>

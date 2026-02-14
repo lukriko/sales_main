@@ -8,6 +8,7 @@ from django.db.models.functions import ExtractMonth, ExtractDay, TruncDay, Extra
 from django.http import HttpResponse
 from datetime import datetime, date, timedelta
 from django.utils import timezone
+from django.http import JsonResponse
 import os
 from django.conf import settings
 import calendar
@@ -28,6 +29,62 @@ from django.db.models import Prefetch
 
 from sales_app.decorators import cache_dashboard_view
 
+
+# At the top of your views.py, outside any view
+def calculate_filter_options(current_year, selected_locations, selected_category, selected_product, selected_campaign, user_profile):
+    """Shared logic for calculating available filter options"""
+    allowed_locations = user_profile.get_allowed_locations()
+    
+    base_query = Sales.objects.filter(cd__year=current_year).exclude(
+        un__in=["მთავარი საწყობი 2", "სატესტო"]
+    )
+    
+    # LOCATIONS
+    q_locations = base_query
+    if selected_category != 'all':
+        q_locations = q_locations.filter(prodg=selected_category)
+    if selected_product != 'all':
+        q_locations = q_locations.filter(prod=selected_product)
+    if selected_campaign != 'all':
+        q_locations = q_locations.filter(actions=selected_campaign)
+    available_locations = list(q_locations.values_list('un', flat=True).distinct().order_by('un'))
+    
+    # CATEGORIES
+    q_categories = base_query
+    if selected_locations:
+        q_categories = q_categories.filter(un__in=selected_locations)
+    if selected_product != 'all':
+        q_categories = q_categories.filter(prod=selected_product)
+    if selected_campaign != 'all':
+        q_categories = q_categories.filter(actions=selected_campaign)
+    available_categories = list(q_categories.values_list('prodg', flat=True).distinct().order_by('prodg'))
+    
+    # PRODUCTS
+    q_products = base_query
+    if selected_locations:
+        q_products = q_products.filter(un__in=selected_locations)
+    if selected_category != 'all':
+        q_products = q_products.filter(prodg=selected_category)
+    if selected_campaign != 'all':
+        q_products = q_products.filter(actions=selected_campaign)
+    available_products = list(q_products.values_list('prod', flat=True).distinct().order_by('prod'))
+    
+    # CAMPAIGNS
+    q_campaigns = base_query
+    if selected_locations:
+        q_campaigns = q_campaigns.filter(un__in=selected_locations)
+    if selected_category != 'all':
+        q_campaigns = q_campaigns.filter(prodg=selected_category)
+    if selected_product != 'all':
+        q_campaigns = q_campaigns.filter(prod=selected_product)
+    available_campaigns = list(q_campaigns.values_list('actions', flat=True).distinct().order_by('actions'))
+    
+    return {
+        'locations': available_locations if user_profile.is_admin else allowed_locations,
+        'categories': available_categories,
+        'products': available_products,
+        'campaigns': available_campaigns
+    }
 
 def user_login(request):
     # If already logged in, go to dashboard
@@ -64,7 +121,7 @@ def user_logout(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('login')
-
+    
 # @cache_dashboard_view(timeout=900)
 @login_required
 def dashboard(request):
@@ -815,41 +872,18 @@ def dashboard(request):
     
     # ==================== GET FILTER OPTIONS ====================
     
-    # Only get distinct values from current year (4 simple queries)
-    if user_profile.is_admin:
-        all_locations = list(
-            Sales.objects
-            .filter(cd__year=current_year)
-            .values_list('un', flat=True)
-            .distinct()
-            .order_by('un')
-        )
-    else:
-        all_locations = allowed_locations
-    
-    all_categories = list(
-        Sales.objects
-        .filter(cd__year=current_year)
-        .values_list('prodg', flat=True)
-        .distinct()
-        .order_by('prodg')
+    # ==================== GET FILTER OPTIONS (LIVE UPDATING) ====================
+
+    # ==================== GET FILTER OPTIONS ====================
+    filter_options = calculate_filter_options(
+        current_year, selected_locations, selected_category, 
+        selected_product, selected_campaign, user_profile
     )
-    
-    all_campaigns = list(
-        Sales.objects
-        .filter(cd__year=current_year)
-        .values_list('actions', flat=True)
-        .distinct()
-        .order_by('actions')
-    )
-    
-    all_products = list(
-        Sales.objects
-        .filter(cd__year=current_year)
-        .values_list('prod', flat=True)
-        .distinct()
-        .order_by('prod')
-    )
+
+    all_locations = filter_options['locations']
+    all_categories = filter_options['categories']
+    all_products = filter_options['products']
+    all_campaigns = filter_options['campaigns']
     date_range_text = f"{start_date.strftime('%b %d')} - {end_date.strftime('%b %d')}, {current_year}"
     
     # ==================== BUILD CONTEXT ====================
@@ -2300,7 +2334,7 @@ def employee_analytics(request):
             total_revenue_skincare_eligible=Sum('tanxa', filter=Q(~Q(prodg='POP'))),
             skincare_turnover=Sum('tanxa', filter=Q(prodg='SKIN CARE')),
             total_tickets=Count('zedd', distinct=True),
-            total_items=Count('zedd', filter=Q(~Q(idprod__in=['M9157', 'M9121', 'M9850']))),
+            total_items=Count('zedd', filter=Q(~Q(prodg='POP'))),
             discount_given=Sum('discount_price'),
             std_price_total=Sum('std_price')
         ).order_by('-total_revenue')[:20]
@@ -3279,3 +3313,69 @@ def stat_main(request):
         'location': rows
     }
     return render(request, 'stat_main.html', context)
+
+@login_required
+def get_filter_options(request):
+    """AJAX endpoint to get available filter options based on current selections"""
+    try:
+        user_profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    
+    allowed_locations = user_profile.get_allowed_locations()
+    current_year = int(request.GET.get('year', 2026))
+    selected_locations = request.GET.getlist('un_filter')
+    selected_category = request.GET.get('category', 'all')
+    selected_product = request.GET.get('prod_filter', 'all')
+    selected_campaign = request.GET.get('campaign_filter', 'all')
+    
+    base_query = Sales.objects.filter(cd__year=current_year).exclude(
+        un__in=["მთავარი საწყობი 2", "სატესტო"]
+    )
+    
+    # LOCATIONS
+    q_locations = base_query
+    if selected_category != 'all':
+        q_locations = q_locations.filter(prodg=selected_category)
+    if selected_product != 'all':
+        q_locations = q_locations.filter(prod=selected_product)
+    if selected_campaign != 'all':
+        q_locations = q_locations.filter(actions=selected_campaign)
+    available_locations = list(q_locations.values_list('un', flat=True).distinct().order_by('un'))
+    
+    # CATEGORIES
+    q_categories = base_query
+    if selected_locations:
+        q_categories = q_categories.filter(un__in=selected_locations)
+    if selected_product != 'all':
+        q_categories = q_categories.filter(prod=selected_product)
+    if selected_campaign != 'all':
+        q_categories = q_categories.filter(actions=selected_campaign)
+    available_categories = list(q_categories.values_list('prodg', flat=True).distinct().order_by('prodg'))
+    
+    # PRODUCTS
+    q_products = base_query
+    if selected_locations:
+        q_products = q_products.filter(un__in=selected_locations)
+    if selected_category != 'all':
+        q_products = q_products.filter(prodg=selected_category)
+    if selected_campaign != 'all':
+        q_products = q_products.filter(actions=selected_campaign)
+    available_products = list(q_products.values_list('prod', flat=True).distinct().order_by('prod'))
+    
+    # CAMPAIGNS
+    q_campaigns = base_query
+    if selected_locations:
+        q_campaigns = q_campaigns.filter(un__in=selected_locations)
+    if selected_category != 'all':
+        q_campaigns = q_campaigns.filter(prodg=selected_category)
+    if selected_product != 'all':
+        q_campaigns = q_campaigns.filter(prod=selected_product)
+    available_campaigns = list(q_campaigns.values_list('actions', flat=True).distinct().order_by('actions'))
+    
+    return JsonResponse({
+        'locations': available_locations if user_profile.is_admin else allowed_locations,
+        'categories': available_categories,
+        'products': available_products,
+        'campaigns': available_campaigns
+    })
