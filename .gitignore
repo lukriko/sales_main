@@ -2,9 +2,6 @@ staticfiles/
 db.sqlite3
 *.DS_Store
 .DS_Store
-sales_app/data/
-*.xlsx
-*.xls
 sales_main_web.dump
 main.ipynb
 sales_app/bonus_february.txt
