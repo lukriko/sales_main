@@ -1,0 +1,1155 @@
+# Georgian translation for YR Sales Dashboard
+# Copyright (C) 2026
+# This file is distributed under the same license as the YR Sales package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: YR Sales Dashboard 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-24 08:49+0000\n"
+"PO-Revision-Date: 2026-02-12 19:08+0000\n"
+"Last-Translator: YR Team\n"
+"Language-Team: Georgian\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: my_project/settings.py:169
+msgid "English"
+msgstr "English"
+
+#: my_project/settings.py:170
+msgid "ქართული"
+msgstr "ქართული"
+
+#: sales_app/templates/another.html:153
+#: sales_app/templates/client_side.html:338
+#: sales_app/templates/dashboard.html:659
+#: sales_app/templates/dashboard.html:694
+#: sales_app/templates/employee_analytics.html:406
+msgid "Dashboard"
+msgstr "დაშბორდი"
+
+#: sales_app/templates/another.html:154
+#: sales_app/templates/client_side.html:339
+#: sales_app/templates/dashboard.html:660
+#: sales_app/templates/dashboard.html:695
+#: sales_app/templates/employee_analytics.html:407
+msgid "Plan vs Actual"
+msgstr "გეგმა vs რეალური"
+
+#: sales_app/templates/another.html:155
+#: sales_app/templates/client_side.html:340
+#: sales_app/templates/dashboard.html:661
+#: sales_app/templates/dashboard.html:696
+#: sales_app/templates/employee_analytics.html:408
+msgid "Query"
+msgstr "ბაზა"
+
+#: sales_app/templates/another.html:156
+#: sales_app/templates/client_side.html:341
+#: sales_app/templates/dashboard.html:663
+#: sales_app/templates/dashboard.html:697
+#: sales_app/templates/employee_analytics.html:13
+#: sales_app/templates/employee_analytics.html:409
+#: sales_app/templates/employee_analytics.html:420
+msgid "Employee Analytics"
+msgstr "თანამშრომელი"
+
+#: sales_app/templates/another.html:159 sales_app/templates/another.html:517
+#: sales_app/templates/dashboard.html:667
+#: sales_app/templates/dashboard.html:698
+#: sales_app/templates/employee_analytics.html:412
+msgid "Insights"
+msgstr "სიახლე"
+
+#: sales_app/templates/another.html:160 sales_app/templates/dashboard.html:668
+#: sales_app/templates/dashboard.html:699
+#: sales_app/templates/employee_analytics.html:413
+#: sales_app/templates/query.html:86
+msgid "stat"
+msgstr "პირადი"
+
+#: sales_app/templates/another.html:167
+msgid "Plan vs Actual Performance"
+msgstr "გეგმა vs რეალური"
+
+#: sales_app/templates/another.html:169
+#: sales_app/templates/client_side.html:358
+msgid "Back to Dashboard"
+msgstr "დაშბორდი"
+
+#: sales_app/templates/another.html:189
+#: sales_app/templates/client_side.html:378
+#: sales_app/templates/dashboard.html:748
+#: sales_app/templates/employee_analytics.html:445
+msgid "Logout"
+msgstr "გასვლა"
+
+#: sales_app/templates/another.html:201 sales_app/templates/dashboard.html:815
+msgid "Filters & Controls"
+msgstr "ფილტრები"
+
+#: sales_app/templates/another.html:205 sales_app/templates/another.html:431
+#: sales_app/templates/another.html:595 sales_app/templates/another.html:732
+#: sales_app/templates/client_side.html:388
+#: sales_app/templates/client_side.html:648
+#: sales_app/templates/client_side.html:671
+#: sales_app/templates/dashboard.html:820
+#: sales_app/templates/dashboard.html:979
+#: sales_app/templates/employee_analytics.html:478
+#: sales_app/templates/employee_analytics.html:565
+msgid "Location"
+msgstr "ობიექტი"
+
+#: sales_app/templates/another.html:207
+#: sales_app/templates/client_side.html:390
+#: sales_app/templates/employee_analytics.html:480
+msgid "All Locations"
+msgstr "ობიექტი"
+
+#: sales_app/templates/another.html:215
+#: sales_app/templates/client_side.html:415
+msgid "Year"
+msgstr "წელი"
+
+#: sales_app/templates/another.html:224
+msgid "Start Month"
+msgstr "საწყისი თვე"
+
+#: sales_app/templates/another.html:235
+msgid "End Month"
+msgstr "სასრული თვე"
+
+#: sales_app/templates/another.html:249 sales_app/templates/dashboard.html:888
+#: sales_app/templates/employee_analytics.html:548
+msgid "Apply Filters"
+msgstr "ფილტრების არჩევა"
+
+#: sales_app/templates/another.html:258 sales_app/templates/another.html:302
+#: sales_app/templates/another.html:308 sales_app/templates/another.html:408
+#: sales_app/templates/another.html:572
+#: sales_app/templates/client_side.html:496
+#: sales_app/templates/client_side.html:550
+#: sales_app/templates/client_side.html:559
+#: sales_app/templates/dashboard.html:963
+#: sales_app/templates/dashboard.html:980
+#: sales_app/templates/dashboard.html:1569
+#: sales_app/templates/dashboard.html:1666
+#: sales_app/templates/dashboard.html:1756
+#: sales_app/templates/dashboard.html:1790
+#: sales_app/templates/dashboard.html:1829
+#: sales_app/templates/employee_analytics.html:566
+#: sales_app/templates/employee_analytics.html:678
+msgid "Revenue"
+msgstr "შემოსავალი"
+
+#: sales_app/templates/another.html:261 sales_app/templates/another.html:572
+#: sales_app/templates/dashboard.html:964
+#: sales_app/templates/dashboard.html:981
+#: sales_app/templates/dashboard.html:1515
+#: sales_app/templates/dashboard.html:2313
+#: sales_app/templates/employee_analytics.html:568
+#: sales_app/templates/employee_analytics.html:682
+#: sales_app/templates/employee_analytics.html:710
+msgid "Tickets"
+msgstr "კლიენტი"
+
+#: sales_app/templates/another.html:264
+#: sales_app/templates/client_side.html:500
+#: sales_app/templates/client_side.html:561
+#: sales_app/templates/dashboard.html:965
+#: sales_app/templates/dashboard.html:983
+#: sales_app/templates/dashboard.html:1412
+#: sales_app/templates/dashboard.html:1527
+#: sales_app/templates/dashboard.html:2310
+#: sales_app/templates/employee_analytics.html:569
+msgid "Avg Basket"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/another.html:276 sales_app/templates/another.html:289
+#: sales_app/templates/another.html:361 sales_app/templates/another.html:381
+#: sales_app/templates/another.html:400 sales_app/templates/another.html:408
+#: sales_app/templates/another.html:564 sales_app/templates/another.html:572
+msgid "Plan Target"
+msgstr "გეგმა"
+
+#: sales_app/templates/another.html:315 sales_app/templates/another.html:537
+#: sales_app/templates/another.html:674
+msgid "Achievement"
+msgstr "შესრულება"
+
+#: sales_app/templates/another.html:323 sales_app/templates/another.html:545
+#: sales_app/templates/another.html:682
+msgid "Of Target Reached"
+msgstr "პროცენტული"
+
+#: sales_app/templates/another.html:330 sales_app/templates/another.html:349
+#: sales_app/templates/another.html:552 sales_app/templates/another.html:689
+msgid "Variance"
+msgstr "სხვაობა"
+
+#: sales_app/templates/another.html:342
+msgid "vs Plan"
+msgstr "ვს გეგმა"
+
+#: sales_app/templates/another.html:369 sales_app/templates/another.html:442
+#, python-format
+msgid "Daily left for 85%%"
+msgstr "დღიური სავაჭრო 85%%-ზე"
+
+#: sales_app/templates/another.html:388 sales_app/templates/another.html:441
+#, python-format
+msgid "Daily left for 100%%"
+msgstr "დღიური სავაჭრო 100%%-ზე"
+
+#: sales_app/templates/another.html:410 sales_app/templates/another.html:574
+#: sales_app/templates/another.html:711 sales_app/templates/dashboard.html:1505
+#: sales_app/templates/dashboard.html:1517
+#: sales_app/templates/dashboard.html:1529
+#: sales_app/templates/dashboard.html:1541
+#: sales_app/templates/dashboard.html:2024
+#: sales_app/templates/dashboard.html:2037
+msgid "Day"
+msgstr "დღე"
+
+#: sales_app/templates/another.html:411 sales_app/templates/another.html:575
+#: sales_app/templates/another.html:712 sales_app/templates/dashboard.html:1506
+#: sales_app/templates/dashboard.html:1518
+#: sales_app/templates/dashboard.html:1530
+#: sales_app/templates/dashboard.html:1542
+#: sales_app/templates/dashboard.html:2025
+#: sales_app/templates/dashboard.html:2038
+msgid "Week"
+msgstr "კვირა"
+
+#: sales_app/templates/another.html:412 sales_app/templates/another.html:576
+#: sales_app/templates/another.html:713 sales_app/templates/dashboard.html:1507
+#: sales_app/templates/dashboard.html:1519
+#: sales_app/templates/dashboard.html:1531
+#: sales_app/templates/dashboard.html:1543
+#: sales_app/templates/dashboard.html:2026
+#: sales_app/templates/dashboard.html:2039
+msgid "Month"
+msgstr "თვე"
+
+#: sales_app/templates/another.html:414 sales_app/templates/another.html:578
+#: sales_app/templates/another.html:715
+msgid "Prev Year"
+msgstr "წინა წელი"
+
+#: sales_app/templates/another.html:425
+msgid "Location Performance"
+msgstr "პროდუქტის მიმოხილვა"
+
+#: sales_app/templates/another.html:430 sales_app/templates/another.html:594
+#: sales_app/templates/another.html:731 sales_app/templates/dashboard.html:1663
+#: sales_app/templates/dashboard.html:1826
+#: sales_app/templates/employee_analytics.html:563
+msgid "Rank"
+msgstr "რანკი"
+
+#: sales_app/templates/another.html:432 sales_app/templates/another.html:596
+#: sales_app/templates/another.html:733
+msgid "Plan CY"
+msgstr "გეგმა მიმდინარე წელი"
+
+#: sales_app/templates/another.html:433 sales_app/templates/another.html:597
+#: sales_app/templates/another.html:734
+msgid "Actual CY"
+msgstr "მიმდინარე წლის ნავაჭრი"
+
+#: sales_app/templates/another.html:434 sales_app/templates/another.html:598
+#: sales_app/templates/another.html:735
+msgid "Plan PY"
+msgstr "გეგმა წინა წელი"
+
+#: sales_app/templates/another.html:435 sales_app/templates/another.html:599
+#: sales_app/templates/another.html:736
+msgid "Actual PY"
+msgstr "წინა წლის ნავაჭრი"
+
+#: sales_app/templates/another.html:436 sales_app/templates/another.html:600
+#: sales_app/templates/another.html:737
+msgid "Variance CY"
+msgstr "სხვაობა მიმდინარე წელი"
+
+#: sales_app/templates/another.html:437 sales_app/templates/another.html:601
+#: sales_app/templates/another.html:738
+msgid "Achievement CY"
+msgstr "შესრულება მიმდინარე წელი"
+
+#: sales_app/templates/another.html:438
+msgid "Achievement PY"
+msgstr "შესრულება წინა წელი"
+
+#: sales_app/templates/another.html:439 sales_app/templates/another.html:602
+#: sales_app/templates/another.html:739
+msgid "YOY Growth"
+msgstr "წლიდან-წლამდე ზრდა"
+
+#: sales_app/templates/another.html:440
+msgid "YOY Plan Growth"
+msgstr "წლიდან-წლამდე ზრდა გეგმა"
+
+#: sales_app/templates/another.html:511
+msgid "Tickets Plan"
+msgstr "კლიენტი გეგმა"
+
+#: sales_app/templates/another.html:524
+msgid "Ticket"
+msgstr "კლიენტი"
+
+#: sales_app/templates/another.html:589
+msgid "Location Performance Ranking - Tickets"
+msgstr "ობიექტის მიმოხილვა - კლიენტი"
+
+#: sales_app/templates/another.html:648
+msgid "Avg Basket Plan"
+msgstr "საშუალო ჩეკი გეგმა"
+
+#: sales_app/templates/another.html:654
+msgid "Target Basket"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/another.html:661
+msgid "Avg Basket Actual"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/another.html:667
+msgid "Achieved Basket"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/another.html:701
+msgid "Vs Plan"
+msgstr "ვს გეგმა"
+
+#: sales_app/templates/another.html:709
+msgid "Average Basket: Plan vs Actual Trend"
+msgstr "საშუალო ჩეკი: გეგმა vs რეალური"
+
+#: sales_app/templates/another.html:726
+msgid "Location Performance Ranking - Average Basket"
+msgstr "ობიექტის მიმოხილვა - საშუალო ჩეკი"
+
+#: sales_app/templates/client_side.html:11
+#: sales_app/templates/client_side.html:342
+#: sales_app/templates/client_side.html:354
+msgid "Client Intelligence"
+msgstr ""
+
+#: sales_app/templates/client_side.html:355
+msgid "ANALYTICS"
+msgstr ""
+
+#: sales_app/templates/client_side.html:370
+msgid "Administrator — Full Access"
+msgstr ""
+
+#: sales_app/templates/client_side.html:372
+msgid "Access to"
+msgstr ""
+
+#: sales_app/templates/client_side.html:384
+msgid "Filters"
+msgstr "ფილტრების არჩევა"
+
+#: sales_app/templates/client_side.html:397
+#: sales_app/templates/client_side.html:495
+#: sales_app/templates/client_side.html:558
+#: sales_app/templates/client_side.html:632
+#: sales_app/templates/client_side.html:648
+msgid "Segment"
+msgstr "სეგმენტი"
+
+#: sales_app/templates/client_side.html:399
+msgid "All Segments"
+msgstr "ყველა სეგმენტი"
+
+#: sales_app/templates/client_side.html:406
+#: sales_app/templates/dashboard.html:828
+#: sales_app/templates/dashboard.html:1568
+#: sales_app/templates/dashboard.html:1570
+#: sales_app/templates/employee_analytics.html:574
+msgid "Category"
+msgstr "კატეგორია"
+
+#: sales_app/templates/client_side.html:408
+#: sales_app/templates/dashboard.html:830
+#: sales_app/templates/dashboard.html:3928
+#: sales_app/templates/employee_analytics.html:490
+msgid "All Categories"
+msgstr "ყველა კატეგორია"
+
+#: sales_app/templates/client_side.html:424
+msgid "Apply"
+msgstr ""
+
+#: sales_app/templates/client_side.html:434
+msgid "Segments"
+msgstr ""
+
+#: sales_app/templates/client_side.html:435
+msgid "Loyal Customers"
+msgstr ""
+
+#: sales_app/templates/client_side.html:436
+msgid "Patterns"
+msgstr ""
+
+#: sales_app/templates/client_side.html:437
+msgid "Locations"
+msgstr "ობიექტი"
+
+#: sales_app/templates/client_side.html:449
+#: sales_app/templates/dashboard.html:1361
+#: sales_app/templates/dashboard.html:1435
+msgid "Total Revenue"
+msgstr "ჯამური შემოსავალი"
+
+#: sales_app/templates/client_side.html:451
+msgid "Filtered period"
+msgstr ""
+
+#: sales_app/templates/client_side.html:458
+msgid "customers"
+msgstr ""
+
+#: sales_app/templates/client_side.html:470
+msgid "Revenue Share by Segment"
+msgstr ""
+
+#: sales_app/templates/client_side.html:477
+msgid "Avg Basket · Transactions by Segment"
+msgstr ""
+
+#: sales_app/templates/client_side.html:484
+msgid "Monthly Revenue Trend by Segment"
+msgstr ""
+
+#: sales_app/templates/client_side.html:490
+msgid "Segment Summary"
+msgstr ""
+
+#: sales_app/templates/client_side.html:497
+#: sales_app/templates/client_side.html:674
+msgid "Revenue Share"
+msgstr "შემოსავლის წილი"
+
+#: sales_app/templates/client_side.html:498
+msgid "Customers"
+msgstr "მომხმარებელი"
+
+#: sales_app/templates/client_side.html:499
+msgid "Transactions"
+msgstr "ტრანზაქცია"
+
+#: sales_app/templates/client_side.html:542
+msgid "Search customer name or ID…"
+msgstr "იპოვე მომხმარებელი სახელით ანდ აიდით"
+
+#: sales_app/templates/client_side.html:550
+msgid "Top Named Customers"
+msgstr "ტოპ მომხმარებლები"
+
+#: sales_app/templates/client_side.html:557
+msgid "Name"
+msgstr "სახელი"
+
+#: sales_app/templates/client_side.html:560
+msgid "Visits"
+msgstr "მოსვლის ხშირადობა"
+
+#: sales_app/templates/client_side.html:562
+msgid "Last Visit"
+msgstr "ბოლო ვიზიტი"
+
+#: sales_app/templates/client_side.html:563
+msgid "Recency"
+msgstr "ხშირადობა"
+
+#: sales_app/templates/client_side.html:564
+msgid "Tenure"
+msgstr ""
+
+#: sales_app/templates/client_side.html:565
+#, fuzzy
+#| msgid "All Categories"
+msgid "Categories"
+msgstr "ყველა კატეგორია"
+
+#: sales_app/templates/client_side.html:566
+msgid "Served By"
+msgstr ""
+
+#: sales_app/templates/client_side.html:605
+#, fuzzy
+#| msgid "Ticket Distribution"
+msgid "Recency Distribution"
+msgstr "კალათები"
+
+#: sales_app/templates/client_side.html:609
+#, fuzzy
+#| msgid "Ticket Distribution"
+msgid "Purchase Frequency Distribution"
+msgstr "კალათები"
+
+#: sales_app/templates/client_side.html:623
+msgid "Revenue by Weekday × Segment"
+msgstr ""
+
+#: sales_app/templates/client_side.html:629
+msgid "Category Affinity by Segment"
+msgstr ""
+
+#: sales_app/templates/client_side.html:643
+msgid "Customer Heatmap — Location × Segment"
+msgstr ""
+
+#: sales_app/templates/client_side.html:665
+#, fuzzy
+#| msgid "Location Performance"
+msgid "Location Loyalty Performance"
+msgstr "პროდუქტის მიმოხილვა"
+
+#: sales_app/templates/client_side.html:672
+msgid "Named Customers"
+msgstr ""
+
+#: sales_app/templates/client_side.html:673
+#, fuzzy
+#| msgid "Total Revenue"
+msgid "Loyal Revenue"
+msgstr "ჯამური შემოსავალი"
+
+#: sales_app/templates/client_side.html:675
+msgid "Avg Qty/Txn"
+msgstr ""
+
+#: sales_app/templates/client_side.html:709
+msgid "Named Customer Revenue by Location"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:662
+msgid "Client"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:711
+msgid "Export Excel"
+msgstr "ექსპორტი"
+
+#: sales_app/templates/dashboard.html:714
+#: sales_app/templates/dashboard.html:722
+#| msgid "Location Performance"
+msgid "Location Performance Broad"
+msgstr "სრული მიმოხილვა"
+
+#: sales_app/templates/dashboard.html:723
+msgid "Hide"
+msgstr "დახურვა"
+
+#: sales_app/templates/dashboard.html:774
+msgid "Comparison Period"
+msgstr "შესადარებელი პერიოდი"
+
+#: sales_app/templates/dashboard.html:797
+msgid "Quick Location Groups"
+msgstr "სწრაფი ობიექტების არჩევა"
+
+#: sales_app/templates/dashboard.html:837
+#: sales_app/templates/dashboard.html:1755
+#: sales_app/templates/dashboard.html:1789
+#: sales_app/templates/dashboard.html:1828
+#: sales_app/templates/employee_analytics.html:519
+msgid "Product"
+msgstr "პროდუქტი"
+
+#: sales_app/templates/dashboard.html:839
+#: sales_app/templates/dashboard.html:3931
+msgid "All Products"
+msgstr "ყველა პროდუქტი"
+
+#: sales_app/templates/dashboard.html:847
+#: sales_app/templates/dashboard.html:2305
+msgid "Campaign"
+msgstr "კამპანია"
+
+#: sales_app/templates/dashboard.html:849
+#: sales_app/templates/dashboard.html:3934
+msgid "All Campaigns"
+msgstr "ყველა კამპანია"
+
+#: sales_app/templates/dashboard.html:858
+#: sales_app/templates/dashboard.html:867
+msgid "Date Range"
+msgstr "ინტერვალი"
+
+#: sales_app/templates/dashboard.html:870
+#: sales_app/templates/employee_analytics.html:468
+msgid "Start Date"
+msgstr "საწყისი"
+
+#: sales_app/templates/dashboard.html:879
+#: sales_app/templates/employee_analytics.html:473
+msgid "End Date"
+msgstr "სასრული"
+
+#: sales_app/templates/dashboard.html:952
+#| msgid "Location Performance"
+msgid "Location Breakdown"
+msgstr "პროდუქტის მიმოხილვა"
+
+#: sales_app/templates/dashboard.html:954
+#| msgid "Locations"
+msgid "locations"
+msgstr "ობიექტი"
+
+#: sales_app/templates/dashboard.html:959
+msgid "Sort by"
+msgstr "სორტირება"
+
+#: sales_app/templates/dashboard.html:966
+#: sales_app/templates/dashboard.html:985
+msgid "ID Rate"
+msgstr "კლიენტის იდენტიფიკაცია"
+
+#: sales_app/templates/dashboard.html:967
+#| msgid "Revenue Share"
+msgid "Revenue Change"
+msgstr "შემოსავლის წილი"
+
+#: sales_app/templates/dashboard.html:968
+#: sales_app/templates/dashboard.html:987
+#| msgid "Cross Selling"
+msgid "Cross-sell"
+msgstr "ქროს სელლინგი(2>)"
+
+#: sales_app/templates/dashboard.html:969
+#: sales_app/templates/dashboard.html:988
+#| msgid "Single Item Tickets"
+msgid "Single Item"
+msgstr "1 პროდუქტიანი ტრანზაქცია"
+
+#: sales_app/templates/dashboard.html:970
+#: sales_app/templates/dashboard.html:989
+#: sales_app/templates/employee_analytics.html:573
+msgid "Skincare"
+msgstr "სქინქეარი"
+
+#: sales_app/templates/dashboard.html:982
+msgid "Qty"
+msgstr "რაოდენობა"
+
+#: sales_app/templates/dashboard.html:984
+#| msgid "Median Ticket"
+msgid "Median Basket"
+msgstr "მედიანა"
+
+#: sales_app/templates/dashboard.html:986
+#| msgid "Discount Share"
+msgid "Discount"
+msgstr "ფასდაკლების პროცენტი"
+
+#: sales_app/templates/dashboard.html:1042
+#: sales_app/templates/dashboard.html:1061
+#: sales_app/templates/dashboard.html:2343
+msgid "New"
+msgstr "ახალი"
+
+#: sales_app/templates/dashboard.html:1194
+#| msgid "No Data Available"
+msgid "No location data available"
+msgstr "არ მოიპოვება მონაცემები"
+
+#: sales_app/templates/dashboard.html:1205
+msgid "Total"
+msgstr "ჯამური"
+
+#: sales_app/templates/dashboard.html:1351
+msgid "Overall Performance"
+msgstr "ზოგადი მიმოხილვა"
+
+#: sales_app/templates/dashboard.html:1378
+msgid "Total Tickets"
+msgstr "ჯამური კლიენტი"
+
+#: sales_app/templates/dashboard.html:1395
+msgid "Total Quantity"
+msgstr "ჯამური რაოდენობა"
+
+#: sales_app/templates/dashboard.html:1430
+msgid "Performance"
+msgstr "მიმოხილვა"
+
+#: sales_app/templates/dashboard.html:1442
+msgid "Discount Share"
+msgstr "ფასდაკლების პროცენტი"
+
+#: sales_app/templates/dashboard.html:1459
+msgid "Client Identification"
+msgstr "კლიენტის იდენტიფიკაცია"
+
+#: sales_app/templates/dashboard.html:1479
+#| msgid "Skincare"
+msgid "Skincare Share"
+msgstr "სქინქეარი"
+
+#: sales_app/templates/dashboard.html:1503
+msgid "Revenue Trend"
+msgstr "შემოსავლის ტრენდი"
+
+#: sales_app/templates/dashboard.html:1539
+#: sales_app/templates/employee_analytics.html:686
+#: sales_app/templates/employee_analytics.html:711
+msgid "Quantity"
+msgstr "რაოდენობა"
+
+#: sales_app/templates/dashboard.html:1557
+msgid "Category Analytics"
+msgstr "კატეგორიების ანალიტიკა"
+
+#: sales_app/templates/dashboard.html:1564
+msgid "Category Performance"
+msgstr "კატეგორიების მიმოხილვა"
+
+#: sales_app/templates/dashboard.html:1571
+#: sales_app/templates/dashboard.html:2155
+msgid "Change"
+msgstr "ცვლილება"
+
+#: sales_app/templates/dashboard.html:1572
+msgid "Trend"
+msgstr "ტრენდი"
+
+#: sales_app/templates/dashboard.html:1592
+#: sales_app/templates/dashboard.html:1735
+#: sales_app/templates/dashboard.html:1772
+#: sales_app/templates/dashboard.html:1806
+#: sales_app/templates/dashboard.html:1889
+msgid "No Data Available"
+msgstr "არ მოიპოვება მონაცემები"
+
+#: sales_app/templates/dashboard.html:1600
+msgid "Sales By Category"
+msgstr "გაყიდვები კატეგორიების მიხედვით"
+
+#: sales_app/templates/dashboard.html:1613
+msgid "Product Performance"
+msgstr "პროდუქტის მიმოხილვა"
+
+#: sales_app/templates/dashboard.html:1614
+#: sales_app/templates/dashboard.html:1657
+msgid "Best Sellers"
+msgstr "ბესტ სელერები"
+
+#: sales_app/templates/dashboard.html:1623
+msgid "Performance Tiers"
+msgstr "შეფასების დონეები"
+
+#: sales_app/templates/dashboard.html:1647
+#, python-format
+msgid ""
+"Score calculated from: Revenue (40%%), Purchase Frequency (30%%), Recency "
+"(20%%), Avg Value (10%%)"
+msgstr ""
+"შეფასების სქემა: შემოსავალი: 40%%, ხშირადობა: 30%%, ინტერვალი ტრანზაციებს "
+"შორის: 20%%, საშუალო ჩეკი: 10%%"
+
+#: sales_app/templates/dashboard.html:1649
+msgid "Recency is relative to your filtered end date, not today"
+msgstr "ბოლო ტრანზაქცია დაფუძნებულია გაფილტრული უკანასკნელი დღიდან"
+
+#: sales_app/templates/dashboard.html:1658
+msgid "Based on multi-factor performance score"
+msgstr "შეფასებულია შესაბამისი სქემით"
+
+#: sales_app/templates/dashboard.html:1664
+#: sales_app/templates/dashboard.html:1827
+msgid "Tier"
+msgstr "დონე"
+
+#: sales_app/templates/dashboard.html:1665
+msgid "Products"
+msgstr "პროდუქტები"
+
+#: sales_app/templates/dashboard.html:1667
+#: sales_app/templates/dashboard.html:1830
+msgid "Times Bought"
+msgstr "რაოდენობრივი გაყიდვა"
+
+#: sales_app/templates/dashboard.html:1668
+#: sales_app/templates/dashboard.html:1758
+#: sales_app/templates/dashboard.html:1792
+#: sales_app/templates/dashboard.html:1831
+msgid "Last Bought"
+msgstr "ბოლო ტრანზაქცია"
+
+#: sales_app/templates/dashboard.html:1669
+#: sales_app/templates/dashboard.html:1832
+msgid "Avg Value"
+msgstr "საშუალო ღირებულება"
+
+#: sales_app/templates/dashboard.html:1670
+#: sales_app/templates/dashboard.html:1833
+msgid "Score"
+msgstr "ქულა"
+
+#: sales_app/templates/dashboard.html:1749
+msgid "Rising Stars"
+msgstr "კარგად მსვლელი პროდუქტები"
+
+#: sales_app/templates/dashboard.html:1750
+msgid "Filtered based on given interval"
+msgstr "გაფილტრული ინტერვალის საბაზისოდ"
+
+#: sales_app/templates/dashboard.html:1757
+#: sales_app/templates/dashboard.html:1791
+msgid "Frequency"
+msgstr "ხშირადობა"
+
+#: sales_app/templates/dashboard.html:1783
+msgid "Slow Movers"
+msgstr "ნელა მსვლელი"
+
+#: sales_app/templates/dashboard.html:1784
+msgid "No purchase made given 30 Days"
+msgstr "არანაირი ტრანსზაქცია 30 დღის ჭრილში"
+
+#: sales_app/templates/dashboard.html:1820
+msgid "Underperformers"
+msgstr "ქვედა 15 პროდუქტი"
+
+#: sales_app/templates/dashboard.html:1821
+msgid "Least Bought Items"
+msgstr "ნაკლებად ყიდვადი პროდუქტები"
+
+#: sales_app/templates/dashboard.html:1834
+msgid "Issue"
+msgstr "პრობლემა"
+
+#: sales_app/templates/dashboard.html:1875
+msgid "60+ days past"
+msgstr "60+ დღე ბოლო გაყიდვიდან"
+
+#: sales_app/templates/dashboard.html:1877
+msgid "Low Freq"
+msgstr "დაბალი ხშირადობა"
+
+#: sales_app/templates/dashboard.html:1879
+msgid "Low Value"
+msgstr "დაბალი ღირებულება"
+
+#: sales_app/templates/dashboard.html:1881
+msgid "Declining"
+msgstr "კლებადი"
+
+#: sales_app/templates/dashboard.html:1904
+msgid "Product Associations"
+msgstr "ასოციაცია"
+
+#: sales_app/templates/dashboard.html:1905
+msgid "Bought Together"
+msgstr "ერთად ნაყიდი"
+
+#: sales_app/templates/dashboard.html:1913
+msgid "Products Frequently Bought Together"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1922
+msgid "If they buy..."
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1924
+msgid "They also buy..."
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1925
+msgid "Support"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1926
+msgid "Confidence"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1927
+msgid "Lift"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1928
+msgid "Co-occurrences"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1953
+msgid "No association rules found — try adjusting filters"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:1969
+#: sales_app/templates/dashboard.html:1998
+#: sales_app/templates/dashboard.html:2035
+#: sales_app/templates/employee_analytics.html:690
+msgid "Cross Selling"
+msgstr "ქროს სელლინგი(2>)"
+
+#: sales_app/templates/dashboard.html:1981
+msgid "Single Item Tickets"
+msgstr "1 პროდუქტიანი ტრანზაქცია"
+
+#: sales_app/templates/dashboard.html:1991
+msgid "1 Item Per Ticket"
+msgstr "1 პროდუქტიანი ტრანზაქცია"
+
+#: sales_app/templates/dashboard.html:2008
+msgid "3+ Items Per Ticket"
+msgstr "3+ პროდუქტიანი ტრანზაქცია"
+
+#: sales_app/templates/dashboard.html:2022
+msgid "Single Items Tickets"
+msgstr "1 პროდუქტიანი ტრანზაქცია"
+
+#: sales_app/templates/dashboard.html:2051
+msgid "Basket Analytics"
+msgstr "კალათის ანალიტიკა"
+
+#: sales_app/templates/dashboard.html:2060
+msgid "Avg Ticket Value"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/dashboard.html:2077
+msgid "Median Ticket"
+msgstr "მედიანა კლიენტი"
+
+#: sales_app/templates/dashboard.html:2094
+msgid "25th Percentile"
+msgstr "25%"
+
+#: sales_app/templates/dashboard.html:2100
+msgid "Lower Threshold"
+msgstr "დაბლითა ზღვარი"
+
+#: sales_app/templates/dashboard.html:2107
+msgid "75th Percentile"
+msgstr "75%"
+
+#: sales_app/templates/dashboard.html:2113
+msgid "Upper Threshold"
+msgstr "მაღლითა ზღვარი"
+
+#: sales_app/templates/dashboard.html:2124
+msgid "Ticket Count by Amount and Range"
+msgstr "რაოდენობრივი ცვლა თანხობრივად და ინტერვალით"
+
+#: sales_app/templates/dashboard.html:2134
+msgid "by Amount and Range"
+msgstr "% ცვლა თანხობრივად და ინტერვალით"
+
+#: sales_app/templates/dashboard.html:2144
+msgid "Ticket Distribution"
+msgstr "კალათები"
+
+#: sales_app/templates/dashboard.html:2149
+msgid "Price Range"
+msgstr "ფასობრივი ინტერვალი"
+
+#: sales_app/templates/dashboard.html:2150
+#: sales_app/templates/dashboard.html:2151
+msgid "Count"
+msgstr "რაოდენობა"
+
+#: sales_app/templates/dashboard.html:2152
+msgid "Count Change"
+msgstr "რაოდენობრივი ცვლილება"
+
+#: sales_app/templates/dashboard.html:2175
+#, fuzzy
+#| msgid "Category Analytics"
+msgid "Campaign Analytics"
+msgstr "კატეგორიების ანალიტიკა"
+
+#: sales_app/templates/dashboard.html:2176
+msgid "Effectiveness & YoY"
+msgstr "ეფექტიანობა"
+
+#: sales_app/templates/dashboard.html:2187
+#, fuzzy
+#| msgid "All Campaigns"
+msgid "Active Campaigns"
+msgstr "ყველა კამპანია"
+
+#: sales_app/templates/dashboard.html:2193
+#, fuzzy
+#| msgid "All Campaigns"
+msgid "unique campaigns"
+msgstr "ყველა კამპანია"
+
+#: sales_app/templates/dashboard.html:2200
+msgid "Campaign Revenue Share"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2206
+msgid "of total revenue"
+msgstr "ჯამური შემოსავალი"
+
+#: sales_app/templates/dashboard.html:2213
+msgid "Campaign Avg Basket"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/dashboard.html:2223
+msgid "top campaign"
+msgstr "ტოპ კამპანიები"
+
+#: sales_app/templates/dashboard.html:2230
+#, fuzzy
+#| msgid "Avg Basket"
+msgid "No-Campaign Avg Basket"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/dashboard.html:2236
+msgid "organic baseline"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2249
+#, fuzzy
+#| msgid "Top Campaigns"
+msgid "Top Campaigns Revenue"
+msgstr "ტოპ კამპანიები"
+
+#: sales_app/templates/dashboard.html:2261
+msgid "Effectiveness Map"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2263
+msgid "Avg Basket vs Tickets (size = Revenue)"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2272
+#, fuzzy
+#| msgid "Top Campaigns"
+msgid "No-Campaign Baseline"
+msgstr "ტოპ კამპანიები"
+
+#: sales_app/templates/dashboard.html:2284
+msgid "Monthly Revenue — Top 5 Campaigns"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2296
+#, fuzzy
+#| msgid "Location Performance"
+msgid "Campaign Performance"
+msgstr "პროდუქტის მიმოხილვა"
+
+#: sales_app/templates/dashboard.html:2298
+msgid "Effectiveness vs no-campaign baseline"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2306
+#: sales_app/templates/dashboard.html:2307
+#, fuzzy
+#| msgid "Revenue"
+msgid "Rev"
+msgstr "შემოსავალი"
+
+#: sales_app/templates/dashboard.html:2308
+msgid "YoY Δ Rev"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2309
+msgid "Rev Share"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2311
+#, fuzzy
+#| msgid "Avg Basket"
+msgid "Basket YoY"
+msgstr "საშუალო ჩეკი"
+
+#: sales_app/templates/dashboard.html:2312
+#: sales_app/templates/dashboard.html:2404
+msgid "Effectiveness"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2394
+#, fuzzy
+#| msgid "No Data Available"
+msgid "No campaign data available"
+msgstr "არ მოიპოვება მონაცემები"
+
+#: sales_app/templates/dashboard.html:2405
+msgid "Campaign Avg Basket ÷ No-Campaign Avg Basket"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2406
+msgid "baseline"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2410
+msgid "Outperforming"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2414
+msgid "On Par"
+msgstr ""
+
+#: sales_app/templates/dashboard.html:2418
+#, fuzzy
+#| msgid "Underperformers"
+msgid "Underperforming"
+msgstr "ქვედა 15 პროდუქტი"
+
+#: sales_app/templates/employee_analytics.html:453
+msgid "Filters and Controls"
+msgstr "ფილტრები"
+
+#: sales_app/templates/employee_analytics.html:459
+msgid "Comparison Mode"
+msgstr "შესადარებელი პერიოდი"
+
+#: sales_app/templates/employee_analytics.html:488
+msgid "Categoy"
+msgstr "კატეგორია"
+
+#: sales_app/templates/employee_analytics.html:498
+msgid "Employees"
+msgstr "თანამშრომელი"
+
+#: sales_app/templates/employee_analytics.html:510
+msgid "All Employees"
+msgstr "ყველა თანამშრომელი"
+
+#: sales_app/templates/employee_analytics.html:556
+msgid "Employee Performance Dashboard"
+msgstr "თანამშრომელთა მიმოხილვა"
+
+#: sales_app/templates/employee_analytics.html:564
+msgid "Employee"
+msgstr "თანამშრომელი"
+
+#: sales_app/templates/employee_analytics.html:567
+msgid "YOY Change"
+msgstr "ცვლილება წლიდან-წლამდე"
+
+#: sales_app/templates/employee_analytics.html:570
+msgid "Cross-Selling rate"
+msgstr "ქროს სელლინგი(2>)"
+
+#: sales_app/templates/employee_analytics.html:571
+msgid "Cross Stats"
+msgstr "ქროსსელინგი"
+
+#: sales_app/templates/employee_analytics.html:572
+msgid "Avg items Per Ticket"
+msgstr "საშუალო რაოდენობა ჩეკზე"
+
+#: sales_app/templates/employee_analytics.html:611
+#: sales_app/templates/employee_analytics.html:619
+#: sales_app/templates/employee_analytics.html:627
+msgid "Quant"
+msgstr "რაოდ."
+
+#: sales_app/templates/employee_analytics.html:656
+msgid "Top 10 Performance by Category"
+msgstr "ტოპ თანამშრომლები მოცემულ კატეგორიაში"
+
+#~ msgid "vs previous period"
+#~ msgstr "შედარებული ძველ პერიოდთან"

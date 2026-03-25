@@ -1,0 +1,714 @@
+{% load static %}
+{% load static custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="{% static 'images/unnamed.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <title>YR | Bonus</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #0a0e27; color: #e4e4e7; min-height: 100vh; }
+
+    .main-content { padding: 24px; min-height: 100vh; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-size: 28px; font-weight: 700; color: #f1f5f9; }
+
+    .section-divider { display: flex; align-items: center; gap: 16px; margin: 40px 0 28px 0; }
+    .section-divider-line { flex: 1; height: 2px; background: linear-gradient(90deg, transparent 0%, #334155 20%, #334155 80%, transparent 100%); }
+    .section-title-wrapper { display: flex; align-items: center; gap: 12px; padding: 12px 24px; background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%); border: 1px solid rgba(102,126,234,0.2); border-radius: 12px; }
+    .section-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .section-title { font-size: 18px; font-weight: 700; color: #f1f5f9; }
+
+    .table-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; overflow-x: auto; }
+    .table-title { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+    .data-table thead { border-bottom: 2px solid #334155; }
+    .data-table th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; cursor: pointer; user-select: none; }
+    .data-table th:hover { color: #e4e4e7; }
+    .data-table th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+    .data-table th.sorted-asc .sort-icon, .data-table th.sorted-desc .sort-icon { opacity: 1; color: #667eea; }
+    .data-table th.group-fixed { border-bottom: 2px solid #667eea; color: #667eea; }
+    .data-table th.group-bonus { border-bottom: 2px solid #10b981; color: #10b981; }
+    .data-table th.group-vacation { border-bottom: 2px solid #fb923c; color: #fb923c; }
+    .data-table th.group-total { border-bottom: 2px solid #764ba2; color: #a78bfa; }
+    .data-table td { padding: 13px 14px; font-size: 13px; color: #e4e4e7; border-bottom: 1px solid #1e293b; white-space: nowrap; }
+    .data-table tbody tr:hover { background: rgba(102,126,234,0.05); }
+    .data-table tbody tr.hidden-row { display: none; }
+
+    .badge-manager { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; background: rgba(251,146,60,0.15); color: #fb923c; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-consultant { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; background: rgba(102,126,234,0.15); color: #667eea; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+    .ratio-great { color: #10b981; font-weight: 600; }
+    .ratio-good  { color: #3b82f6; font-weight: 600; }
+    .ratio-warn  { color: #fb923c; font-weight: 600; }
+    .ratio-bad   { color: #ef4444; font-weight: 600; }
+
+    .total-bonus-cell { font-size: 15px; font-weight: 800; color: #a78bfa; }
+    .vacation-cell { color: #fb923c; font-weight: 600; }
+    .no-vacation { color: #64748b; }
+
+    .group-header-row td { background: rgba(102,126,234,0.08); color: #667eea; font-weight: 700; font-size: 13px; border-top: 2px solid rgba(102,126,234,0.3); border-bottom: 1px solid rgba(102,126,234,0.2); padding: 10px 14px; }
+
+    .col-fixed   { border-left: 1px solid rgba(102,126,234,0.2); }
+    .col-bonus   { border-left: 1px solid rgba(16,185,129,0.2); }
+    .col-vacation{ border-left: 1px solid rgba(251,146,60,0.2); }
+    .col-total   { border-left: 1px solid rgba(118,75,162,0.3); }
+
+    .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* Search bar */
+    .filter-select { padding: 12px 14px; background: #0f1629; border: 1px solid #334155; border-radius: 8px; color: #e4e4e7; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+    .search-input { padding: 10px 14px 10px 38px; background: #0f1629; border: 1px solid #334155; border-radius: 8px; color: #e4e4e7; font-size: 13px; width: 260px; transition: all 0.2s; }
+    .search-input:focus { outline: none; border-color: #667eea; width: 320px; }
+    .search-wrapper { position: relative; }
+    .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 13px; pointer-events: none; }
+
+    /* Store tabs */
+    .store-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .store-tab { padding: 6px 14px; background: #1e293b; border: 1px solid #334155; border-radius: 20px; color: #94a3b8; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .store-tab:hover { border-color: #667eea; color: #667eea; }
+    .store-tab.active { background: rgba(102,126,234,0.15); border-color: #667eea; color: #667eea; }
+
+    /* Manager top indicator */
+    tr[data-role="manager"] td:first-child::before {
+      content: ''; display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: #fb923c; margin-right: 6px; vertical-align: middle; position: relative; top: -1px;
+    }
+
+    /* ── SUBTOTAL ROW ── */
+    .subtotal-spacer td {
+      background: transparent !important;
+      border: none !important;
+      padding: 6px 0 !important;
+    }
+    .subtotal-row td {
+      background: rgba(30, 41, 59, 0.6);
+      border-top: 1px solid #475569;
+      border-bottom: 1px solid #475569;
+      font-size: 12px;
+      color: #94a3b8;
+      padding: 9px 14px;
+      font-style: italic;
+    }
+
+    /* ── GRAND TOTAL ROW ── */
+    .grand-total-spacer td {
+      background: transparent !important;
+      border: none !important;
+      padding: 8px 0 !important;
+    }
+    .grand-total-row td {
+      background: #0f1629;
+      border-top: 2px solid #475569;
+      border-bottom: 2px solid #475569;
+      padding: 15px 14px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    /* Metric tooltip */
+    .metric-cell { position: relative; cursor: help; }
+    .metric-cell .metric-hint { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: rgba(100,116,139,0.25); color: #64748b; font-size: 9px; margin-left: 5px; vertical-align: middle; flex-shrink: 0; }
+    .metric-cell:hover .metric-hint { background: rgba(102,126,234,0.3); color: #667eea; }
+
+    #metricTooltip { position: fixed; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; min-width: 220px; max-width: 280px; }
+    #metricTooltip.visible { opacity: 1; }
+    .tooltip-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+    .tooltip-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #334155; }
+    .tooltip-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; font-size: 12px; }
+    .tooltip-row:last-child { margin-bottom: 0; }
+    .tooltip-label { color: #64748b; flex-shrink: 0; }
+    .tooltip-value { font-weight: 700; color: #f1f5f9; text-align: right; }
+    .tooltip-value.green  { color: #10b981; }
+    .tooltip-value.blue   { color: #3b82f6; }
+    .tooltip-value.orange { color: #fb923c; }
+    .tooltip-value.purple { color: #a78bfa; }
+    .tooltip-value.red    { color: #ef4444; }
+    .tooltip-bar-wrap  { margin-top: 8px; padding-top: 8px; border-top: 1px solid #1e293b; }
+    .tooltip-bar-label { font-size: 10px; color: #64748b; margin-bottom: 4px; }
+    .tooltip-bar-bg    { background: #0f1629; border-radius: 4px; height: 6px; overflow: hidden; }
+    .tooltip-bar-fill  { height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+    @media screen and (max-width: 1024px) { .main-content { padding: 16px; } }
+  </style>
+</head>
+<body>
+
+  <div id="metricTooltip"><div class="tooltip-card" id="tooltipContent"></div></div>
+
+  <main class="main-content">
+
+    <div class="top-bar">
+      <h1 class="page-title"><i class="fas fa-gift" style="color:#667eea;margin-right:10px;"></i></h1>
+    </div>
+
+    <div class="section-divider">
+      <div class="section-divider-line"></div>
+      <div class="section-title-wrapper">
+        <div class="section-icon"><i class="fas fa-table"></i></div>
+        <span class="section-title">ბონუსი</span>
+      </div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#667eea;"></div>ფიქსირებული ბონუსი</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div>მთავარი ბონუსი</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fb923c;"></div>ბიულეტინი / შვებულება</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div>ჯამური ბონუსი</div>
+      <div class="legend-item" style="margin-left:auto;font-size:11px;color:#475569;">
+        <i class="fas fa-info-circle" style="color:#667eea;margin-right:4px;"></i>
+        Hover <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:rgba(100,116,139,0.25);color:#94a3b8;font-size:9px;margin:0 3px;">i</span> for details
+      </div>
+    </div>
+
+    <!-- Store Tabs -->
+    <div class="store-tabs" id="storeTabs">
+      <div class="store-tab active" data-store="all" onclick="filterByStore('all', this)">
+        <i class="fas fa-globe" style="margin-right:4px;"></i> ყველა ობიექტი
+      </div>
+      {% regroup location by UN as un_groups_tabs %}
+      {% for ug in un_groups_tabs %}
+        <div class="store-tab" data-store="{{ ug.grouper }}" onclick="filterByStore('{{ ug.grouper }}', this)">
+          {{ ug.grouper }}<span style="margin-left:4px;opacity:0.6;">({{ ug.list|length }})</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Main Table -->
+    <div class="table-card">
+      <div class="table-title">
+        <i class="fas fa-list-alt" style="color:#667eea;"></i>
+        __
+        <span id="visibleCount" style="font-size:13px;font-weight:400;color:#64748b;">{{ location|length }} თანამშრომელი</span>
+        <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
+          <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="tableSearch" class="search-input" placeholder="თანამშრომელი ან ობიექტი" oninput="searchTable()">
+          </div>
+          <select id="roleFilter" class="filter-select" style="width:auto;padding:10px 12px;" onchange="applyFilters()">
+            <option value="all">ყველა</option>
+            <option value="manager">მენეჯერი</option>
+            <option value="consultant">კონსულტანტი</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="data-table" id="bonusTable">
+        <thead>
+          <tr>
+            <th colspan="5" style="color:#94a3b8;border-bottom:none;padding-bottom:4px;">შესახებ</th>
+            <th colspan="4" class="group-fixed" style="border-bottom:none;padding-bottom:4px;">— ფიქსირებული ბონუსი</th>
+            <th colspan="3" class="group-bonus" style="border-bottom:none;padding-bottom:4px;">— მთავარი ბონუსი</th>
+            <th colspan="3" class="group-vacation" style="border-bottom:none;padding-bottom:4px;">— ბიულეტინი / შვებულება</th>
+            <th colspan="1" class="group-total" style="border-bottom:none;padding-bottom:4px;">— ჯამური ბონუსი</th>
+          </tr>
+          <tr>
+            <th onclick="sortTable(0)">#<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th onclick="sortTable(1)">თანამშრომელი<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th>პოზიცია</th>
+            <th onclick="sortTable(3)">ობიექტი<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th onclick="sortTable(4)">შესრულება<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-fixed col-fixed" onclick="sortTable(5)">სქინქეარი<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-fixed" onclick="sortTable(6)">ქროს სელინგი<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-fixed" onclick="sortTable(7)">ინდივიდუალური გეგმა<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-fixed" onclick="sortTable(8)">ჯამური ფიქსირებული<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-bonus col-bonus" onclick="sortTable(9)">მთავარი ბონუსი<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-bonus" onclick="sortTable(10)">შესრულება / გეგმა<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-bonus">მამრავლი</th>
+            <th class="group-vacation col-vacation" onclick="sortTable(12)">გაცდენილი დღეები<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-vacation" onclick="sortTable(13)">სხვაობა<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-vacation" onclick="sortTable(14)">დისტრიბუცია +<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+            <th class="group-total col-total" onclick="sortTable(15)">ჯამური ბონუსი<span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+
+          {% regroup location by UN as un_groups %}
+          {% for un_group in un_groups %}
+
+            {# ── Store header ── #}
+            <tr class="group-header-row" data-store="{{ un_group.grouper }}">
+              <td colspan="16">
+                <i class="fas fa-store"></i> &nbsp;{{ un_group.grouper }}
+                <span style="margin-left:16px;font-size:12px;font-weight:400;color:#94a3b8;">{{ un_group.list|length }} თანამშრომელი</span>
+              </td>
+            </tr>
+
+            {# ── Employee rows ── #}
+            {% for row in un_group.list %}
+            <tr data-store="{{ un_group.grouper }}"
+                data-name="{{ row.Tanam }}"
+                data-role="{% if row.manager == 1 %}manager{% else %}consultant{% endif %}"
+                data-skincare-pct="{{ row.skincare_percentage }}"
+                data-cross-pct="{{ row.cross_selling_percentage }}"
+                data-turnover="{{ row.total_turnover_with_zedd }}"
+                data-individual-plan="{{ row.individual_plan }}"
+                data-un-turnover="{{ row.un_total_turnover }}"
+                data-plan="{{ row.plan }}"
+                data-main-bonus="{{ row.main_bonus }}"
+                data-working-days="{{ working_days|default:28 }}"
+                data-days-absent="{{ row.days_absent }}"
+                data-achievement-ratio="{{ row.un_achievement_ratio }}">
+              <td style="color:#64748b;font-size:12px;">{{ forloop.parentloop.counter }}.{{ forloop.counter }}</td>
+              <td><div style="font-weight:600;color:#f1f5f9;">{{ row.Tanam }}</div></td>
+              <td>
+                {% if row.manager == 1 %}
+                  <span class="badge-manager"><i class="fas fa-user-tie"></i> მენეჯერი</span>
+                {% else %}
+                  <span class="badge-consultant"><i class="fas fa-user"></i> კონსულტანტი</span>
+                {% endif %}
+              </td>
+              <td style="color:#94a3b8;">{{ row.UN }}</td>
+
+              <td class="metric-cell" data-tooltip-type="achievement" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()">
+                <span class="{% if row.un_achievement_ratio >= 1.05 %}ratio-great{% elif row.un_achievement_ratio >= 0.95 %}ratio-good{% elif row.un_achievement_ratio >= 0.85 %}ratio-warn{% else %}ratio-bad{% endif %}">
+                  {{ row.un_achievement_ratio|floatformat:1 }}%
+                  <i class="fas fa-arrow-{% if row.un_achievement_ratio >= 0.95 %}up{% else %}down{% endif %}" style="font-size:10px;"></i>
+                </span>
+                <span class="metric-hint"><i class="fas fa-info"></i></span>
+              </td>
+
+              <td class="col-fixed metric-cell" data-tooltip-type="skincare" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()">
+                {% if row.skincare_fixed_cost > 0 %}<span style="color:#10b981;font-weight:600;">+₾{{ row.skincare_fixed_cost }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+                <span class="metric-hint"><i class="fas fa-info"></i></span>
+              </td>
+
+              <td class="metric-cell" data-tooltip-type="cross" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()">
+                {% with cross=row.cross_selling_fixed_cost_consultant|add:row.cross_selling_fixed_cost_manager %}
+                  {% if cross > 0 %}<span style="color:#10b981;font-weight:600;">+₾{{ cross }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+                {% endwith %}
+                <span class="metric-hint"><i class="fas fa-info"></i></span>
+              </td>
+
+              <td class="metric-cell" data-tooltip-type="indiv" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()">
+                {% if row.total_fixed_individual_achievement > 0 %}<span style="color:#10b981;font-weight:600;">+₾{{ row.total_fixed_individual_achievement }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+                <span class="metric-hint"><i class="fas fa-info"></i></span>
+              </td>
+
+              <td>
+                {% with total_fixed=row.skincare_fixed_cost|add:row.cross_selling_fixed_cost_consultant|add:row.cross_selling_fixed_cost_manager|add:row.total_fixed_individual_achievement %}
+                  <span style="color:#667eea;font-weight:700;">₾{{ total_fixed }}</span>
+                {% endwith %}
+              </td>
+
+              <td class="col-bonus metric-cell" data-tooltip-type="mainbonus" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()">
+                <span style="color:#3b82f6;font-weight:600;">₾{{ row.main_bonus|floatformat:2 }}</span>
+                <span class="metric-hint"><i class="fas fa-info"></i></span>
+              </td>
+
+              <td>
+                <span class="{% if row.un_achievement_ratio >= 1.05 %}ratio-great{% elif row.un_achievement_ratio >= 0.95 %}ratio-good{% elif row.un_achievement_ratio >= 0.85 %}ratio-warn{% else %}ratio-bad{% endif %}">
+                  {{ row.un_achievement_ratio|floatformat:3 }}
+                </span>
+              </td>
+              <td><span style="color:#94a3b8;">×{{ row.un_achievement_multiplier }}</span></td>
+
+              <td class="col-vacation">
+                {% if row.days_absent > 0 %}<span class="vacation-cell"><i class="fas fa-umbrella-beach" style="font-size:11px;"></i> {{ row.days_absent }}d</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+              <td>
+                {% if row.vacation_deduction > 0 %}<span style="color:#ef4444;font-weight:600;">−₾{{ row.vacation_deduction|floatformat:2 }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+              <td>
+                {% if row.redistribution_received > 0 %}<span style="color:#10b981;font-weight:600;">+₾{{ row.redistribution_received|floatformat:2 }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+
+              <td class="col-total metric-cell" data-tooltip-type="total" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()">
+                <div class="total-bonus-cell">₾{{ row.total_bonus|floatformat:2 }}</div>
+                <span class="metric-hint"><i class="fas fa-info"></i></span>
+              </td>
+            </tr>
+            {% endfor %}
+
+            {# ── Store subtotal row ── #}
+            {% with st=subtotals|dict_get:un_group.grouper %}
+            <tr class="subtotal-spacer" data-store="{{ un_group.grouper }}"><td colspan="16"></td></tr>
+            <tr class="subtotal-row" data-store="{{ un_group.grouper }}">
+              <td colspan="4" style="padding-left:24px;">
+                <i class="fas fa-sigma" style="font-size:10px;margin-right:5px;color:#667eea;"></i>
+                <span style="color:#667eea;font-weight:700;">{{ un_group.grouper }}</span>
+                <span style="margin-left:8px;font-size:11px;">{{ un_group.list|length }} თანამშრომელი</span>
+              </td>
+              <td><span class="no-vacation">—</span></td>
+              {# skincare #}
+              <td class="col-fixed">
+                {% if st.skincare > 0 %}<span style="color:#667eea;font-weight:700;">₾{{ st.skincare|floatformat:0 }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+              {# cross #}
+              <td>
+                {% if st.cross > 0 %}<span style="color:#667eea;font-weight:700;">₾{{ st.cross|floatformat:0 }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+              {# indiv #}
+              <td>
+                {% if st.indiv > 0 %}<span style="color:#667eea;font-weight:700;">₾{{ st.indiv|floatformat:0 }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+              {# total fixed = skincare + cross + indiv #}
+              <td>
+                <span style="color:#667eea;font-weight:800;">₾{% widthratio st.skincare 1 1 %}</span>
+                {# Use JS-computed value below; server-side approximation shown inline #}
+                <span class="subtotal-fixed-total" data-sc="{{ st.skincare }}" data-cr="{{ st.cross }}" data-in="{{ st.indiv }}" style="color:#667eea;font-weight:800;"></span>
+              </td>
+              {# main bonus #}
+              <td class="col-bonus"><span style="color:#3b82f6;font-weight:800;">₾{{ st.main_bonus|floatformat:2 }}</span></td>
+              <td><span class="no-vacation">—</span></td>
+              <td><span class="no-vacation">—</span></td>
+              {# vacation cols #}
+              <td class="col-vacation"><span class="no-vacation">—</span></td>
+              <td>
+                {% if st.vac_deduction > 0 %}<span style="color:#ef4444;font-weight:700;">−₾{{ st.vac_deduction|floatformat:2 }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+              <td>
+                {% if st.redistribution > 0 %}<span style="color:#10b981;font-weight:700;">+₾{{ st.redistribution|floatformat:2 }}</span>{% else %}<span class="no-vacation">—</span>{% endif %}
+              </td>
+              {# total bonus #}
+              <td class="col-total"><span style="color:#a78bfa;font-weight:800;font-size:14px;">₾{{ st.total_bonus|floatformat:2 }}</span></td>
+            </tr>
+            <tr class="subtotal-spacer" data-store="{{ un_group.grouper }}"><td colspan="16"></td></tr>
+            {% endwith %}
+
+          {% empty %}
+          <tr>
+            <td colspan="16" style="text-align:center;padding:60px;color:#64748b;">
+              <i class="fas fa-inbox" style="font-size:32px;margin-bottom:12px;display:block;"></i>
+              No data available
+            </td>
+          </tr>
+          {% endfor %}
+
+          {# ── Grand total row ── #}
+          {% if location %}
+          <tr class="grand-total-spacer"><td colspan="16"></td></tr>
+          <tr class="grand-total-row">
+            <td colspan="4">
+              <i class="fas fa-sigma" style="color:#667eea;margin-right:8px;font-size:12px;"></i>
+              <span style="font-size:13px;color:#e4e4e7;">სულ ჯამი</span>
+              <span style="margin-left:10px;font-size:11px;font-weight:400;color:#64748b;">{{ location|length }} თანამშრომელი</span>
+            </td>
+            <td><span style="color:#64748b;">—</span></td>
+            <td class="col-fixed">
+              {% if grand.skincare > 0 %}<span style="color:#667eea;font-weight:700;">₾{{ grand.skincare|floatformat:0 }}</span>{% else %}<span style="color:#64748b;">—</span>{% endif %}
+            </td>
+            <td>
+              {% if grand.cross > 0 %}<span style="color:#667eea;font-weight:700;">₾{{ grand.cross|floatformat:0 }}</span>{% else %}<span style="color:#64748b;">—</span>{% endif %}
+            </td>
+            <td>
+              {% if grand.indiv > 0 %}<span style="color:#667eea;font-weight:700;">₾{{ grand.indiv|floatformat:0 }}</span>{% else %}<span style="color:#64748b;">—</span>{% endif %}
+            </td>
+            <td>
+              <span style="color:#667eea;font-weight:700;" id="grand-fixed-total">—</span>
+            </td>
+            <td class="col-bonus"><span style="color:#3b82f6;font-weight:700;">₾{{ grand.main_bonus|floatformat:2 }}</span></td>
+            <td><span style="color:#64748b;">—</span></td>
+            <td><span style="color:#64748b;">—</span></td>
+            <td class="col-vacation"><span style="color:#64748b;">—</span></td>
+            <td>
+              {% if grand.vac_deduction > 0 %}<span style="color:#ef4444;font-weight:700;">−₾{{ grand.vac_deduction|floatformat:2 }}</span>{% else %}<span style="color:#64748b;">—</span>{% endif %}
+            </td>
+            <td>
+              {% if grand.redistribution > 0 %}<span style="color:#10b981;font-weight:700;">+₾{{ grand.redistribution|floatformat:2 }}</span>{% else %}<span style="color:#64748b;">—</span>{% endif %}
+            </td>
+            <td class="col-total">
+              <span style="color:#a78bfa;font-weight:800;font-size:15px;">₾{{ grand.total_bonus|floatformat:2 }}</span>
+            </td>
+          </tr>
+          <tr class="grand-total-spacer"><td colspan="16"></td></tr>
+          {% endif %}
+
+          <tr id="noResultsRow" style="display:none;">
+            <td colspan="16" style="text-align:center;padding:40px;color:#64748b;">
+              <i class="fas fa-search" style="font-size:24px;margin-bottom:8px;display:block;"></i>
+              No employees match your search
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <script>
+    // ─── HELPERS ──────────────────────────────────────────────────────────
+    function fmt(n, decimals = 0) {
+      if (n == null || n === '' || isNaN(+n)) return '—';
+      return Number(n).toLocaleString('en', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+    function fmtPct(n, decimals = 1) {
+      if (n == null || n === '' || isNaN(+n)) return '—';
+      return (Number(n) * 100).toFixed(decimals) + '%';
+    }
+    function ratioColor(r) {
+      r = +r;
+      if (r >= 1.05) return 'green';
+      if (r >= 0.95) return 'blue';
+      if (r >= 0.85) return 'orange';
+      return 'red';
+    }
+
+    // ─── FIX SUBTOTAL "TOTAL FIXED" CELLS (server can't add 3 floats in template) ──
+    document.querySelectorAll('.subtotal-fixed-total').forEach(el => {
+      const v = parseFloat(el.dataset.sc||0) + parseFloat(el.dataset.cr||0) + parseFloat(el.dataset.in||0);
+      el.previousElementSibling.remove(); // remove the widthratio placeholder
+      el.textContent = '₾' + v.toLocaleString('en', {minimumFractionDigits:0, maximumFractionDigits:0});
+    });
+
+    // Grand total fixed (skincare + cross + indiv)
+    (function(){
+      const sc = parseFloat('{{ grand.skincare }}') || 0;
+      const cr = parseFloat('{{ grand.cross }}')    || 0;
+      const ind= parseFloat('{{ grand.indiv }}')    || 0;
+      const el = document.getElementById('grand-fixed-total');
+      if (el) el.textContent = '₾' + (sc+cr+ind).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0});
+    })();
+
+    // ─── TOOLTIP ──────────────────────────────────────────────────────────
+    const tooltip = document.getElementById('metricTooltip');
+    const tooltipContent = document.getElementById('tooltipContent');
+
+    function getRowData(cell) {
+      const tr = cell.closest('tr');
+      const plan          = parseFloat(tr.getAttribute('data-plan')) || 0;
+      const ratio         = parseFloat(tr.getAttribute('data-achievement-ratio')) || 0;
+      const unTurnoverRaw = parseFloat(tr.getAttribute('data-un-turnover')) || 0;
+      const unTurnover    = unTurnoverRaw > 0 ? unTurnoverRaw : (ratio > 0 && plan > 0 ? ratio * plan : 0);
+      return {
+        role:           tr.dataset.role,
+        skincarePct:    parseFloat(tr.getAttribute('data-skincare-pct')) || 0,
+        crossPct:       parseFloat(tr.getAttribute('data-cross-pct')) || 0,
+        turnover:       parseFloat(tr.getAttribute('data-turnover')) || 0,
+        individualPlan: parseFloat(tr.getAttribute('data-individual-plan')) || 0,
+        unTurnover, plan,
+        mainBonus:      parseFloat(tr.getAttribute('data-main-bonus')) || 0,
+        workingDays:    parseFloat(tr.getAttribute('data-working-days')) || 28,
+        daysAbsent:     parseFloat(tr.getAttribute('data-days-absent')) || 0,
+      };
+    }
+
+    function barHtml(ratio, color) {
+      const pct = Math.min(100, Math.round(ratio * 100));
+      const colors = { green:'#10b981', blue:'#3b82f6', orange:'#fb923c', red:'#ef4444', purple:'#a78bfa' };
+      return `<div class="tooltip-bar-wrap"><div class="tooltip-bar-label">${pct}% of target</div><div class="tooltip-bar-bg"><div class="tooltip-bar-fill" style="width:${pct}%;background:${colors[color]||colors.blue};"></div></div></div>`;
+    }
+
+    function buildTooltip(type, d) {
+      let html = '';
+      if (type === 'achievement') {
+        const ratio = d.plan > 0 ? d.unTurnover / d.plan : 0;
+        html = `<div class="tooltip-title"><i class="fas fa-store" style="margin-right:5px;"></i>ობიექტის შესრულება</div>
+          <div class="tooltip-row"><span class="tooltip-label">ფაქტობრივი ბრუნვა</span><span class="tooltip-value green">₾${fmt(d.unTurnover)}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">გეგმა</span><span class="tooltip-value">₾${fmt(d.plan)}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">შესრულება</span><span class="tooltip-value ${ratioColor(ratio)}">${(ratio*100).toFixed(1)}%</span></div>
+          ${barHtml(ratio, ratioColor(ratio))}`;
+      } else if (type === 'skincare') {
+        const pct = d.skincarePct;
+        const bonus = pct >= 0.25 ? 100 : pct >= 0.20 ? 50 : 0;
+        html = `<div class="tooltip-title"><i class="fas fa-flask" style="margin-right:5px;"></i>სქინქეარი</div>
+          ${d.role === 'manager'
+            ? `<div class="tooltip-row"><span class="tooltip-label">სქინქეარი</span><span class="tooltip-value" style="color:#64748b;">მენეჯერს არ ეხება</span></div>`
+            : `<div class="tooltip-row"><span class="tooltip-label">სქინქეარის წილი</span><span class="tooltip-value ${pct>=0.20?'green':'red'}">${fmtPct(pct)}</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">ზღვარი ₾50</span><span class="tooltip-value ${pct>=0.20?'green':'red'}">${pct>=0.20?'✓ 20%+':'✗ < 20%'}</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">ზღვარი ₾100</span><span class="tooltip-value ${pct>=0.25?'green':'orange'}">${pct>=0.25?'✓ 25%+':'✗ < 25%'}</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">მიღებული</span><span class="tooltip-value ${bonus>0?'green':''}">${bonus>0?'+₾'+bonus:'—'}</span></div>
+               ${barHtml(Math.min(pct/0.25,1), pct>=0.25?'green':pct>=0.20?'orange':'red')}`}`;
+      } else if (type === 'cross') {
+        const pct = d.crossPct; const isM = d.role==='manager';
+        const threshold = isM ? 0.35 : 0.40;
+        const bonus = pct >= threshold ? (isM ? 100 : 50) : 0;
+        html = `<div class="tooltip-title"><i class="fas fa-exchange-alt" style="margin-right:5px;"></i>ქროს სელინგი</div>
+          <div class="tooltip-row"><span class="tooltip-label">ქროს სელინგი %</span><span class="tooltip-value ${pct>=threshold?'green':'red'}">${fmtPct(pct)}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">ზღვარი (${isM?'მენეჯ.':'კონს.'})</span><span class="tooltip-value">${(threshold*100).toFixed(0)}%</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">სტატუსი</span><span class="tooltip-value ${pct>=threshold?'green':'red'}">${pct>=threshold?'✓ გადაიარა':'✗ ვერ გადაიარა'}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">მიღებული</span><span class="tooltip-value ${bonus>0?'green':''}">${bonus>0?'+₾'+bonus:'—'}</span></div>
+          ${barHtml(Math.min(pct/threshold,1.1), pct>=threshold?'green':'orange')}`;
+      } else if (type === 'indiv') {
+        const ratio = d.individualPlan > 0 ? d.turnover / d.individualPlan : 0;
+        const bonus = ratio >= 1.1 ? 150 : ratio >= 1.0 ? 100 : 0;
+        html = `<div class="tooltip-title"><i class="fas fa-user-check" style="margin-right:5px;"></i>ინდივიდუალური გეგმა</div>
+          ${d.role === 'manager'
+            ? `<div class="tooltip-row"><span class="tooltip-label">ინდივ. გეგმა</span><span class="tooltip-value" style="color:#64748b;">მენეჯერს არ ეხება</span></div>`
+            : `<div class="tooltip-row"><span class="tooltip-label">ბრუნვა</span><span class="tooltip-value green">₾${fmt(d.turnover)}</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">ინდივ. გეგმა</span><span class="tooltip-value">₾${fmt(d.individualPlan)}</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">შესრულება</span><span class="tooltip-value ${ratioColor(ratio)}">${(ratio*100).toFixed(1)}%</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">ზღვარი ₾100</span><span class="tooltip-value ${ratio>=1.0?'green':'red'}">${ratio>=1.0?'✓ 100%+':'✗ < 100%'}</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">ზღვარი ₾150</span><span class="tooltip-value ${ratio>=1.1?'green':'orange'}">${ratio>=1.1?'✓ 110%+':'✗ < 110%'}</span></div>
+               <div class="tooltip-row"><span class="tooltip-label">მიღებული</span><span class="tooltip-value ${bonus>0?'green':''}">${bonus>0?'+₾'+bonus:'—'}</span></div>
+               ${barHtml(Math.min(ratio,1.2), ratioColor(ratio))}`}`;
+      } else if (type === 'mainbonus') {
+        const ratio = d.plan > 0 ? d.unTurnover / d.plan : 0;
+        const ml = ratio>=1.05?'×2.1 (≥105%)':ratio>=0.95?'×2.0 (≥95%)':ratio>=0.85?'×1.7 (≥85%)':'×0 (< 85%)';
+        html = `<div class="tooltip-title"><i class="fas fa-coins" style="margin-right:5px;"></i>მთავარი ბონუსი</div>
+          <div class="tooltip-row"><span class="tooltip-label">ობიექტის ბრუნვა</span><span class="tooltip-value green">₾${fmt(d.unTurnover)}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">ობიექტის გეგმა</span><span class="tooltip-value">₾${fmt(d.plan)}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">შესრულება</span><span class="tooltip-value ${ratioColor(ratio)}">${(ratio*100).toFixed(1)}%</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">მამრავლი</span><span class="tooltip-value blue">${ml}</span></div>
+          <div class="tooltip-row" style="margin-top:6px;padding-top:6px;border-top:1px solid #1e293b;">
+            <span class="tooltip-label">მთავარი ბონუსი</span><span class="tooltip-value purple">₾${fmt(d.mainBonus,2)}</span></div>`;
+      } else if (type === 'total') {
+        const vacDed = d.daysAbsent > 0 ? d.mainBonus * d.daysAbsent / d.workingDays : 0;
+        html = `<div class="tooltip-title"><i class="fas fa-calculator" style="margin-right:5px;"></i>ჯამური ბონუსი</div>
+          <div class="tooltip-row"><span class="tooltip-label">მთავარი ბონუსი</span><span class="tooltip-value blue">₾${fmt(d.mainBonus,2)}</span></div>
+          ${d.daysAbsent>0?`<div class="tooltip-row"><span class="tooltip-label">გამოქვ. (${fmt(d.daysAbsent)}d/${fmt(d.workingDays)}d)</span><span class="tooltip-value red">−₾${fmt(vacDed,2)}</span></div>`:''}
+          <div class="tooltip-row" style="margin-top:6px;padding-top:6px;border-top:1px solid #334155;">
+            <span class="tooltip-label" style="font-weight:700;color:#e4e4e7;">სულ</span>
+            <span class="tooltip-value purple" style="font-size:14px;">ნახე სვეტში</span></div>`;
+      }
+      return html;
+    }
+
+    function showTooltip(e, cell) {
+      const type = cell.getAttribute('data-tooltip-type');
+      const d = getRowData(cell);
+      const html = buildTooltip(type, d);
+      if (!html) return;
+      tooltipContent.innerHTML = html;
+      tooltip.classList.add('visible');
+      positionTooltip(e);
+    }
+    function hideTooltip() { tooltip.classList.remove('visible'); }
+    document.addEventListener('mousemove', e => { if (tooltip.classList.contains('visible')) positionTooltip(e); });
+    function positionTooltip(e) {
+      const m=14, tw=tooltip.offsetWidth||240, th=tooltip.offsetHeight||160;
+      let x=e.clientX+m, y=e.clientY+m;
+      if (x+tw>window.innerWidth-10) x=e.clientX-tw-m;
+      if (y+th>window.innerHeight-10) y=e.clientY-th-m;
+      tooltip.style.left=x+'px'; tooltip.style.top=y+'px';
+    }
+
+    // ─── MANAGERS TO TOP ──────────────────────────────────────────────────
+    function sortManagersTop() {
+      const tbody = document.getElementById('tableBody');
+      tbody.querySelectorAll('tr.group-header-row').forEach(header => {
+        const store = header.dataset.store;
+        const storeRows = [...tbody.querySelectorAll(`tr[data-store="${CSS.escape(store)}"][data-name]`)];
+        const managers = storeRows.filter(r => r.dataset.role === 'manager');
+        const consultants = storeRows.filter(r => r.dataset.role === 'consultant');
+        // Find the subtotal row for this store to use as the insertion boundary
+        const subtotalRow = tbody.querySelector(`tr.subtotal-row[data-store="${CSS.escape(store)}"]`);
+        let ref = header.nextSibling;
+        [...managers, ...consultants].forEach(row => {
+          tbody.insertBefore(row, subtotalRow);
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { sortManagersTop(); });
+
+    // ─── STORE FILTER ─────────────────────────────────────────────────────
+    let activeStore = 'all';
+
+    function filterByStore(store, el) {
+      activeStore = store;
+      document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      applyFilters();
+    }
+    function searchTable() { applyFilters(); }
+
+    function applyFilters() {
+      const search = document.getElementById('tableSearch').value.toLowerCase().trim();
+      const role = document.getElementById('roleFilter').value;
+      const rows = document.querySelectorAll('#tableBody tr[data-name]');
+      const groupHeaders = document.querySelectorAll('#tableBody tr.group-header-row');
+      const subtotalRows = document.querySelectorAll('#tableBody tr.subtotal-row');
+      const grandTotal = document.querySelector('#tableBody tr.grand-total-row');
+      let visibleCount = 0;
+      const visibleStores = new Set();
+
+      rows.forEach(row => {
+        const name = (row.dataset.name || '').toLowerCase();
+        const store = row.dataset.store || '';
+        const rowRole = row.dataset.role || '';
+        const matchSearch = search === '' || name.includes(search) || store.toLowerCase().includes(search);
+        const matchStore = activeStore === 'all' || store === activeStore;
+        const matchRole = role === 'all' || rowRole === role;
+        if (matchSearch && matchStore && matchRole) {
+          row.classList.remove('hidden-row'); visibleCount++; visibleStores.add(store);
+        } else {
+          row.classList.add('hidden-row');
+        }
+      });
+
+      groupHeaders.forEach(h => h.classList.toggle('hidden-row', !visibleStores.has(h.dataset.store)));
+      subtotalRows.forEach(h => h.classList.toggle('hidden-row', !visibleStores.has(h.dataset.store)));
+      document.querySelectorAll('#tableBody tr.subtotal-spacer').forEach(r =>
+        r.classList.toggle('hidden-row', !visibleStores.has(r.dataset.store)));
+
+      // Hide grand total + spacers when filtering to a single store
+      if (grandTotal) grandTotal.classList.toggle('hidden-row', activeStore !== 'all');
+      document.querySelectorAll('.grand-total-spacer').forEach(r => r.classList.toggle('hidden-row', activeStore !== 'all'));
+
+      document.getElementById('noResultsRow').style.display = visibleCount === 0 ? 'table-row' : 'none';
+      document.getElementById('visibleCount').textContent =
+        visibleCount === {{ location|length }}
+          ? '{{ location|length }} employees'
+          : `${visibleCount} of {{ location|length }} employees`;
+    }
+
+    // ─── TABLE SORT ───────────────────────────────────────────────────────
+    let sortState = { col: -1, asc: true };
+
+    function sortTable(colIndex) {
+      const tbody = document.getElementById('tableBody');
+      const headers = document.querySelectorAll('#bonusTable thead tr:last-child th');
+      if (sortState.col === colIndex) sortState.asc = !sortState.asc;
+      else { sortState.col = colIndex; sortState.asc = true; }
+      headers.forEach((th,i) => {
+        th.classList.remove('sorted-asc','sorted-desc');
+        if (i===colIndex) th.classList.add(sortState.asc?'sorted-asc':'sorted-desc');
+      });
+
+      const dataRows = [...tbody.querySelectorAll('tr[data-name]')];
+      dataRows.sort((a, b) => {
+        const aText = a.cells[colIndex]?.textContent.trim().replace(/[₾+−%×,]/g,'') || '';
+        const bText = b.cells[colIndex]?.textContent.trim().replace(/[₾+−%×,]/g,'') || '';
+        const aNum = parseFloat(aText), bNum = parseFloat(bText);
+        let cmp = (!isNaN(aNum) && !isNaN(bNum)) ? aNum - bNum : aText.localeCompare(bText, 'ka');
+        return sortState.asc ? cmp : -cmp;
+      });
+
+      const storeOrder = [];
+      const storeRows = {};
+      dataRows.forEach(row => {
+        const store = row.dataset.store;
+        if (!storeRows[store]) { storeRows[store] = { managers:[], consultants:[] }; storeOrder.push(store); }
+        if (row.dataset.role === 'manager') storeRows[store].managers.push(row);
+        else storeRows[store].consultants.push(row);
+      });
+
+      const groupHeaders = {};
+      tbody.querySelectorAll('tr.group-header-row').forEach(h => { groupHeaders[h.dataset.store] = h; });
+      const subtotalRows = {};
+      tbody.querySelectorAll('tr.subtotal-row').forEach(h => { subtotalRows[h.dataset.store] = h; });
+      const subtotalSpacers = {};
+      tbody.querySelectorAll('tr.subtotal-spacer').forEach(h => {
+        if (!subtotalSpacers[h.dataset.store]) subtotalSpacers[h.dataset.store] = [];
+        subtotalSpacers[h.dataset.store].push(h);
+      });
+      const grandTotal = tbody.querySelector('tr.grand-total-row');
+      const grandSpacers = [...tbody.querySelectorAll('tr.grand-total-spacer')];
+      const noResults = document.getElementById('noResultsRow');
+
+      tbody.innerHTML = '';
+      storeOrder.forEach(store => {
+        if (groupHeaders[store]) tbody.appendChild(groupHeaders[store]);
+        storeRows[store].managers.forEach(r => tbody.appendChild(r));
+        storeRows[store].consultants.forEach(r => tbody.appendChild(r));
+        if (subtotalSpacers[store]?.[0]) tbody.appendChild(subtotalSpacers[store][0]);
+        if (subtotalRows[store]) tbody.appendChild(subtotalRows[store]);
+        if (subtotalSpacers[store]?.[1]) tbody.appendChild(subtotalSpacers[store][1]);
+      });
+      if (grandSpacers[0]) tbody.appendChild(grandSpacers[0]);
+      if (grandTotal) tbody.appendChild(grandTotal);
+      if (grandSpacers[1]) tbody.appendChild(grandSpacers[1]);
+      if (noResults) tbody.appendChild(noResults);
+      applyFilters();
+    }
+  </script>
+</body>
+</html>

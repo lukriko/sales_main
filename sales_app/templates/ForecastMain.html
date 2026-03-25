@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sales Forecast — March 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Unbounded:wght@300;600;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #1a2133;
+    --surface:  #243047;
+    --surface2: #2d3a55;
+    --border:   #3a4d6a;
+    --accent:   #38bdf8;
+    --accent2:  #fb923c;
+    --green:    #34d399;
+    --red:      #f87171;
+    --yellow:   #fbbf24;
+    --muted:    #6b84a3;
+    --text:     #f0f5ff;
+    --subtext:  #94aec8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; }
+
+  /* ── Header ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  header h1 { font-family: 'Unbounded', sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: .05em; color: var(--accent); }
+  header span { font-size: .75rem; color: var(--subtext); background: var(--surface2); border: 1px solid var(--border); padding: .25rem .75rem; border-radius: 999px; }
+
+  /* ── KPI row ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; padding: 1.5rem 2rem; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.1rem 1.3rem; position: relative; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+  .kpi.green::before  { background: var(--green); }
+  .kpi.orange::before { background: var(--accent2); }
+  .kpi.red::before    { background: var(--red); }
+  .kpi.yellow::before { background: var(--yellow); }
+  .kpi-label { font-size: .62rem; color: var(--subtext); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .45rem; }
+  .kpi-value { font-family: 'Unbounded', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--text); line-height: 1; }
+  .kpi-sub   { font-size: .62rem; color: var(--muted); margin-top: .35rem; }
+
+  /* ── Sections ── */
+  .section { padding: 0 2rem 2rem; }
+  .section-title { font-family: 'Unbounded', sans-serif; font-size: .72rem; font-weight: 600; color: var(--subtext); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 1rem; }
+
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+  .chart-wrap { position: relative; height: 240px; }
+  .chart-wrap.sm { height: 170px; }
+
+  /* two-col summary */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+  /* ── Tabs ── */
+  .loc-tabs { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0 2rem 1.25rem; }
+  .loc-tab {
+    font-family: 'DM Mono', monospace; font-size: .7rem;
+    background: var(--surface); border: 1px solid var(--border); color: var(--subtext);
+    padding: .4rem 1rem; border-radius: 999px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .loc-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .loc-tab.active { background: var(--accent); border-color: var(--accent); color: #0a1628; font-weight: 500; }
+
+  /* ── Location detail ── */
+  .loc-detail { padding: 0 2rem 2rem; display: none; }
+  .loc-detail.active { display: block; }
+
+  /* main layout: charts full width, metrics below */
+  .detail-top {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* left column: all three charts stacked */
+  .charts-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* metrics panel */
+  .metrics-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+  .metrics-panel h3 { font-family: 'Unbounded', sans-serif; font-size: .68rem; color: var(--subtext); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .85rem; }
+
+  .metrics-section-label {
+    font-size: .58rem; color: var(--muted); text-transform: uppercase; letter-spacing: .12em;
+    margin: .85rem 0 .45rem; border-top: 1px solid var(--border); padding-top: .65rem;
+  }
+  .metrics-section-label:first-of-type { margin-top: 0; border-top: none; padding-top: 0; }
+
+  .metric-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .55rem .7rem; border-radius: 7px; margin-bottom: .3rem;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .metric-row:last-child { margin-bottom: 0; }
+  .metric-name { font-size: .68rem; color: var(--subtext); }
+  .metric-hint { font-size: .58rem; color: var(--muted); margin-top: .1rem; }
+  .metric-val  { font-family: 'Unbounded', sans-serif; font-size: .85rem; font-weight: 600; color: var(--text); text-align: right; }
+  .metric-val.good   { color: var(--green); }
+  .metric-val.warn   { color: var(--yellow); }
+  .metric-val.bad    { color: var(--red); }
+  .metric-val.neutral{ color: var(--accent); }
+
+  /* bias direction indicator */
+  .bias-tag {
+    display: inline-block; font-size: .58rem; padding: .1rem .4rem;
+    border-radius: 4px; margin-left: .4rem; vertical-align: middle;
+  }
+  .bias-tag.over  { background: rgba(248,113,113,.15); color: var(--red); }
+  .bias-tag.under { background: rgba(251,191,36,.15);  color: var(--yellow); }
+  .bias-tag.ok    { background: rgba(52,211,153,.15);  color: var(--green); }
+
+  /* two small charts side by side inside the left col */
+  .bottom-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+  /* metrics laid out in a multi-column grid when full width */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: .4rem .75rem;
+  }
+  .metrics-grid .metrics-section-label {
+    grid-column: 1 / -1;
+  }
+
+  .no-metrics { font-size: .7rem; color: var(--muted); font-style: italic; }
+
+  @media(max-width: 1050px) {
+    .detail-top    { grid-template-columns: 1fr; }
+    .bottom-charts { grid-template-columns: 1fr; }
+    .summary-grid  { grid-template-columns: 1fr; }
+  }
+  @media(max-width: 700px) {
+    .kpi-row { padding: 1rem; }
+    .section, .loc-tabs, .loc-detail { padding-left: 1rem; padding-right: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>// FORECAST DASHBOARD</h1>
+  <span>March 2026 &nbsp;·&nbsp; {{ n_locations }} locations{% if is_admin %} &nbsp;·&nbsp; ADMIN{% endif %}</span>
+</header>
+
+<!-- KPI Cards -->
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-label">Total Forecast</div>
+    <div class="kpi-value">₾{{ total_forecast|floatformat:0 }}</div>
+    <div class="kpi-sub">full month · all locations</div>
+  </div>
+  {% if total_actual %}
+  <div class="kpi green">
+    <div class="kpi-label">Actual (to date)</div>
+    <div class="kpi-value">₾{{ total_actual|floatformat:0 }}</div>
+    <div class="kpi-sub">realised revenue</div>
+  </div>
+  {% endif %}
+  {% if avg_mape %}
+  <div class="kpi orange">
+    <div class="kpi-label">Avg MAPE</div>
+    <div class="kpi-value">{{ avg_mape }}%</div>
+    <div class="kpi-sub">mean abs % error</div>
+  </div>
+  {% endif %}
+  {% if avg_r2 %}
+  <div class="kpi yellow">
+    <div class="kpi-label">Avg R²</div>
+    <div class="kpi-value">{{ avg_r2 }}</div>
+    <div class="kpi-sub">coefficient of determination</div>
+  </div>
+  {% endif %}
+  <div class="kpi">
+    <div class="kpi-label">Locations</div>
+    <div class="kpi-value">{{ n_locations }}</div>
+    <div class="kpi-sub">active in forecast</div>
+  </div>
+</div>
+
+<!-- Summary Charts -->
+<div class="section">
+  <div class="section-title">All Locations — Daily &amp; Cumulative</div>
+  <div class="summary-grid">
+    <div class="chart-card">
+      <div style="font-size:.65rem;color:var(--subtext);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;">Daily Forecast vs Actual</div>
+      <div class="chart-wrap"><canvas id="summaryChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div style="font-size:.65rem;color:var(--subtext);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;">Cumulative Forecast vs Actual</div>
+      <div class="chart-wrap"><canvas id="cumulativeChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Location tabs -->
+<div class="loc-tabs">
+  {% for loc in locations %}
+  <button class="loc-tab{% if forloop.first %} active{% endif %}"
+          onclick="switchLoc('{{ loc }}', this)">{{ loc }}</button>
+  {% endfor %}
+</div>
+
+<!-- Per-location panels -->
+{% for loc in locations %}
+<div class="loc-detail{% if forloop.first %} active{% endif %}" id="loc-{{ forloop.counter }}">
+
+  <!-- Left col: all charts stacked | Right col: metrics -->
+  <div class="detail-top">
+    <div class="charts-col">
+      <div class="chart-card">
+        <div class="chart-wrap"><canvas id="chart-{{ forloop.counter }}"></canvas></div>
+      </div>
+      <div class="bottom-charts">
+        <div class="chart-card">
+          <div style="font-size:.65rem;color:var(--subtext);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;">Daily Forecast Error (₾)</div>
+          <div class="chart-wrap sm"><canvas id="errchart-{{ forloop.counter }}"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div style="font-size:.65rem;color:var(--subtext);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;">Cumulative Actual vs Forecast</div>
+          <div class="chart-wrap sm"><canvas id="cumchart-{{ forloop.counter }}"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="metrics-panel">
+      <h3>Accuracy Metrics</h3>
+      <div id="metrics-{{ forloop.counter }}" class="metrics-grid"></div>
+    </div>
+  </div>
+
+</div>
+{% endfor %}
+
+<script>
+const CHART_DATA   = {{ chart_data_json }};
+const METRICS_DATA = {{ metrics_data_json }};
+const SUMMARY      = {{ summary_chart_json }};
+const LOCATIONS    = {{ locations|safe }};
+
+const LOC_INDEX = {};
+LOCATIONS.forEach((l, i) => { LOC_INDEX[l] = i + 1; });
+
+const C = {
+  accent:   '#38bdf8',
+  actual:   '#34d399',
+  ci:       'rgba(56,189,248,.09)',
+  ciBorder: 'rgba(56,189,248,.28)',
+  orange:   '#fb923c',
+  red:      '#f87171',
+  yellow:   '#fbbf24',
+  muted:    '#6b84a3',
+};
+
+/* ── shared chart options ── */
+function baseOptions(title, extraScales) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, labels: { color: '#94aec8', font: { family: 'DM Mono', size: 10 }, boxWidth: 12 } },
+      title:  { display: !!title, text: title, color: '#f0f5ff', font: { family: 'Unbounded', size: 11 } },
+      tooltip: {
+        mode: 'index', intersect: false,
+        backgroundColor: '#2d3a55', borderColor: '#3a4d6a', borderWidth: 1,
+        titleColor: '#94aec8', bodyColor: '#f0f5ff', padding: 10,
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ₾${Number(ctx.raw ?? 0).toLocaleString('ka-GE', {maximumFractionDigits: 0})}`
+        }
+      }
+    },
+    scales: Object.assign({
+      x: { ticks: { color: '#6b84a3', font: { size: 10 }, maxTicksLimit: 10 }, grid: { color: '#2d3a55' } },
+      y: { ticks: { color: '#6b84a3', font: { size: 10 }, callback: v => '₾' + v.toLocaleString() }, grid: { color: '#2d3a55' } },
+    }, extraScales || {}),
+    interaction: { mode: 'index', intersect: false },
+  };
+}
+
+/* ── Summary: daily ── */
+new Chart(document.getElementById('summaryChart'), {
+  type: 'line',
+  data: {
+    labels: SUMMARY.dates,
+    datasets: [
+      { label: 'Forecast', data: SUMMARY.yhat,   borderColor: C.accent, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 0, tension: .3 },
+      { label: 'Actual',   data: SUMMARY.actual, borderColor: C.actual, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 3, tension: .3, spanGaps: false },
+    ]
+  },
+  options: baseOptions(''),
+});
+
+/* ── Summary: cumulative ── */
+new Chart(document.getElementById('cumulativeChart'), {
+  type: 'line',
+  data: {
+    labels: SUMMARY.dates,
+    datasets: [
+      { label: 'Cum. Forecast', data: SUMMARY.cum_forecast, borderColor: C.accent, backgroundColor: 'rgba(56,189,248,.07)', borderWidth: 2, pointRadius: 0, tension: .3, fill: true },
+      { label: 'Cum. Actual',   data: SUMMARY.cum_actual,   borderColor: C.actual, backgroundColor: 'transparent',          borderWidth: 2.5, pointRadius: 3, tension: .3, spanGaps: false },
+    ]
+  },
+  options: baseOptions(''),
+});
+
+/* ── Per-location: forecast chart ── */
+function buildLocChart(canvasId, loc) {
+  const d = CHART_DATA[loc];
+  new Chart(document.getElementById(canvasId), {
+    type: 'line',
+    data: {
+      labels: d.dates,
+      datasets: [
+        { label: 'Upper CI', data: d.yhat_upper, borderColor: C.ciBorder, backgroundColor: C.ci,           borderWidth: 1, borderDash: [4,3], fill: '+1', pointRadius: 0, tension: .3 },
+        { label: 'Lower CI', data: d.yhat_lower, borderColor: C.ciBorder, backgroundColor: C.ci,           borderWidth: 1, borderDash: [4,3], fill: false, pointRadius: 0, tension: .3 },
+        { label: 'Forecast', data: d.yhat,       borderColor: C.accent,   backgroundColor: 'transparent',  borderWidth: 2.5, pointRadius: 0, tension: .3 },
+        { label: 'Actual',   data: d.actual,     borderColor: C.actual,   backgroundColor: 'transparent',  borderWidth: 2.5, pointRadius: 4, tension: .3, spanGaps: false },
+      ]
+    },
+    options: baseOptions(loc),
+  });
+}
+
+/* ── Per-location: daily error bar chart ── */
+function buildErrChart(canvasId, loc) {
+  const d = CHART_DATA[loc];
+  const colors = d.daily_error.map(v => v === null ? 'transparent' : v >= 0 ? 'rgba(52,211,153,.75)' : 'rgba(248,113,113,.75)');
+  new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: d.dates,
+      datasets: [{
+        label: 'Error (Actual − Forecast)',
+        data: d.daily_error,
+        backgroundColor: colors,
+        borderColor: colors,
+        borderWidth: 0,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#2d3a55', borderColor: '#3a4d6a', borderWidth: 1,
+          titleColor: '#94aec8', bodyColor: '#f0f5ff', padding: 8,
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              if (v === null) return ' No data';
+              const pct = d.daily_error_pct[ctx.dataIndex];
+              return ` Error: ₾${Number(v).toLocaleString('ka-GE', {maximumFractionDigits:0})} (${pct}%)`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#6b84a3', font: { size: 9 }, maxTicksLimit: 10 }, grid: { color: '#2d3a55' } },
+        y: { ticks: { color: '#6b84a3', font: { size: 9 }, callback: v => '₾' + v.toLocaleString() }, grid: { color: '#2d3a55' } },
+      }
+    }
+  });
+}
+
+/* ── Per-location: cumulative chart ── */
+function buildCumChart(canvasId, loc) {
+  const d = CHART_DATA[loc];
+  // compute cumulative on the fly
+  let cumF = [], cumA = [], runF = 0, runA = 0;
+  d.dates.forEach((_, i) => {
+    runF += (d.yhat[i] || 0);
+    cumF.push(Math.round(runF * 100) / 100);
+    if (d.actual[i] !== null && d.actual[i] !== undefined) {
+      runA += d.actual[i];
+      cumA.push(Math.round(runA * 100) / 100);
+    } else {
+      cumA.push(null);
+    }
+  });
+
+  new Chart(document.getElementById(canvasId), {
+    type: 'line',
+    data: {
+      labels: d.dates,
+      datasets: [
+        { label: 'Cum. Forecast', data: cumF, borderColor: C.accent, backgroundColor: 'rgba(56,189,248,.07)', borderWidth: 2, pointRadius: 0, tension: .3, fill: true },
+        { label: 'Cum. Actual',   data: cumA, borderColor: C.actual, backgroundColor: 'transparent',         borderWidth: 2.5, pointRadius: 3, tension: .3, spanGaps: false },
+      ]
+    },
+    options: baseOptions(''),
+  });
+}
+
+/* ── Metrics panel renderer ── */
+function renderMetrics(containerId, loc) {
+  const m  = METRICS_DATA[loc];
+  const el = document.getElementById(containerId);
+  if (!m || Object.keys(m).length === 0) {
+    el.innerHTML = '<p class="no-metrics">No actual data yet for this location.</p>';
+    return;
+  }
+
+  const mapeClass = m.mape  < 10 ? 'good' : m.mape  < 20 ? 'warn' : 'bad';
+  const smapeClass= m.smape < 10 ? 'good' : m.smape < 20 ? 'warn' : 'bad';
+  const r2Class   = m.r2    > .9 ? 'good' : m.r2    > .7 ? 'warn' : 'bad';
+  const covClass  = m.coverage > 90 ? 'good' : m.coverage > 75 ? 'warn' : 'bad';
+  const dirClass  = m.dir_acc != null ? (m.dir_acc > 65 ? 'good' : m.dir_acc > 50 ? 'warn' : 'bad') : 'neutral';
+
+  const biasPct   = m.bias_pct;
+  const biasTag   = Math.abs(biasPct) < 5
+    ? `<span class="bias-tag ok">balanced</span>`
+    : biasPct > 0
+      ? `<span class="bias-tag under">under-forecast</span>`
+      : `<span class="bias-tag over">over-forecast</span>`;
+
+  const cumErrClass = Math.abs(m.cum_error_pct) < 5 ? 'good' : Math.abs(m.cum_error_pct) < 15 ? 'warn' : 'bad';
+
+  function row(name, val, cls, hint) {
+    return `<div class="metric-row">
+      <div><div class="metric-name">${name}</div>${hint ? `<div class="metric-hint">${hint}</div>` : ''}</div>
+      <div class="metric-val ${cls || ''}">${val}</div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="metrics-section-label">Error Magnitude</div>
+    ${row('MAE',   '₾' + m.mae.toLocaleString(),  '',      'mean absolute error')}
+    ${row('RMSE',  '₾' + m.rmse.toLocaleString(), '',      'penalises large errors')}
+    ${row('MAPE',  m.mape + '%',                   mapeClass, 'mean abs % error')}
+    ${row('SMAPE', m.smape + '%',                  smapeClass,'symmetric MAPE')}
+
+    <div class="metrics-section-label">Model Fit</div>
+    ${row('R²', m.r2,                              r2Class,  '1 = perfect fit')}
+    ${row('CI Coverage', m.coverage + '%',         covClass, 'actual inside 80% CI')}
+    ${row('Directional Acc.', m.dir_acc != null ? m.dir_acc + '%' : '—', dirClass, 'correct up/down movement')}
+
+    <div class="metrics-section-label">Bias</div>
+    <div class="metric-row">
+      <div><div class="metric-name">Bias${biasTag}</div><div class="metric-hint">mean signed error</div></div>
+      <div class="metric-val ${Math.abs(m.bias_pct) < 5 ? 'good' : 'warn'}">₾${m.bias.toLocaleString()} (${m.bias_pct}%)</div>
+    </div>
+
+    <div class="metrics-section-label">Cumulative (to date)</div>
+    ${row('Actual Total',   '₾' + m.cum_actual.toLocaleString(),   'neutral', '')}
+    ${row('Forecast Total', '₾' + m.cum_forecast.toLocaleString(), 'neutral', '')}
+    ${row('Total Error',    '₾' + m.cum_error.toLocaleString() + ' (' + m.cum_error_pct + '%)', cumErrClass, 'actual − forecast')}
+
+    <div class="metrics-section-label">Error Distribution</div>
+    ${row('Median Abs Error',  '₾' + m.p50_err.toLocaleString(), '', 'p50')}
+    ${row('90th Pct Error',    '₾' + m.p90_err.toLocaleString(), '', 'p90 — tail error')}
+    ${row('Worst Day Error',   '₾' + m.max_ae.toLocaleString(),  'bad', m.max_ae_day || '')}
+
+    <div class="metrics-section-label">Coverage</div>
+    ${row('Days with Actual', m.n_actual, '', 'data points used')}
+  `;
+}
+
+/* ── Build all charts + metrics ── */
+LOCATIONS.forEach((loc, i) => {
+  const idx = i + 1;
+  buildLocChart(`chart-${idx}`,    loc);
+  buildErrChart(`errchart-${idx}`, loc);
+  buildCumChart(`cumchart-${idx}`, loc);
+  renderMetrics(`metrics-${idx}`,  loc);
+});
+
+/* ── Tab switching ── */
+function switchLoc(loc, btn) {
+  document.querySelectorAll('.loc-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.loc-detail').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`loc-${LOC_INDEX[loc]}`).classList.add('active');
+}
+</script>
+</body>
+</html>

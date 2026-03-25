@@ -1,0 +1,4571 @@
+{% load static %}
+{% load i18n %} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+   <!-- Add favicon here -->
+  <link rel="icon" type="image/png" href="{% static 'images/unnamed.png' %}">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"> -->
+  <!-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <title>YR</title>
+  <!-- main style -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+   body { 
+  font-family: 'Inter', sans-serif; 
+  background: #0a0e27; 
+  color: #e4e4e7; 
+  min-height: 100vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+.preset-btn {
+  padding: 10px 18px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preset-btn:hover {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-2px);
+}
+
+.preset-btn i {
+  font-size: 14px;
+}
+/* Select2 Custom Styling */
+.select2-container--default .select2-selection--single {
+  background: #0f1629;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  height: 46px;
+  padding: 12px 14px;
+  color: #e4e4e7;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: #e4e4e7;
+  line-height: 22px;
+  padding: 0;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 44px;
+  right: 8px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: #94a3b8 transparent transparent transparent;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+  border-color: transparent transparent #94a3b8 transparent;
+}
+
+.select2-dropdown {
+  background: #0f1629;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #e4e4e7;
+  padding: 8px 12px;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+.select2-container--default .select2-results__option {
+  background: #0f1629;
+  color: #e4e4e7;
+  padding: 10px 14px;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+}
+
+.select2-container--default .select2-results__option[aria-selected=true] {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.select2-container {
+  width: 100% !important;
+}
+
+/* Dark scrollbar for dropdown */
+.select2-results__options {
+  max-height: 250px;
+}
+
+.select2-results__options::-webkit-scrollbar {
+  width: 8px;
+}
+
+.select2-results__options::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+.select2-results__options::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.select2-results__options::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+    /* .first-place {background:#134e4a;color:#a5f3fc;font-weight:600;}
+    .second-place {background:#3c3e23;color:#93c5fd;font-weight:600;}
+    .third-place {background:#78350f;color:#fcd34d;font-weight:600;} */
+    .data-table tr:hover {background:rgba(102,126,234,0.05);transform:scale(1.01);transition:0.2s ease;}
+    .data-table td {padding:12px 16px;}
+.sidebar { 
+  position: fixed; 
+  left: 0; 
+  top: 0; 
+  width: 260px; 
+  height: 100vh; 
+  background: #0f1629; 
+  border-right: 1px solid #1e293b; 
+  padding: 0; /* Remove padding from here */
+  z-index: 100; 
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header { 
+  padding: 24px 24px 24px; /* Add padding here instead */
+  border-bottom: 1px solid #1e293b; 
+  flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.nav-menu { 
+  margin-top: 24px; 
+  padding: 0 12px 24px; /* Add bottom padding */
+  flex: 1; /* Allow menu to grow */
+}
+    .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-item { list-style: none; margin-bottom: 4px; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s ease; }
+    .nav-link:hover, .nav-link.active { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+    .nav-link i { width: 20px; font-size: 18px; }
+    
+    .main-content { margin-left: 260px; padding: 24px; min-height: 100vh; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-size: 28px; font-weight: 700; color: #f1f5f9; }
+    .top-actions { display: flex; gap: 12px; align-items: center; }
+    .date-range { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #1e293b; border-radius: 8px; font-size: 14px; color: #94a3b8; border: 1px solid #334155; }
+    .btn-primary { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);margin-top: 0px; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+    
+    /* NEW: Comparison Toggle Styles */
+    .comparison-toggle { margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
+    .toggle-label { font-size: 14px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-group { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1px solid #334155; }
+    .btn-toggle { padding: 10px 24px; background: #1e293b; color: #94a3b8; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; border-right: 1px solid #334155; }
+    .btn-toggle:last-child { border-right: none; }
+    .btn-toggle:hover { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+    .btn-toggle.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 28px; }
+    .kpi-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 20px; position: relative; overflow: hidden; transition: all 0.3s ease; }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+    .kpi-card:hover { transform: translateY(-4px); border-color: #667eea; box-shadow: 0 12px 30px rgba(102, 126, 234, 0.2); }
+    .kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .kpi-title { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .kpi-icon.purple { background: rgba(102, 126, 234, 0.15); color: #667eea; }
+    .kpi-icon.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .kpi-icon.blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .kpi-icon.orange { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+    .kpi-icon.pink { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+    .kpi-icon.cyan { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .kpi-icon.red { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: #f1f5f9; margin-bottom: 8px; line-height: 1; }
+    .kpi-meta { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+    .kpi-change { display: flex; align-items: center; gap: 4px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+    .kpi-change.up { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .kpi-change.down { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .kpi-comparison { color: #64748b; font-size: 12px; }
+    
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .chart-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .chart-title { font-size: 20px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
+    .chart-actions { display: flex; gap: 8px; }
+    .chart-btn { padding: 6px 12px; background: #334155; border: 1px solid #475569; border-radius: 6px; color: #94a3b8; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+    .chart-btn:hover, .chart-btn.active { background: rgba(102, 126, 234, 0.2); border-color: #667eea; color: #667eea; }
+    .chart-wrapper { position: relative; height: 320px; }
+    
+    .filter-section { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    .filter-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 16px; font-weight: 700; color: #f1f5f9; }
+    .filter-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+    .filter-label { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-select { padding: 12px 14px; background: #0f1629; border: 1px solid #334155; border-radius: 8px; color: #e4e4e7; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+    .filter-select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+    .slider-wrapper { 
+  margin-top: 40px;
+  /* display: flex;
+  justify-content: flex-start;
+  align-items: center; */
+  gap: 20px;
+  width: 40%;  /* or adjust to whatever width you prefer */
+}
+
+.slider-label { 
+  display: flex; 
+  justify-content: space-between; 
+  margin-bottom: 40px; 
+  font-size: 13px; 
+  color: #94a3b8; 
+  width: 100%;
+}
+    #month-slider { margin-bottom: 24px; }
+    .noUi-target { background: #334155; border: none; box-shadow: none; height: 8px; }
+    .noUi-connect { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+    .noUi-handle { background: #10b981; border: 3px solid #0f1629; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); border-radius: 50%; cursor: pointer; width: 24px; height: 24px; }
+    .noUi-handle::before, .noUi-handle::after { display: none; }
+    .noUi-tooltip { background: #0f1629; border: 1px solid #10b981; color: #e4e4e7; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
+    
+    .table-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead { border-bottom: 1px solid #334155; }
+    .data-table th { text-align: left; padding: 12px; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .data-table td { padding: 16px 12px; font-size: 14px; color: #e4e4e7; border-bottom: 1px solid #1e293b; }
+    .data-table tbody tr:hover { background: rgba(102, 126, 234, 0.05); }
+    .data-table td.positive { color: #10b981; font-weight: 600; }
+    .data-table td.negative { color: #ef4444; font-weight: 600; }
+    
+    @media screen and (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-content { margin-left: 0; }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+<!-- divider style -->
+<style>
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 60px 0 50px 0;
+}
+
+.section-divider-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #334155 20%, #334155 80%, transparent 100%);
+  position: relative;
+}
+
+.section-divider-line::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.3) 50%, transparent 100%);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.section-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-title-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+  transform: translateX(-100%);
+  animation: slide 3s infinite;
+}
+
+@keyframes slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.section-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  z-index: 1;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f1f5f9;
+  z-index: 1;
+  letter-spacing: 0.5px;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-left: auto;
+  z-index: 1;
+  font-weight: 500;
+}
+
+/* Alternative simple divider style */
+.simple-divider {
+  margin: 50px 0 50px 0;
+  text-align: center;
+  position: relative;
+}
+
+.simple-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #334155 50%, transparent 100%);
+}
+
+.simple-divider-text {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #0a0e27;
+  color: #667eea;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: relative;
+  border: 1px solid #334155;
+  border-radius: 20px;
+}
+</style>
+
+<!-- responsive -->
+<!-- Add these CSS classes and media queries to your existing <style> section, right before the closing </style> tag -->
+<style>
+  .upper_main_reponsive {
+    display: none
+  }
+/* Responsive chart grids */
+.responsive-chart-grid {
+  display: grid;
+  gap: 30px;
+  margin-bottom: 28px;
+}
+
+.chart-row-split {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 20px;
+}
+
+.chart-row-equal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media screen and (max-width: 800px) {
+  .sidebar{
+    display: none;
+  }
+  .upper_main_reponsive{
+    display: flex;
+  }
+}
+
+/* Enhanced Responsive Design */
+@media screen and (max-width: 1024px) {
+  .sidebar { transform: translateX(-100%); }
+  .main-content { margin-left: 0; padding: 16px; }
+  .charts-grid { grid-template-columns: 1fr; }
+  
+  /* Make all chart grids single column on tablets */
+  .chart-row-split,
+  .chart-row-equal {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Make inline grid styles responsive */
+  div[style*="grid-template-columns: 1.1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Stack KPI cards */
+  .kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  /* Make filter controls stack */
+  .filter-controls {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Adjust top bar for mobile */
+  .top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .top-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  /* Make comparison toggle stack */
+  .comparison-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .btn-group {
+    width: 100%;
+  }
+  
+  .btn-toggle {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  /* Mobile optimizations */
+  .page-title {
+    font-size: 22px;
+  }
+  
+  /* Stack KPI cards in 1 column on mobile */
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Reduce chart height on mobile */
+  .chart-wrapper {
+    height: 250px !important;
+  }
+  
+  /* Make tables scrollable horizontally */
+  .table-card {
+    overflow-x: auto;
+  }
+  
+  .data-table {
+    min-width: 600px;
+  }
+  
+  /* Adjust chart card padding */
+  .chart-card {
+    padding: 16px;
+  }
+  
+  /* Make chart titles smaller */
+  .chart-title {
+    font-size: 16px;
+    flex-wrap: wrap;
+  }
+  
+  /* Stack chart actions */
+  .chart-actions {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .chart-btn {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  /* Adjust section dividers */
+  .section-title {
+    font-size: 16px;
+  }
+  
+  .section-subtitle {
+    display: none;
+  }
+  
+  .section-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  
+  /* Make preset buttons stack */
+  .preset-section > div:last-child {
+    flex-direction: column;
+  }
+  
+  .preset-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Adjust filter section */
+  .filter-section {
+    padding: 16px;
+  }
+  
+  /* Make date range smaller */
+  .date-range {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  /* Extra small mobile */
+  .main-content {
+    padding: 12px;
+  }
+  
+  .kpi-value {
+    font-size: 24px;
+  }
+  
+  .kpi-card {
+    padding: 16px;
+  }
+  
+  .kpi-title {
+    font-size: 11px;
+  }
+  
+  /* Further reduce chart height */
+  .chart-wrapper {
+    height: 200px !important;
+  }
+  
+  /* Smaller filter labels */
+  .filter-label {
+    font-size: 11px;
+  }
+  
+  .filter-select {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+  
+  /* Compact buttons */
+  .btn-primary {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+  
+  /* Smaller section dividers */
+  .section-divider {
+    margin: 40px 0 24px 0;
+  }
+  
+  .section-title-wrapper {
+    padding: 8px 16px;
+  }
+  
+  /* Table text size */
+  .data-table th {
+    font-size: 10px;
+  }
+  
+  .data-table td {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+{% load humanize %}
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo">YR</div></div>
+    <nav class="nav-menu">
+      <div style="margin-top: 16px;">
+      <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <select name="language" onchange="this.form.submit()" 
+                style="width: 100%; padding: 8px; background: #1e293b; border: 1px solid #334155; 
+                       border-radius: 6px; color: #e4e4e7; font-size: 13px; cursor: pointer;">
+          {% get_current_language as LANGUAGE_CODE %}
+          {% get_available_languages as LANGUAGES %}
+          {% for lang_code, lang_name in LANGUAGES %}
+            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>
+              {{ lang_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+      <ul style="margin-top: 20px;">
+        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link active"><i class="fas fa-chart-line"></i><span>{% trans "Dashboard" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link"><i class="fas fa-bullseye"></i><span>{% trans "Plan vs Actual" %}</span></a></li>
+        <!-- <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Query" %}</span></a></li> -->
+        <!-- <li class="nav-item"><a href="{% url 'client' %}" target="_blank" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Client" %}</span></a></li> -->
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>{% trans "Employee Analytics" %}</span></a></li>
+        <!-- <li class="nav-item"><a href="{% url 'competitive' %}" target="_blank" class="nav-link"><i class="fas fa-lightbulb"></i><span></span></a></li> -->
+        <li class="nav-item"><a href="{% url 'bonus' %}" target="_blank" class="nav-link"><i class="fas fa-gift"></i><span></span></a></li>
+        <!-- <li class="nav-item"><a href="{% url 'admin_main_only_me' %}" target="_blank" class="nav-link"><i class="fas fa-dollar-sign"></i><span></span></a></li> -->
+        <!-- <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "Insights" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'stat_main' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "stat" %}</span></a></li> -->
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- responsive design -->
+  <div class="upper_main_reponsive">
+    <nav class="nav-menu">
+      <div style="margin-top: 16px;">
+      <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <select name="language" onchange="this.form.submit()" 
+                style="width: 100%; padding: 8px; background: #1e293b; border: 1px solid #334155; 
+                       border-radius: 6px; color: #e4e4e7; font-size: 13px; cursor: pointer;">
+          {% get_current_language as LANGUAGE_CODE %}
+          {% get_available_languages as LANGUAGES %}
+          {% for lang_code, lang_name in LANGUAGES %}
+            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>
+              {{ lang_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+      <ul style="margin-top: 20px;">
+        <li class="nav-item"><a href="{% url 'sales_dashboard' %}" class="nav-link active"><i class="fas fa-chart-line"></i><span>{% trans "Dashboard" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'another' %}" class="nav-link"><i class="fas fa-bullseye"></i><span>{% trans "Plan vs Actual" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Query" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>{% trans "Employee Analytics" %}</span></a></li>
+        <!-- <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "Insights" %}</span></a></li>
+        <li class="nav-item"><a href="{% url 'stat_main' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "stat" %}</span></a></li> -->
+      </ul>
+    </nav>
+  </div>
+
+  <main class="main-content">
+    <div class="top-bar">
+      <h1 class="page-title">__ __</h1>
+      <div class="top-actions">
+        <div class="date-range"><i class="fas fa-calendar"></i><span id="date-range-text">{{ date_range_text }}</span></div>
+      <!-- Make sure your export button looks like this: -->
+        <a style="text-decoration: none;" href="{% url 'export_location_csv' %}?{{ request.GET.urlencode }}" class="btn-primary">
+          <i class="fas fa-download"></i> {% trans "Export Excel" %}
+        </a>
+          <button style="text-decoration: none;" class="btn-primary" onclick="toggleSection(this)">
+  <i class="fas fa-download"></i> {% trans "Location Performance Broad" %}
+</button>
+
+<script>
+function toggleSection(btn) {
+  const isVisible = btn.dataset.visible === 'true';
+  document.querySelectorAll('.hidden-in-case').forEach(el => el.style.display = isVisible ? 'none' : 'block');
+  btn.innerHTML = isVisible 
+    ? '<i class="fas fa-download"></i> {% trans "Location Performance Broad" %}'
+    : '<i class="fas fa-times"></i> {% trans "Hide" %}';
+  btn.dataset.visible = !isVisible;
+}
+</script>
+
+    
+      </div>
+    </div>
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(102, 126, 234, 0.15); color: #667eea;">
+      <i class="fas fa-user"></i>
+    </div>
+    <div>
+      <div style="font-size: 14px; font-weight: 600; color: #f1f5f9;">{{ request.user.username }}</div>
+      <div style="font-size: 12px; color: #94a3b8;">
+        {% if is_admin %}
+          <i class="fas fa-crown" style="color: #fb923c;"></i> Administrator - Full Access
+        {% else %}
+          <i class="fas fa-map-marker-alt"></i> Access to {{ user_locations_count }} location{{ user_locations_count|pluralize }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <a href="{% url 'logout' %}" class="btn-primary" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+    <i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}
+  </a>
+</div>
+
+{% if not is_admin %}
+<script>
+  $(document).ready(function() {
+    // Remove "All Locations" option for non-admin users
+    const allowedLocations = {{ user_profile.allowed_locations|safe }};
+    
+    // Filter the select options to only show allowed locations
+    $('#location-select option').each(function() {
+      const value = $(this).val();
+      if (value !== 'all' && !allowedLocations.includes(value)) {
+        $(this).remove();
+      }
+    });
+    
+    // Disable the "All Locations" preset button
+    $('button[onclick*="selectLocationGroup(\'all\')"]').prop('disabled', true).css('opacity', '0.5');
+  });
+</script>
+{% endif %}
+
+    <!-- NEW: Comparison Toggle -->
+    <div class="comparison-toggle">
+      <span class="toggle-label"><i class="fas fa-exchange-alt"></i> {% trans "Comparison Period" %}</span>
+      <div class="btn-group">
+        <button type="button" 
+                class="btn-toggle {% if comparison_mode == '2026-2025' %}active{% endif %}"
+                onclick="changeComparison('2026-2025')">
+          2026 vs 2025
+        </button>
+        <button type="button" 
+                class="btn-toggle {% if comparison_mode == '2025-2024' %}active{% endif %}"
+                onclick="changeComparison('2025-2024')">
+          2025 vs 2024
+        </button>
+          <button type="button" 
+                class="btn-toggle {% if comparison_mode == '2026-2024' %}active{% endif %}"
+                onclick="changeComparison('2026-2024')">
+          2026 vs 2024
+        </button>
+      </div>
+    </div>
+
+<!-- Preset Location Groups -->
+<div class="preset-section" style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+  <div class="filter-header" style="margin-bottom: 16px;">
+    <i class="fas fa-map-marked-alt"></i> {% trans "Quick Location Groups" %}
+  </div>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <button type="button" class="preset-btn" onclick="selectLocationGroup('LFL_2025')">
+      <i class="fas fa-star"></i> Like for Like locations
+    </button>
+     <button type="button" class="preset-btn" onclick="selectLocationGroup('Full_2026')">
+      <i class="fas fa-star"></i> Full 2026
+    </button>
+     <button type="button" class="preset-btn" onclick="selectLocationGroup('Full_2025')">
+      <i class="fas fa-star"></i> Full 2025
+    </button>
+    <button type="button" class="preset-btn" onclick="selectLocationGroup('all')">
+      <i class="fas fa-globe"></i> All Locations
+    </button>
+  </div>
+</div>
+    <div class="filter-section">
+      <div class="filter-header"><i class="fas fa-sliders-h"></i>{% trans "Filters & Controls" %}</div>
+      <form method="GET" id="filterForm">
+        <input type="hidden" name="comparison" value="{{ comparison_mode|default:'2025-2024' }}">
+        <div class="filter-controls">
+         <div class="filter-group">
+          <label class="filter-label">{% trans "Location" %}</label>
+          <select name="un_filter" id="location-select" class="filter-select" multiple>
+            {% for loc in all_locations %}
+              <option value="{{ loc }}" {% if loc in selected_locations %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>  
+          <div class="filter-group">
+            <label class="filter-label">{% trans "Category" %}</label>
+            <select name="category" class="filter-select">
+              <option value="all">{%trans "All Categories" %}</option>
+              {% for cat in all_categories %}
+                <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+         <div class="filter-group">
+          <label class="filter-label">{% trans "Product" %}</label>
+          <select name="prod_filter" id="product-select" class="filter-select">
+            <option value="all">{% trans "All Products" %}</option>
+            {% for prod in products %}
+              <option value="{{ prod }}" {% if prod == selected_product %}selected{% endif %}>{{ prod }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">{% trans "Campaign" %}</label>
+          <select name="campaign_filter" id="campaign-select" class="filter-select">
+            <option value="all">{% trans "All Campaigns" %}</option>
+            {% for campaign in all_campaigns %}
+              <option value="{{ campaign }}" {% if campaign == selected_campaign %}selected{% endif %}>{{ campaign }}</option>
+            {% endfor %}
+          </select> 
+        </div>
+        </div>
+        <!-- <div class="slider-wrapper">
+          <div class="slider-label">
+            <span>{% trans "Date Range" %}</span>
+            <span id="date-range-display">Jan 1 - Dec 31</span>
+          </div>
+          <div id="date-slider"></div>
+        </div>
+        <input type="hidden" name="start_date" id="start_date" value="{{ start_date|default:'2025-01-01' }}">
+        <input type="hidden" name="end_date" id="end_date" value="{{ end_date|default:'2025-12-31' }}"> -->
+
+   <div style="margin-top: 45px;" class="filter-group">
+  <label class="filter-label">{% trans "Date Range" %}</label>
+  <div style="display: flex; gap: 12px; align-items: flex-end; max-width: 1200px;">
+    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+      <span style="font-size: 12px; color: #64748b;">{% trans "Start Date" %}</span>
+      <input type="date" name="start_date" id="start_date" 
+             value="{{ start_date|default:'2025-01-01' }}" 
+             style="padding: 12px 14px; background: #0f1629; border: 1px solid #334155; 
+                    border-radius: 8px; color: #e4e4e7; font-size: 14px; font-weight: 500;
+                    cursor: pointer; transition: all 0.2s ease; color-scheme: dark;">
+    </div>
+    <i class="fas fa-arrow-right" style="color: #475569; font-size: 14px; margin-bottom: 14px; flex-shrink: 0;"></i>
+    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+      <span style="font-size: 12px; color: #64748b;">{% trans "End Date" %}</span>
+      <input type="date" name="end_date" id="end_date" 
+             value="{{ end_date|default:'2025-12-31' }}" 
+             style="padding: 12px 14px; background: #0f1629; border: 1px solid #334155; 
+                    border-radius: 8px; color: #e4e4e7; font-size: 14px; font-weight: 500;
+                    cursor: pointer; transition: all 0.2s ease; color-scheme: dark;">
+    </div>
+  </div>
+</div>
+        <button type="submit" style="margin-top: 40px;" class="btn-primary"><i class="fas fa-filter"></i>{% trans "Apply Filters" %}</button>
+      </form>
+    </div>
+
+
+
+
+
+
+{% if is_admin %}
+<style>
+  .hidden-in-case { display: none; }
+</style>
+
+<style>
+.loc-table-wrap { overflow-x: auto; border-radius: 12px; }
+.loc-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.loc-table thead tr th {
+  background: #0a0e27; color: #64748b; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.6px; padding: 14px 16px;
+  white-space: nowrap; border-bottom: 2px solid #1e293b; position: sticky; top: 0; z-index: 2;
+}
+.loc-table thead tr th:first-child { border-radius: 8px 0 0 0; }
+.loc-table thead tr th:last-child  { border-radius: 0 8px 0 0; }
+.loc-table tbody tr { transition: background 0.15s ease; border-bottom: 1px solid #1e293b; }
+.loc-table tbody tr:hover { background: rgba(102, 126, 234, 0.06); }
+.loc-table tbody tr:last-child td { border-bottom: none; }
+.loc-table td { padding: 13px 16px; vertical-align: middle; white-space: nowrap; }
+.loc-name { font-weight: 600; color: #f1f5f9; display: flex; align-items: center; gap: 10px; min-width: 170px; }
+.loc-rank {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: rgba(102, 126, 234, 0.12); color: #667eea;
+  font-size: 11px; font-weight: 700; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.metric-cell { display: flex; flex-direction: column; gap: 4px; min-width: 90px; }
+.metric-main { font-size: 13px; font-weight: 600; color: #e4e4e7; }
+.metric-row  { display: flex; align-items: center; gap: 6px; }
+.chg-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 700; width: fit-content;
+}
+.chg-pill.up   { background: rgba(16,185,129,0.14); color: #10b981; }
+.chg-pill.down { background: rgba(239,68,68,0.14);  color: #ef4444; }
+.chg-pill.flat { background: rgba(148,163,184,0.12); color: #94a3b8; }
+.rev-bar-bg { flex: 1; height: 5px; background: #1e293b; border-radius: 3px; overflow: hidden; min-width: 60px; }
+.rev-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.4s ease; }
+.loc-table td.group-sep, .loc-table th.group-sep { border-left: 1px solid #1e293b; }
+.loc-table tfoot tr td {
+  background: rgba(102,126,234,0.06); border-top: 2px solid #334155;
+  font-weight: 700; color: #f1f5f9; font-size: 13px; padding: 14px 16px;
+}
+</style>
+
+<div class="table-card hidden-in-case" style="padding: 0; overflow: hidden;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;
+              padding: 20px 24px; border-bottom: 1px solid #1e293b; flex-wrap: wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,#667eea,#764ba2);
+                  display:flex; align-items:center; justify-content:center; font-size:16px; color:white;">
+        <i class="fas fa-map-marked-alt"></i>
+      </div>
+      <div>
+        <div style="font-size:16px; font-weight:700; color:#f1f5f9;">{% trans "Location Breakdown" %}</div>
+        <div style="font-size:12px; color:#64748b;">
+          {{ current_year }} vs {{ previous_year }} &nbsp;·&nbsp; {{ location_summary|length }} {% trans "locations" %}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <span style="font-size:12px; color:#64748b;">{% trans "Sort by" %}:</span>
+      <select id="locSortSelect" onchange="sortLocTable(this.value)"
+              style="padding:8px 12px; background:#1e293b; border:1px solid #334155;
+                     border-radius:8px; color:#e4e4e7; font-size:12px; cursor:pointer;">
+        <option value="rev_curr">{% trans "Revenue" %}</option>
+        <option value="tix_curr">{% trans "Tickets" %}</option>
+        <option value="avg_basket_curr">{% trans "Avg Basket" %}</option>
+        <option value="id_rate">{% trans "ID Rate" %}</option>
+        <option value="rev_chg">{% trans "Revenue Change" %}</option>
+        <option value="cross_sell_rate">{% trans "Cross-sell" %}</option>
+        <option value="single_item_rate">{% trans "Single Item" %}</option>
+        <option value="skincare">{% trans "Skincare" %}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="loc-table-wrap">
+    <table class="loc-table" id="locationSummaryTable">
+      <thead>
+        <tr>
+          <th style="min-width:190px;">{% trans "Location" %}</th>
+          <th class="group-sep">{% trans "Revenue" %}</th>
+          <th class="group-sep">{% trans "Tickets" %}</th>
+          <th class="group-sep">{% trans "Qty" %}</th>
+          <th class="group-sep">{% trans "Avg Basket" %}</th>
+          <th class="group-sep">{% trans "Median Basket" %}</th>
+          <th class="group-sep">{% trans "ID Rate" %}</th>
+          <th class="group-sep">{% trans "Discount" %}</th>
+          <th class="group-sep">{% trans "Cross-sell" %}</th>
+          <th class="group-sep">{% trans "Single Item" %}</th>
+          <th class="group-sep">{% trans "Skincare" %}</th>
+        </tr>
+      </thead>
+
+      <tbody id="locTableBody">
+        {% for loc in location_summary %}
+        <tr data-rev-curr="{{ loc.rev_curr }}"
+            data-rev-prev="{{ loc.rev_prev }}"
+            data-rev-chg="{{ loc.rev_chg }}"
+            data-tix-curr="{{ loc.tix_curr }}"
+            data-tix-prev="{{ loc.tix_prev }}"
+            data-tix-chg="{{ loc.tix_chg }}"
+            data-items-curr="{{ loc.items_curr }}"
+            data-items-prev="{{ loc.items_prev }}"
+            data-items-chg="{{ loc.items_chg }}"
+            data-avg-basket-curr="{{ loc.avg_basket_curr }}"
+            data-avg-basket-prev="{{ loc.avg_basket_prev }}"
+            data-avg-basket-chg="{{ loc.avg_basket_chg }}"
+            data-median="{{ loc.median_basket }}"
+            data-id-rate="{{ loc.id_rate }}"
+            data-id-rate-prev="{{ loc.id_rate_prev }}"
+            data-id-rate-chg="{{ loc.id_rate_chg }}"
+            data-discount="{{ loc.discount_share }}"
+            data-discount-prev="{{ loc.discount_share_prev }}"
+            data-discount-chg="{{ loc.discount_share_chg }}"
+            data-cross-sell-rate="{{ loc.cross_sell_rate }}"
+            data-cross-sell-chg="{{ loc.cross_sell_chg }}"
+            data-single-item-rate="{{ loc.single_item_rate }}"
+            data-single-item-chg="{{ loc.single_item_chg }}"
+            data-skincare-curr="{{loc.skincare_curr}}"
+            data-skincare-prev="{{loc.skincare_prev}}"
+            data-skincare-change="{{loc.skincare_change}}"
+            >
+
+          <!-- ① Location -->
+          <td>
+            <div class="loc-name">
+              <div class="loc-rank">{{ forloop.counter }}</div>
+              {{ loc.un }}
+            </div>
+          </td>
+
+          <!-- ② Revenue -->
+          <td class="group-sep">
+            <div class="metric-cell">
+              <div class="metric-row">
+                <span class="metric-main">₾{{ loc.rev_curr|floatformat:0 }}</span>
+                {% if loc.rev_prev > 0 %}
+                  <span class="chg-pill {% if loc.rev_chg >= 0 %}up{% else %}down{% endif %}">
+                    <i class="fas fa-arrow-{% if loc.rev_chg >= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                    {% if loc.rev_chg >= 0 %}+{% endif %}{{ loc.rev_chg|floatformat:1 }}%
+                  </span>
+                {% else %}
+                  <span class="chg-pill flat">{% trans "New" %}</span>
+                {% endif %}
+              </div>
+              <div class="rev-bar-bg loc-rev-bar" data-val="{{ loc.rev_curr }}">
+                <div class="rev-bar-fill" style="width:0%"></div>
+              </div>
+            </div>
+          </td>
+
+          <!-- ③ Tickets -->
+          <td class="group-sep">
+            <div class="metric-row">
+              <span class="metric-main">{{ loc.tix_curr|floatformat:0 }}</span>
+              {% if loc.tix_prev > 0 %}
+                <span class="chg-pill {% if loc.tix_chg >= 0 %}up{% else %}down{% endif %}">
+                  <i class="fas fa-arrow-{% if loc.tix_chg >= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                  {% if loc.tix_chg >= 0 %}+{% endif %}{{ loc.tix_chg|floatformat:1 }}%
+                </span>
+              {% else %}
+                <span class="chg-pill flat">{% trans "New" %}</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- ④ Qty -->
+          <td class="group-sep">
+            <div class="metric-row">
+              <span class="metric-main">{{ loc.items_curr|floatformat:0 }}</span>
+              {% if loc.items_prev > 0 %}
+                <span class="chg-pill {% if loc.items_chg >= 0 %}up{% else %}down{% endif %}">
+                  <i class="fas fa-arrow-{% if loc.items_chg >= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                  {% if loc.items_chg >= 0 %}+{% endif %}{{ loc.items_chg|floatformat:1 }}%
+                </span>
+              {% else %}
+                <span class="chg-pill flat">—</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- ⑤ Avg Basket -->
+          <td class="group-sep">
+            <div class="metric-row">
+              <span class="metric-main">₾{{ loc.avg_basket_curr|floatformat:2 }}</span>
+              {% if loc.avg_basket_prev > 0 %}
+                <span class="chg-pill {% if loc.avg_basket_chg >= 0 %}up{% else %}down{% endif %}">
+                  <i class="fas fa-arrow-{% if loc.avg_basket_chg >= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                  {% if loc.avg_basket_chg >= 0 %}+{% endif %}{{ loc.avg_basket_chg|floatformat:1 }}%
+                </span>
+              {% else %}
+                <span class="chg-pill flat">—</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- ⑥ Median Basket -->
+          <td class="group-sep">
+            <span class="metric-main">₾{{ loc.median_basket|floatformat:2 }}</span>
+          </td>
+
+          <!-- ⑦ ID Rate -->
+          <td class="group-sep">
+            <div class="metric-row">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div style="width:50px; height:5px; background:#1e293b; border-radius:3px; overflow:hidden;">
+                  <div style="width:{{ loc.id_rate }}%; height:100%;
+                    background: {% if loc.id_rate >= 60 %}#10b981{% elif loc.id_rate >= 30 %}#fb923c{% else %}#ef4444{% endif %};
+                    border-radius:3px;"></div>
+                </div>
+                <span style="font-size:13px; font-weight:600;
+                  color: {% if loc.id_rate >= 60 %}#10b981{% elif loc.id_rate >= 30 %}#fb923c{% else %}#ef4444{% endif %};">
+                  {{ loc.id_rate|floatformat:1 }}%
+                </span>
+              </div>
+              {% if loc.id_rate_prev > 0 %}
+                <span class="chg-pill {% if loc.id_rate_chg >= 0 %}up{% else %}down{% endif %}">
+                  <i class="fas fa-arrow-{% if loc.id_rate_chg >= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                  {% if loc.id_rate_chg >= 0 %}+{% endif %}{{ loc.id_rate_chg|floatformat:1 }}%
+                </span>
+              {% else %}
+                <span class="chg-pill flat">—</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- ⑧ Discount -->
+          <td class="group-sep">
+            <div class="metric-row">
+              <span style="font-size:13px; font-weight:600;
+                color: {% if loc.discount_share <= 10 %}#10b981{% elif loc.discount_share <= 25 %}#fb923c{% else %}#ef4444{% endif %};">
+                {{ loc.discount_share|floatformat:1 }}%
+              </span>
+              {% if loc.discount_share_prev > 0 %}
+                <span class="chg-pill {% if loc.discount_share_chg <= 0 %}up{% else %}down{% endif %}">
+                  <i class="fas fa-arrow-{% if loc.discount_share_chg <= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                  {% if loc.discount_share_chg >= 0 %}+{% endif %}{{ loc.discount_share_chg|floatformat:1 }}%
+                </span>
+              {% else %}
+                <span class="chg-pill flat">—</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- ⑨ Cross-sell Rate -->
+          <td class="group-sep">
+            <div class="metric-row">
+              <span class="metric-main">{{ loc.cross_sell_rate|floatformat:1 }}%</span>
+              {% if loc.cross_sell_rate_prev > 0 %}
+                <span class="chg-pill {% if loc.cross_sell_chg >= 0 %}up{% else %}down{% endif %}">
+                  <i class="fas fa-arrow-{% if loc.cross_sell_chg >= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                  {% if loc.cross_sell_chg >= 0 %}+{% endif %}{{ loc.cross_sell_chg|floatformat:1 }}%
+                </span>
+              {% else %}
+                <span class="chg-pill flat">—</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- ⑩ Single Item Rate -->
+          <td class="group-sep">
+            <div class="metric-row">
+              <span class="metric-main">{{ loc.single_item_rate|floatformat:1 }}%</span>
+              {% if loc.single_item_rate_prev > 0 %}
+                <span class="chg-pill {% if loc.single_item_chg <= 0 %}up{% else %}down{% endif %}">
+                  <i class="fas fa-arrow-{% if loc.single_item_chg <= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                  {% if loc.single_item_chg >= 0 %}+{% endif %}{{ loc.single_item_chg|floatformat:1 }}%
+                </span>
+              {% else %}
+                <span class="chg-pill flat">—</span>
+              {% endif %}
+            </div>
+          </td>
+
+         <!-- skincare -->
+        <td class="group-sep">
+          <div class="metric-row">
+            <span class="metric-main">{{ loc.skincare_curr|floatformat:1 }}%</span>  {# ← % not ₾ #}
+            {% if loc.skincare_prev > 0 %}
+              <span class="chg-pill {% if loc.skincare_change >= 0 %}up{% else %}down{% endif %}">
+                <i class="fas fa-arrow-{% if loc.skincare_change >= 0 %}up{% else %}down{% endif %}" style="font-size:9px;"></i>
+                {% if loc.skincare_change >= 0 %}+{% endif %}{{ loc.skincare_change|floatformat:1 }}%
+              </span>
+            {% else %}
+              <span class="chg-pill flat">—</span>
+            {% endif %}
+          </div>
+        </td>
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" style="text-align:center; padding:40px; color:#64748b;">
+            <i class="fas fa-map-marker-slash" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+            {% trans "No location data available" %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+      <tfoot>
+        <tr>
+          <td>
+            <div class="loc-name">
+              <div class="loc-rank" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white;">Σ</div>
+              {% trans "Total" %}
+            </div>
+          </td>
+          <td class="group-sep" id="ft-rev-curr">—</td>
+          <td class="group-sep" id="ft-tix-curr">—</td>
+          <td class="group-sep" id="ft-items-curr">—</td>
+          <td class="group-sep" id="ft-avg-curr">—</td>
+          <td class="group-sep" id="ft-median">—</td>
+          <td class="group-sep" id="ft-id-rate">—</td>
+          <td class="group-sep" id="ft-discount">—</td>
+          <td class="group-sep" id="ft-cross-sell">—</td>
+          <td class="group-sep" id="ft-single-item">—</td>
+          <td class="group-sep" id="ft-skincare">—</td> 
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<script>
+(function() {
+
+  function initRevBars() {
+    const bars = document.querySelectorAll('.loc-rev-bar');
+    if (!bars.length) return;
+    const maxVal = Math.max(...[...bars].map(b => parseFloat(b.dataset.val) || 0));
+    bars.forEach(bar => {
+      const pct = maxVal > 0 ? (parseFloat(bar.dataset.val) / maxVal) * 100 : 0;
+      bar.querySelector('.rev-bar-fill').style.width = pct.toFixed(1) + '%';
+    });
+  }
+
+  function calcFooter() {
+    const rows = [...document.querySelectorAll('#locTableBody tr[data-rev-curr]')];
+    if (!rows.length) return;
+
+    const sum = k => rows.reduce((a, r) => a + (parseFloat(r.dataset[k]) || 0), 0);
+
+    const revC  = sum('revCurr'),  revP  = sum('revPrev');
+    const tixC  = sum('tixCurr'),  tixP  = sum('tixPrev');
+    const itmC  = sum('itemsCurr'),itmP  = sum('itemsPrev');
+    const avgBC = tixC > 0 ? revC / tixC : 0;
+    const avgBP = tixP > 0 ? revP / tixP : 0;
+
+    const medians = rows.map(r => parseFloat(r.dataset.median) || 0).sort((a, b) => a - b);
+    const median  = medians.length ? medians[Math.floor(medians.length / 2)] : 0;
+
+    const chg = (c, p) => p > 0 ? ((c - p) / p * 100).toFixed(1) : null;
+    const pill = (c, invertColors = false) => {
+      if (c === null) return '<span class="chg-pill flat">—</span>';
+      const positive = parseFloat(c) >= 0;
+      const cls   = invertColors ? (positive ? 'down' : 'up') : (positive ? 'up' : 'down');
+      const arrow = positive ? 'up' : 'down';
+      const sign  = positive ? '+' : '';
+      return `<span class="chg-pill ${cls}"><i class="fas fa-arrow-${arrow}" style="font-size:9px;"></i>${sign}${c}%</span>`;
+    };
+    const fmt = v => v >= 1e6 ? '₾'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '₾'+(v/1e3).toFixed(1)+'K' : '₾'+v.toFixed(0);
+
+    const weightedRate = (tix, rateKey) => tix > 0
+      ? rows.reduce((a, r) => {
+          const t = parseFloat(r.dataset[tix === tixC ? 'tixCurr' : 'tixPrev']) || 0;
+          return a + t * (parseFloat(r.dataset[rateKey]) || 0) / 100;
+        }, 0) / tix * 100
+      : 0;
+
+    const avgId         = weightedRate(tixC, 'idRate');
+    const avgIdPrev     = weightedRate(tixP, 'idRatePrev');
+    const avgDisc       = weightedRate(tixC, 'discount');
+    const avgDiscPrev   = weightedRate(tixP, 'discountPrev');
+    const avgCrossSell  = weightedRate(tixC, 'crossSellRate');
+    const avgSingleItem = weightedRate(tixC, 'singleItemRate');
+    // const skincareC = sum('skincareCurr');
+    // const skincareP = sum('skincarePrev');
+    const totalRevC = sum('revCurr');
+    const totalRevP = sum('revPrev');
+
+    const skincareC = totalRevC > 0
+  ? rows.reduce((a, r) => a + (parseFloat(r.dataset.revCurr) || 0) * (parseFloat(r.dataset.skincareCurr) || 0) / 100, 0) / totalRevC * 100
+  : 0;
+
+    const skincareP = totalRevP > 0
+  ? rows.reduce((a, r) => a + (parseFloat(r.dataset.revPrev) || 0) * (parseFloat(r.dataset.skincarePrev) || 0) / 100, 0) / totalRevP * 100
+  : 0;
+
+document.getElementById('ft-skincare').innerHTML = skincareC.toFixed(1) + '% ' + pill(chg(skincareC, skincareP));
+// at the bottom of calcFooter:
+    document.getElementById('ft-skincare').innerHTML = skincareC.toFixed(1) + '% ' + pill(chg(skincareC, skincareP));
+    document.getElementById('ft-rev-curr').innerHTML    = `${fmt(revC)} ${pill(chg(revC, revP))}`;
+    document.getElementById('ft-tix-curr').innerHTML    = `${tixC.toLocaleString()} ${pill(chg(tixC, tixP))}`;
+    document.getElementById('ft-items-curr').innerHTML  = `${itmC.toLocaleString()} ${pill(chg(itmC, itmP))}`;
+    document.getElementById('ft-avg-curr').innerHTML    = `₾${avgBC.toFixed(2)} ${pill(chg(avgBC, avgBP))}`;
+    document.getElementById('ft-median').innerHTML      = '₾'+median.toFixed(2);
+    document.getElementById('ft-id-rate').innerHTML     = avgId.toFixed(1)+'% '+pill(chg(avgId, avgIdPrev));
+    document.getElementById('ft-discount').innerHTML    = avgDisc.toFixed(1)+'% '+pill(chg(avgDisc, avgDiscPrev), true);
+    document.getElementById('ft-cross-sell').innerHTML  = avgCrossSell.toFixed(1)+'%';
+    document.getElementById('ft-single-item').innerHTML = avgSingleItem.toFixed(1)+'%';
+  }
+
+  window.sortLocTable = function(key) {
+    const tbody = document.getElementById('locTableBody');
+    const rows  = [...tbody.querySelectorAll('tr[data-rev-curr]')];
+
+    const keyMap = {
+      'rev_curr':         'revCurr',
+      'tix_curr':         'tixCurr',
+      'avg_basket_curr':  'avgBasketCurr',
+      'id_rate':          'idRate',
+      'rev_chg':          'revChg',
+      'cross_sell_rate':  'crossSellRate',
+      'single_item_rate': 'singleItemRate',
+      'skincare': 'skincareCurr',  // ← capital C, was 'skincarecurr'
+    };
+    const dsKey = keyMap[key] || key;
+
+    rows.sort((a, b) => (parseFloat(b.dataset[dsKey]) || 0) - (parseFloat(a.dataset[dsKey]) || 0));
+    rows.forEach((row, i) => {
+      row.querySelector('.loc-rank').textContent = i + 1;
+      tbody.appendChild(row);
+    });
+
+    initRevBars();
+    calcFooter();
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initRevBars();
+    calcFooter();
+  });
+
+  if (document.readyState !== 'loading') {
+    initRevBars();
+    calcFooter();
+  }
+
+})();
+</script>
+
+{% endif %}
+
+
+    <!-- divider -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-trophy"></i>
+</div>
+    <span class="section-title">{% trans "Overall Performance" %}</span>
+    <!-- <span class="section-subtitle">Graph Breakdown</span> -->
+  </div>
+  <div class="section-divider-line"></div>
+</div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Total Revenue" %}</div>
+            <div class="kpi-value">{{ total_current|default:"$847.2K" }}</div>
+          </div>
+          <div class="kpi-icon purple"><i class="fas fa-dollar-sign"></i></div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if percentage_change >= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if percentage_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ percentage_change|floatformat:1|default:"12.5" }}%
+          </span>
+          <span class="kpi-comparison">vs {{ previous_year }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Total Tickets" %}</div>
+            <div class="kpi-value">{{ total_tickets|default:"24,847" }}</div>
+          </div>
+          <div class="kpi-icon green"><i class="fas fa-ticket-alt"></i></div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if tickets_change >= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if tickets_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ tickets_change|floatformat:1|default:"8.2" }}%
+          </span>
+          <span class="kpi-comparison">vs {{ previous_year }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Total Quantity" %}</div>
+            <div class="kpi-value">{{ total_items|default:"24,847" }}</div>
+          </div>
+          <div class="kpi-icon red"><i class="fas fa-clipboard-list"></i></div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if items_change >= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if items_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ items_change|floatformat:1|default:"8.2" }}%
+          </span>
+          <span class="kpi-comparison">vs {{ previous_year }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Avg Basket" %}</div>
+            <div class="kpi-value">{{ avg_basket|default:"$34.12" }}</div>
+          </div>
+          <div class="kpi-icon blue"><i class="fas fa-shopping-basket"></i></div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if basket_change >= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if basket_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ basket_change|floatformat:1|default:"4.3" }}%
+          </span>
+          <span class="kpi-comparison">vs {{ previous_year }}</span>
+        </div>
+      </div>
+
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{{ previous_year }} {% trans "Performance" %}</div>
+            <div class="kpi-value">{{ total_previous|default:"$753.1K" }}</div>
+          </div>
+          <div class="kpi-icon cyan"><i class="fas fa-calendar-alt"></i></div>
+        </div>
+        <div class="kpi-meta"><span class="kpi-comparison">{{ previous_year }} {% trans "Total Revenue" %}</span></div>
+      </div>
+
+
+       <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Discount Share" %}</div>
+            <div class="kpi-value">{{ discount_share_current|floatformat:2|default:"28.3" }}%</div>
+          </div>
+          <div class="kpi-icon red"><i class="fas fa-minus-circle"></i></div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if discount_share_precentage_change <= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if discount_share_precentage_change <= 0 %}up{% else %}down{% endif %}"></i>
+            {{ discount_share_precentage_change|floatformat:1|default:"-2.1" }}%
+          </span>
+          <span class="kpi-comparison">vs {{ previous_year }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Client Identification" %}</div>
+            <div class="kpi-value">{{ identification_rate_current|floatformat:2|default:"0" }}%</div>
+          </div>
+          <div class="kpi-icon {% if identification_rate_change >= 0 %}green{% else %}red{% endif %}">
+            <i class="fas fa-{% if identification_rate_change >= 0 %}user-check{% else %}user-times{% endif %}"></i>
+          </div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if identification_rate_change >= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if identification_rate_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {% if identification_rate_change >= 0 %}+{% endif %}{{ identification_rate_change|floatformat:1|default:"0" }}%
+          </span>
+          <span class="kpi-comparison">vs {{ previous_year }}</span>
+        </div>
+      </div>
+
+
+<div class="kpi-card">
+  <div class="kpi-header">
+    <div>
+      <div class="kpi-title">{% trans "Skincare Share" %}</div>
+      <div class="kpi-value">{{ skincare_percentage_current|floatformat:1|default:"0" }}%</div>
+    </div>
+    <div class="kpi-icon {% if skincare_percentage_change >= 0 %}green{% else %}red{% endif %}">
+      <i class="fas fa-leaf"></i>
+    </div>
+  </div>
+  <div class="kpi-meta">
+    <span class="kpi-change {% if skincare_percentage_change >= 0 %}up{% else %}down{% endif %}">
+      <i class="fas fa-arrow-{% if skincare_percentage_change >= 0 %}up{% else %}down{% endif %}"></i>
+      {% if skincare_percentage_change >= 0 %}+{% endif %}{{ skincare_percentage_change|floatformat:1|default:"0" }}%
+    </span>
+    <span class="kpi-comparison">vs {{ previous_year }}</span>
+  </div>
+</div>
+
+
+    </div>
+<!-- Charts Grid - Custom 2-row Layout -->
+<div style="display: grid; gap: 30px; margin: 28px 0px 28px 0px;">
+  <!-- Row 1: Revenue (2/3) + Category (1/3) -->
+  <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px;">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title"><i class="fas fa-chart-area"></i>{% trans "Revenue Trend" %} {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-actions">
+          <button class="chart-btn active" onclick="aggregateChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateChart('month')">{% trans "Month" %}</button>
+        </div>
+      </div>
+      <div class="chart-wrapper"><canvas id="yoyChart"></canvas></div>
+    </div>
+  <!-- Row 2: Three equal columns -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title"><i class="fas fa-ticket-alt"></i>{% trans "Tickets" %} {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-actions">
+          <button class="chart-btn active" onclick="aggregateTicketsChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateTicketsChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateTicketsChart('month')">{% trans "Month" %}</button>
+        </div>
+      </div>
+      <div class="chart-wrapper"><canvas id="ticketsChart"></canvas></div>
+    </div>
+    
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title"><i class="fas fa-shopping-basket"></i>{% trans "Avg Basket" %} {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-actions">
+          <button class="chart-btn active" onclick="aggregateBasketChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateBasketChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateBasketChart('month')">{% trans "Month" %}</button>
+        </div>
+      </div>
+      <div class="chart-wrapper"><canvas id="basketChart"></canvas></div>
+    </div>
+    
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title"><i class="fas fa-clipboard-list"></i>{% trans "Quantity" %} {{ current_year }} vs {{ previous_year }}</div>
+        <div class="chart-actions">
+          <button class="chart-btn active" onclick="aggregateQuantityChart('day')">{% trans "Day" %}</button>
+          <button class="chart-btn" onclick="aggregateQuantityChart('week')">{% trans "Week" %}</button>
+          <button class="chart-btn" onclick="aggregateQuantityChart('month')">{% trans "Month" %}</button>
+        </div>
+      </div>
+      <div class="chart-wrapper"><canvas id="quantityChart"></canvas></div>
+    </div>
+    </div>
+  </div>
+<!-- </div> -->
+
+<!-- divider -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-chart-pie"></i></div>
+    <span class="section-title">{% trans "Category Analytics" %}</span>
+    <!-- <span class="section-subtitle">Performance Breakdown</span> -->
+  </div>
+  <div class="section-divider-line"></div>
+</div>
+<!-- category section -->
+   <div style="margin-top: 20px;" class="table-card">
+      <h3 style="margin-bottom: 20px; color: #f1f5f9;"><i class="fas fa-exchange-alt"></i> {% trans "Category Performance" %}: {{ previous_year }} vs {{ current_year }}</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Category" %}</th>
+            <th>{{ previous_year }} {% trans "Revenue" %}</th>
+            <th>{{ current_year }} {% trans "Category" %}</th>
+            <th>{% trans "Change" %} (₾)</th>
+            <th>{% trans "Trend" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in category_comparison %}
+          <tr>
+            <td><strong>{{ cat.name }}</strong></td>
+            <td>₾{{ cat.revenue_previous|floatformat:0|default:"0" }}</td>
+            <td>₾{{ cat.revenue_current|floatformat:0|default:"0" }}</td>
+            <td class="{% if cat.change >= 0 %}positive{% else %}negative{% endif %}">
+              {% if cat.change >= 0 %}+{% endif %}<span>₾{{ cat.change|floatformat:0|default:"0" }}</span>
+            </td>
+            <td>
+              <span class="kpi-change {% if cat.pct_change >= 0 %}up{% else %}down{% endif %}">
+                <i class="fas fa-arrow-{% if cat.pct_change >= 0 %}up{% else %}down{% endif %}"></i>
+                {{ cat.pct_change|floatformat:1|default:"0.0" }}%
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">{% trans "No Data Available" %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+<div style="display: grid; gap: 30px; margin-bottom: 28px;">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title"><i class="fas fa-chart-pie"></i>{% trans "Sales By Category" %} ({{ current_year }})</div>
+      </div>
+      <div style="height: 400px; width: 100%;" class="chart-wrapper"><canvas id="categoryChart"></canvas></div>
+    </div> 
+</div>
+<!-- divider -->
+<!-- REPLACE THE EXISTING PRODUCT PERFORMANCE SECTION WITH THIS -->
+
+<!-- divider -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-trophy"></i></div>
+    <span class="section-title">{% trans "Product Performance" %}</span>
+    <span class="section-subtitle">{% trans "Best Sellers" %}</span>
+  </div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- Performance Tier Legend -->
+<div style="background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+  <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <div style="font-size: 14px; font-weight: 600; color: #94a3b8;">
+      <i class="fas fa-medal"></i> {% trans "Performance Tiers" %}
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: #0a0e27;">S</span>
+      <span style="font-size: 13px; color: #e4e4e7;">80-100</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">A</span>
+      <span style="font-size: 13px; color: #e4e4e7;">60-80</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">B</span>
+      <span style="font-size: 13px; color: #e4e4e7;">40-60</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #fb923c, #f97316); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">C</span>
+      <span style="font-size: 13px; color: #e4e4e7;">20-40</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="display: inline-block; width: 24px; height: 24px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 4px; text-align: center; line-height: 24px; font-weight: 800; font-size: 12px; color: white;">D</span>
+      <span style="font-size: 13px; color: #e4e4e7;">0-20</span>
+    </div>
+  </div>
+  <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #334155; font-size: 12px; color: #94a3b8;">
+    <i class="fas fa-info-circle"></i> {% trans "Score calculated from: Revenue (40%), Purchase Frequency (30%), Recency (20%), Avg Value (10%)" %}
+    <br>
+    <i class="fas fa-calendar-alt"></i> {% trans "Recency is relative to your filtered end date, not today" %}
+  </div>
+</div>
+
+<!-- Bestsellers Table -->
+<div style="margin-top: 20px;" class="table-card">
+  <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 12px;">
+    <i class="fas fa-trophy" style="color: #ffd700;"></i> 
+    {% trans "Best Sellers" %} ({{ current_year }})
+    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "Based on multi-factor performance score" %}</span>
+  </h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>{% trans "Rank" %}</th>
+        <th>{% trans "Tier" %}</th>
+        <th>{% trans "Products" %}</th>
+        <th>{% trans "Revenue" %}</th>
+        <th>{% trans "Times Bought" %}</th>
+        <th>{% trans "Last Bought" %}</th>
+        <th>{% trans "Avg Value" %}</th>
+        <th>{% trans "Score" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in bestsellers %}
+      <tr class="{% if forloop.counter <= 3 %}{% if forloop.counter == 1 %}first-place{% elif forloop.counter == 2 %}second-place{% elif forloop.counter == 3 %}third-place{% endif %}{% endif %}">
+        <td>
+          {% if forloop.counter == 1 %}🥇
+          {% elif forloop.counter == 2 %}🥈
+          {% elif forloop.counter == 3 %}🥉
+          {% else %}{{ forloop.counter }}.
+          {% endif %}
+        </td>
+        <td>
+          <span style="display: inline-block; width: 28px; height: 28px; 
+            background: {% if product.tier == 'S' %}linear-gradient(135deg, #ffd700, #ffed4e)
+            {% elif product.tier == 'A' %}linear-gradient(135deg, #10b981, #059669)
+            {% elif product.tier == 'B' %}linear-gradient(135deg, #3b82f6, #2563eb)
+            {% elif product.tier == 'C' %}linear-gradient(135deg, #fb923c, #f97316)
+            {% else %}linear-gradient(135deg, #ef4444, #dc2626){% endif %}; 
+            border-radius: 6px; text-align: center; line-height: 28px; font-weight: 800; font-size: 14px; 
+            color: {% if product.tier == 'S' %}#0a0e27{% else %}white{% endif %};">
+            {{ product.tier }}
+          </span>
+        </td>
+        <td><strong>{{ product.prod }}</strong></td>
+        <td>₾{{ product.revenue|floatformat:2 }}</td>
+        <td>
+          <span style="display: flex; align-items: center; gap: 8px;">
+            {{ product.tickets }}
+            <span style="font-size: 11px; color: #94a3b8;">({{ product.quantity }} items)</span>
+          </span>
+        </td>
+        <td>
+          {% if product.recency_days < 7 %}
+            <span style="color: #10b981; font-weight: 600;">
+              <i class="fas fa-check-circle"></i> {{ product.recency_days }}d ago
+            </span>
+          {% elif product.recency_days < 30 %}
+            <span style="color: #3b82f6;">{{ product.recency_days }}d ago</span>
+          {% else %}
+            <span style="color: #fb923c;">{{ product.recency_days }}d ago</span>
+          {% endif %}
+        </td>
+        <td>₾{{ product.avg_ticket_value|floatformat:2 }}</td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="flex: 1; background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;">
+              <div style="width: {{ product.performance_score }}%; height: 100%; 
+                background: {% if product.performance_score >= 80 %}linear-gradient(90deg, #ffd700, #ffed4e)
+                {% elif product.performance_score >= 60 %}linear-gradient(90deg, #10b981, #059669)
+                {% elif product.performance_score >= 40 %}linear-gradient(90deg, #3b82f6, #2563eb)
+                {% else %}linear-gradient(90deg, #fb923c, #f97316){% endif %};
+                transition: width 0.3s ease;">
+              </div>
+            </div>
+            <span style="font-size: 13px; font-weight: 600; color: #e4e4e7; min-width: 40px;">
+              {{ product.performance_score|floatformat:0 }}
+            </span>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center; padding:40px; color:#64748b;">
+          {% trans "No Data Available" %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Grid layout for Rising Stars and Slow Movers -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+  
+  <!-- Rising Stars -->
+  <div class="table-card">
+    <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+      <i class="fas fa-rocket" style="color: #10b981;"></i> {% trans "Rising Stars" %}
+      <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "Filtered based on given interval" %}</span>
+    </h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{% trans "Product" %}</th>
+          <th>{% trans "Revenue" %}</th>
+          <th>{% trans "Frequency" %}</th>
+          <th>{% trans "Last Bought" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in rising_stars %}
+        <tr>
+          <td><strong>{{ product.prod }}</strong></td>
+          <td>₾{{ product.revenue|floatformat:0 }}</td>
+          <td>{{ product.tickets }}×</td>
+          <td><span style="color: #10b981;">{{ product.recency_days }}d</span></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center; padding:20px; color:#64748b;">
+            {% trans "No Data Available" %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Slow Movers -->
+  <div class="table-card">
+    <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+      <i class="fas fa-exclamation-triangle" style="color: #fb923c;"></i> {% trans "Slow Movers" %}
+      <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "No purchase made given 30 Days" %}</span>
+    </h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{% trans "Product" %}</th>
+          <th>{% trans "Revenue" %}</th>
+          <th>{% trans "Frequency" %}</th>
+          <th>L{% trans "Last Bought" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in slow_movers %}
+        <tr>
+          <td><strong>{{ product.prod }}</strong></td>
+          <td>₾{{ product.revenue|floatformat:0 }}</td>
+          <td>{{ product.tickets }}×</td>
+          <td><span style="color: #ef4444;">{{ product.recency_days }}d ago</span></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center; padding:20px; color:#64748b;">
+            {% trans "No Data Available" %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Least Sellers Table -->
+<div style="margin-top: 20px;" class="table-card">
+  <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 12px;">
+    <i class="fas fa-chart-line" style="color: #ef4444; transform: scaleY(-1);"></i>
+    {% trans "Underperformers" %} ({{ current_year }})
+    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto;">{% trans "Least Bought Items" %}</span>
+  </h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>{% trans "Rank" %}</th>
+        <th>{% trans "Tier" %}</th>
+        <th>{% trans "Product" %}</th>
+        <th>{% trans "Revenue" %}</th>
+        <th>{% trans "Times Bought" %}</th>
+        <th>{% trans "Last Bought" %}</th>
+        <th>{% trans "Avg Value" %}</th>
+        <th>{% trans "Score" %}</th>
+        <th>{% trans "Issue" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in least_sellers %}
+      <tr>
+        <td>{{ forloop.counter }}.</td>
+        <td>
+          <span style="display: inline-block; width: 28px; height: 28px; 
+            background: {% if product.tier == 'C' %}linear-gradient(135deg, #fb923c, #f97316)
+            {% else %}linear-gradient(135deg, #ef4444, #dc2626){% endif %}; 
+            border-radius: 6px; text-align: center; line-height: 28px; font-weight: 800; font-size: 14px; color: white;">
+            {{ product.tier }}
+          </span>
+        </td>
+        <td><strong>{{ product.prod }}</strong></td>
+        <td>₾{{ product.revenue|floatformat:2 }}</td>
+        <td>{{ product.tickets }}</td>
+        <td>
+          <span style="color: {% if product.recency_days > 60 %}#ef4444{% elif product.recency_days > 30 %}#fb923c{% else %}#3b82f6{% endif %};">
+            {{ product.recency_days }}d ago
+          </span>
+        </td>
+        <td>₾{{ product.avg_ticket_value|floatformat:2 }}</td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="flex: 1; background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;">
+              <div style="width: {{ product.performance_score }}%; height: 100%; 
+                background: linear-gradient(90deg, #ef4444, #dc2626); transition: width 0.3s ease;">
+              </div>
+            </div>
+            <span style="font-size: 13px; font-weight: 600; color: #ef4444; min-width: 40px;">
+              {{ product.performance_score|floatformat:0 }}
+            </span>
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 11px; padding: 4px 8px; border-radius: 4px; 
+            background: {% if product.recency_days > 60 %}rgba(239, 68, 68, 0.15){% elif product.tickets < 5 %}rgba(251, 146, 60, 0.15){% else %}rgba(59, 130, 246, 0.15){% endif %}; 
+            color: {% if product.recency_days > 60 %}#ef4444{% elif product.tickets < 5 %}#fb923c{% else %}#3b82f6{% endif %};">
+            {% if product.recency_days > 60 %}
+              <i class="fas fa-clock"></i> {% trans "60+ days past" %}
+            {% elif product.tickets < 5 %}
+              <i class="fas fa-chart-line"></i> {% trans "Low Freq" %}
+            {% elif product.monetary_score < 10 %}
+              <i class="fas fa-dollar-sign"></i> {% trans "Low Value" %}
+            {% else %}
+              <i class="fas fa-trending-down"></i> {% trans "Declining" %}
+            {% endif %}
+          </span>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9" style="text-align:center; padding:40px; color:#64748b;">
+          {% trans "No Data Available" %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+ 
+
+
+
+<!-- <div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-project-diagram"></i></div>
+    <span class="section-title">{% trans "Product Associations" %}</span>
+    <span class="section-subtitle">{% trans "Bought Together" %}</span>
+  </div>
+  <div class="section-divider-line"></div>
+</div>
+
+<div class="table-card">
+  <h3 style="margin-bottom: 20px; color: #f1f5f9;">
+    <i class="fas fa-shopping-cart" style="color: #10b981;"></i>
+    {% trans "Products Frequently Bought Together" %}
+    <span style="font-size: 13px; color: #94a3b8; font-weight: 400; margin-left: auto; float: right;">
+      Lift &gt; 1.2 = positive association
+    </span>
+  </h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>{% trans "If they buy..." %}</th>
+        <th></th>
+        <th>{% trans "They also buy..." %}</th>
+        <th>{% trans "Support" %}</th>
+        <th>{% trans "Confidence" %}</th>
+        <th>{% trans "Lift" %}</th>
+        <th>{% trans "Co-occurrences" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rule in association_rules %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td><strong>{{ rule.antecedent }}</strong></td>
+        <td><i class="fas fa-arrow-right" style="color: #667eea;"></i></td>
+        <td><strong>{{ rule.consequent }}</strong></td>
+        <td><span style="color: #94a3b8;">{{ rule.support }}%</span></td>
+        <td><span style="color: #3b82f6;">{{ rule.confidence }}%</span></td>
+        <td>
+          <span style="font-weight: 700; color: 
+            {% if rule.lift >= 3 %}#10b981
+            {% elif rule.lift >= 2 %}#fb923c
+            {% else %}#94a3b8{% endif %};">
+            {{ rule.lift }}×
+          </span>
+        </td>
+        <td>{{ rule.pair_count }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center; padding:40px; color:#64748b;">
+          {% trans "No association rules found — try adjusting filters" %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div> -->
+
+
+
+
+<!-- divider -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-chart-pie"></i></div>
+    <span class="section-title">{% trans "Cross Selling" %}</span>
+    <span class="section-subtitle"></span>
+  </div>
+  <div class="section-divider-line"></div>
+</div>
+
+<div class="kpi-grid">
+
+
+ <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Single Item Tickets" %}</div>
+            <div class="kpi-value">{{ single_item_percentage_current|floatformat:1|default:"28.3" }}%</div>
+          </div>
+          <div class="kpi-icon red"><i class="fas fa-minus-circle"></i></div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if single_item_change <= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if single_item_change <= 0 %}up{% else %}down{% endif %}"></i>
+            {{ single_item_change|floatformat:1|default:"-2.1" }}%
+          </span>
+          <span class="kpi-comparison">{% trans "1 Item Per Ticket" %}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div>
+            <div class="kpi-title">{% trans "Cross Selling" %}</div>
+            <div class="kpi-value">{{ cross_sell_percentage_current|floatformat:1|default:"32.5" }}%</div>
+          </div>
+          <div class="kpi-icon orange"><i class="fas fa-layer-group"></i></div>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-change {% if cross_sell_change >= 0 %}up{% else %}down{% endif %}">
+            <i class="fas fa-arrow-{% if cross_sell_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ cross_sell_change|floatformat:1|default:"5.2" }}%
+          </span>
+          <span class="kpi-comparison">{% trans "3+ Items Per Ticket" %}</span>
+        </div>
+      </div>
+
+</div>
+
+
+<!-- herre -->
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; margin-top:20px;">
+     
+  <!-- Single Item Tickets Chart -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title"><i class="fas fa-minus-circle"></i>{% trans "Single Items Tickets" %}% {{ current_year }} vs {{ previous_year }}</div>
+      <div class="chart-actions">
+        <button class="chart-btn active" onclick="aggregateSingleItemChart('day')">{% trans "Day" %}</button>
+        <button class="chart-btn" onclick="aggregateSingleItemChart('week')">{% trans "Week" %}</button>
+        <button class="chart-btn" onclick="aggregateSingleItemChart('month')">{% trans "Month" %}</button>
+      </div>
+    </div>
+    <div class="chart-wrapper"><canvas id="singleItemChart"></canvas></div>
+  </div>
+  
+  <!-- Cross-Sell (3+) Chart -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title"><i class="fas fa-layer-group"></i>{% trans "Cross Selling" %}% {{ current_year }} vs {{ previous_year }}</div>
+      <div class="chart-actions">
+        <button class="chart-btn active" onclick="aggregateCrossSellChart('day')">{% trans "Day" %}</button>
+        <button class="chart-btn" onclick="aggregateCrossSellChart('week')">{% trans "Week" %}</button>
+        <button class="chart-btn" onclick="aggregateCrossSellChart('month')">{% trans "Month" %}</button>
+      </div>
+    </div>
+    <div class="chart-wrapper"><canvas id="crossSellChart"></canvas></div>
+  </div>
+
+</div>
+<!-- divider -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-trophy"></i></div>
+    <span class="section-title">{% trans "Basket Analytics" %}</span>
+    <!-- <span class="section-subtitle">Basket Analysis</span> -->
+  </div>
+  <div class="section-divider-line"></div>
+</div>
+<div class="kpi-grid" style="margin-bottom: 28px;">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "Avg Ticket Value" %}</div>
+        <div class="kpi-value">₾{{ dist_avg_current|floatformat:2|default:"0.00" }}</div>
+      </div>
+      <div class="kpi-icon purple"><i class="fas fa-chart-bar"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-change {% if dist_avg_change >= 0 %}up{% else %}down{% endif %}">
+        <i class="fas fa-arrow-{% if dist_avg_change >= 0 %}up{% else %}down{% endif %}"></i>
+        {{ dist_avg_change|floatformat:1|default:"0.0" }}%
+      </span>
+      <span class="kpi-comparison">vs {{ previous_year }} (₾{{ dist_avg_previous|floatformat:2 }})</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "Median Ticket" %}</div>
+        <div class="kpi-value">₾{{ dist_median_current|floatformat:2|default:"0.00" }}</div>
+      </div>
+      <div class="kpi-icon green"><i class="fas fa-chart-line"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-change {% if dist_median_change >= 0 %}up{% else %}down{% endif %}">
+        <i class="fas fa-arrow-{% if dist_median_change >= 0 %}up{% else %}down{% endif %}"></i>
+        {{ dist_median_change|floatformat:1|default:"0.0" }}%
+      </span>
+      <span class="kpi-comparison">vs {{ previous_year }} (₾{{ dist_median_previous|floatformat:2 }})</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "25th Percentile" %}</div>
+        <div class="kpi-value">₾{{ dist_p25_current|floatformat:2|default:"0.00" }}</div>
+      </div>
+      <div class="kpi-icon blue"><i class="fas fa-percentage"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-comparison">{% trans "Lower Threshold" %}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "75th Percentile" %}</div>
+        <div class="kpi-value">₾{{ dist_p75_current|floatformat:2|default:"0.00" }}</div>
+      </div>
+      <div class="kpi-icon orange"><i class="fas fa-percentage"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-comparison">{% trans "Upper Threshold" %}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Distribution Histogram Charts -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px;">
+  <!-- Count Distribution -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">
+        <i class="fas fa-chart-bar"></i>{% trans "Ticket Count by Amount and Range" %}
+      </div>
+    </div>
+    <div class="chart-wrapper"><canvas id="distributionCountChart"></canvas></div>
+  </div>
+
+  <!-- Percentage Distribution -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">
+        <i class="fas fa-percent"></i>{% trans "by Amount and Range" %}
+      </div>
+    </div>
+    <div class="chart-wrapper"><canvas id="distributionPctChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Distribution Table -->
+<div class="table-card">
+  <h3 style="margin-bottom: 20px; color: #f1f5f9;">
+    <i class="fas fa-table"></i> {% trans "Ticket Distribution" %}: {{ previous_year }} vs {{ current_year }}
+  </h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>{% trans "Price Range" %}</th>
+        <th>{{ previous_year }} {% trans "Count" %}</th>
+        <th>{{ current_year }} {% trans "Count" %}</th>
+        <th>{% trans "Count Change" %}</th>
+        <th>{{ previous_year }} %</th>
+        <th>{{ current_year }} %</th>
+        <th>% {% trans "Change" %}</th>
+      </tr>
+    </thead>
+    <tbody id="distributionTableBody">
+      <!-- Will be populated by JavaScript -->
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- REPLACE EVERYTHING FROM THE CAMPAIGN DIVIDER TO "needed here" -->
+<!-- (from <div class="section-divider"> with Campaign title -->
+<!--  down to and including the closing </div> of campaign table) -->
+<!-- ============================================================ -->
+
+<!-- Campaign section divider -->
+<!-- <div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-title-wrapper">
+    <div class="section-icon"><i class="fas fa-bullhorn"></i></div>
+    <span class="section-title">{% trans "Campaign Analytics" %}</span>
+    <span class="section-subtitle">{% trans "Effectiveness & YoY" %}</span>
+  </div>
+  <div class="section-divider-line"></div>
+</div> -->
+
+<!-- ── Campaign KPI Cards ── -->
+<!-- <div class="kpi-grid" style="margin-bottom: 24px;">
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "Active Campaigns" %}</div>
+        <div class="kpi-value">{{ active_campaigns|default:"0" }}</div>
+      </div>
+      <div class="kpi-icon purple"><i class="fas fa-bullhorn"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-comparison">{{ current_year }} {% trans "unique campaigns" %}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "Campaign Revenue Share" %}</div>
+        <div class="kpi-value">{{ campaign_revenue_share|floatformat:1|default:"0" }}%</div>
+      </div>
+      <div class="kpi-icon blue"><i class="fas fa-percent"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-comparison">{% trans "of total revenue" %}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "Campaign Avg Basket" %}</div>
+        {% with first=campaign_comparison|first %}
+        <div class="kpi-value">
+          {% if first %}₾{{ first.avg_basket_current|floatformat:2 }}{% else %}—{% endif %}
+        </div>
+        {% endwith %}
+      </div>
+      <div class="kpi-icon green"><i class="fas fa-shopping-basket"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-comparison">{% trans "top campaign" %}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{% trans "No-Campaign Avg Basket" %}</div>
+        <div class="kpi-value">₾{{ no_camp_avg_basket|floatformat:2|default:"0.00" }}</div>
+      </div>
+      <div class="kpi-icon cyan"><i class="fas fa-tag"></i></div>
+    </div>
+    <div class="kpi-meta">
+      <span class="kpi-comparison">{% trans "organic baseline" %}</span>
+    </div>
+  </div>
+
+</div> -->
+
+<!-- ── Campaign Charts: Bar (YoY Revenue) + Bubble (Effectiveness) ── -->
+<!-- <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 24px;"> -->
+
+  <!-- Horizontal bar: Top campaigns current vs previous revenue -->
+  <!-- <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">
+        <i class="fas fa-chart-bar"></i>{% trans "Top Campaigns Revenue" %}: {{ current_year }} vs {{ previous_year }}
+      </div>
+    </div>
+    <div style="height: 380px;" class="chart-wrapper">
+      <canvas id="campaignBarChart"></canvas>
+    </div>
+  </div> -->
+
+  <!-- Scatter: avg basket vs tickets — bubble = revenue -->
+  <!-- <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">
+        <i class="fas fa-circle-notch"></i>{% trans "Effectiveness Map" %}
+        <span style="font-size: 12px; color: #64748b; font-weight: 400; margin-left: 8px;">
+          {% trans "Avg Basket vs Tickets (size = Revenue)" %}
+        </span>
+      </div>
+    </div>
+    <div style="height: 380px; position: relative;">
+      <div id="baseline-line-label" style="
+        position: absolute; right: 12px; top: 8px; z-index: 10;
+        font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 6px;">
+        <div style="width: 24px; height: 2px; background: repeating-linear-gradient(90deg,#ef4444 0,#ef4444 4px,transparent 4px,transparent 8px);"></div>
+        {% trans "No-Campaign Baseline" %}
+      </div>
+      <canvas id="campaignBubbleChart"></canvas>
+    </div>
+  </div> -->
+
+<!-- </div> -->
+
+<!-- ── Monthly Trend: Top 5 Campaigns ── -->
+<!-- <div class="chart-card" style="margin-bottom: 24px;">
+  <div class="chart-header">
+    <div class="chart-title">
+      <i class="fas fa-chart-area"></i>{% trans "Monthly Revenue — Top 5 Campaigns" %} ({{ current_year }})
+    </div>
+  </div>
+  <div style="height: 280px;" class="chart-wrapper">
+    <canvas id="campaignTrendChart"></canvas>
+  </div>
+</div> -->
+
+<!-- ── Enhanced Campaign Comparison Table ── -->
+<!-- <div style="margin-top: 8px;" class="table-card">
+  <h3 style="margin-bottom: 20px; color: #f1f5f9; display: flex; align-items: center; gap: 12px;">
+    <i class="fas fa-trophy" style="color: #ffd700;"></i>
+    {% trans "Campaign Performance" %}: {{ previous_year }} vs {{ current_year }}
+    <span style="font-size: 12px; color: #64748b; font-weight: 400; margin-left: auto;">
+      <i class="fas fa-circle" style="color: #ef4444; font-size: 9px;"></i> {% trans "Effectiveness vs no-campaign baseline" %}
+    </span>
+  </h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>{% trans "Campaign" %}</th>
+        <th>{{ previous_year }} {% trans "Rev" %}</th>
+        <th>{{ current_year }} {% trans "Rev" %}</th>
+        <th>{% trans "YoY Δ Rev" %}</th>
+        <th>{% trans "Rev Share" %}</th>
+        <th>{{ current_year }} {% trans "Avg Basket" %}</th>
+        <th>{% trans "Basket YoY" %}</th>
+        <th>{% trans "Effectiveness" %}</th>
+        <th>{% trans "Tickets" %} Δ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for camp in campaign_comparison %}
+      <tr>
+        <td style="font-size: 13px; color: #64748b;">
+          {% if forloop.counter == 1 %}🥇
+          {% elif forloop.counter == 2 %}🥈
+          {% elif forloop.counter == 3 %}🥉
+          {% else %}{{ forloop.counter }}.
+          {% endif %}
+        </td>
+
+        <td><strong style="color: #f1f5f9;">{{ camp.name }}</strong></td>
+
+        <td style="color: #94a3b8;">
+          {% if camp.revenue_previous > 0 %}₾{{ camp.revenue_previous|floatformat:0 }}{% else %}<span style="color:#475569;">—</span>{% endif %}
+        </td>
+
+        <td>₾{{ camp.revenue_current|floatformat:0 }}</td>
+
+        <!-- YoY Rev change -->
+        <!-- <td>
+          {% if camp.revenue_previous > 0 %}
+          <span class="kpi-change {% if camp.rev_change >= 0 %}up{% else %}down{% endif %}" style="font-size:12px;">
+            <i class="fas fa-arrow-{% if camp.rev_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ camp.rev_change|floatformat:1 }}%
+          </span>
+          {% else %}
+          <span style="color:#475569; font-size:12px;">{% trans "New" %}</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 8px; min-width: 100px;">
+            <div style="flex:1; background:#1e293b; height:6px; border-radius:3px; overflow:hidden;">
+              <div style="width:{{ camp.rev_share|floatformat:1 }}%; height:100%;
+                background: linear-gradient(90deg, #667eea, #764ba2);
+                transition: width 0.3s;"></div>
+            </div>
+            <span style="font-size:12px; color:#94a3b8; min-width:36px;">{{ camp.rev_share|floatformat:1 }}%</span>
+          </div>
+        </td>
+
+        <td>₾{{ camp.avg_basket_current|floatformat:2 }}</td>
+
+        <td>
+          {% if camp.avg_basket_previous > 0 %}
+          <span style="font-size:12px; font-weight:600;
+            color:{% if camp.basket_change >= 0 %}#10b981{% else %}#ef4444{% endif %}">
+            {% if camp.basket_change >= 0 %}+{% endif %}{{ camp.basket_change|floatformat:1 }}%
+          </span>
+          {% else %}<span style="color:#475569;">—</span>{% endif %}
+        </td>
+
+        <td>
+          {% with eff=camp.vs_no_campaign %}
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="
+              padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;
+              background: {% if eff >= 1.1 %}rgba(16,185,129,0.15){% elif eff >= 0.9 %}rgba(251,146,60,0.15){% else %}rgba(239,68,68,0.15){% endif %};
+              color: {% if eff >= 1.1 %}#10b981{% elif eff >= 0.9 %}#fb923c{% else %}#ef4444{% endif %};">
+              {% if eff >= 1.1 %}▲{% elif eff >= 0.9 %}~{% else %}▼{% endif %} {{ eff|floatformat:2 }}×
+            </span>
+          </div>
+          {% endwith %}
+        </td>
+
+        <td>
+          {% if camp.tickets_previous > 0 %}
+          <span style="font-size:12px; color:{% if camp.tickets_change >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+            {% if camp.tickets_change >= 0 %}+{% endif %}{{ camp.tickets_change|floatformat:1 }}%
+          </span>
+          {% else %}
+          <span style="font-size:12px; color:#475569;">{{ camp.tickets_current }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="10" style="text-align:center; padding:40px; color:#64748b;">
+          {% trans "No campaign data available" %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #1e293b;
+              display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+    <span style="font-size: 12px; color: #64748b; font-weight: 600;">
+      <i class="fas fa-info-circle"></i> {% trans "Effectiveness" %} =
+      {% trans "Campaign Avg Basket ÷ No-Campaign Avg Basket" %}
+      ({% trans "baseline" %}: ₾{{ no_camp_avg_basket|floatformat:2 }})
+    </span>
+    <span style="padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+                 background: rgba(16,185,129,0.15); color: #10b981;">
+      ▲ ≥1.1× {% trans "Outperforming" %}
+    </span>
+    <span style="padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+                 background: rgba(251,146,60,0.15); color: #fb923c;">
+      ~ 0.9–1.1× {% trans "On Par" %}
+    </span>
+    <span style="padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+                 background: rgba(239,68,68,0.15); color: #ef4444;">
+      ▼ &lt;0.9× {% trans "Underperforming" %}
+    </span>
+  </div>
+</div>  -->
+
+
+<!-- ── Campaign JavaScript ── -->
+<!-- <script>
+// ----------------------------------------------------------------
+// Data injected from Django context
+// ----------------------------------------------------------------
+const campaignNames    = {{ campaign_names_json|safe }};
+const campRevCurr      = {{ camp_rev_curr_json|safe }};
+const campRevPrev      = {{ camp_rev_prev_json|safe }};
+const campAvgBasket    = {{ camp_avg_baskets_json|safe }};
+const campTickets      = {{ camp_tickets_json|safe }};
+const campMonthly      = {{ campaign_monthly|safe }};
+const top5Names        = {{ top_5_campaign_names|safe }};
+const noCampBaseline   = {{ no_camp_avg_basket|default:0 }};
+const monthLabelsShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Palette for campaigns
+const CAMP_COLORS = [
+  '#667eea','#10b981','#fb923c','#ec4899','#06b6d4',
+  '#8b5cf6','#f59e0b','#ef4444','#14b8a6','#a855f7'
+];
+
+// ── 1. Horizontal Bar Chart: Current vs Previous Revenue ──────────
+const campaignBarChart = new Chart(document.getElementById('campaignBarChart'), {
+  type: 'bar',
+  data: {
+    labels: campaignNames.slice(0, 10),
+    datasets: [
+      {
+        label: previousYear,
+        data: campRevPrev.slice(0, 10),
+        backgroundColor: 'rgba(148,163,184,0.5)',
+        borderColor: '#94a3b8',
+        borderWidth: 1,
+        borderRadius: 4,
+      },
+      {
+        label: currentYear,
+        data: campRevCurr.slice(0, 10),
+        backgroundColor: CAMP_COLORS.slice(0, 10).map(c => c + 'cc'),
+        borderColor: CAMP_COLORS.slice(0, 10),
+        borderWidth: 2,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#667eea',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ₾${ctx.parsed.x.toLocaleString()}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#1e293b' },
+        ticks: { callback: v => '₾' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v) }
+      },
+      y: {
+        grid: { display: false },
+        ticks: {
+          font: { size: 11 },
+          callback: function(val) {
+            const label = this.getLabelForValue(val);
+            return label.length > 22 ? label.slice(0, 22) + '…' : label;
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 2. Bubble / Scatter: Avg Basket vs Tickets (bubble = revenue) ──
+const maxRev = Math.max(...campRevCurr, 1);
+const bubbleData = campaignNames.slice(0, 10).map((name, i) => ({
+  x: campTickets[i],
+  y: campAvgBasket[i],
+  r: Math.max(6, Math.sqrt(campRevCurr[i] / maxRev) * 40),
+  name: name,
+  revenue: campRevCurr[i]
+}));
+
+const campaignBubbleChart = new Chart(document.getElementById('campaignBubbleChart'), {
+  type: 'bubble',
+  data: {
+    datasets: bubbleData.map((d, i) => ({
+      label: d.name,
+      data: [{ x: d.x, y: d.y, r: d.r }],
+      backgroundColor: CAMP_COLORS[i % CAMP_COLORS.length] + '99',
+      borderColor: CAMP_COLORS[i % CAMP_COLORS.length],
+      borderWidth: 2,
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#667eea',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          title: items => items[0].dataset.label,
+          label: ctx => [
+            `Tickets: ${ctx.parsed.x.toLocaleString()}`,
+            `Avg Basket: ₾${ctx.parsed.y.toFixed(2)}`,
+            `Revenue: ₾${bubbleData[ctx.datasetIndex]?.revenue?.toLocaleString() || 0}`
+          ]
+        }
+      },
+      // Baseline annotation (no-campaign line)
+      annotation: {
+        annotations: noCampBaseline > 0 ? {
+          baseline: {
+            type: 'line',
+            yMin: noCampBaseline,
+            yMax: noCampBaseline,
+            borderColor: 'rgba(239,68,68,0.7)',
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            label: {
+              content: '← Baseline',
+              display: true,
+              position: 'end',
+              backgroundColor: 'transparent',
+              color: '#ef4444',
+              font: { size: 11 }
+            }
+          }
+        } : {}
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#1e293b' },
+        title: { display: true, text: 'Tickets', color: '#94a3b8', font: { size: 12 } },
+        ticks: { callback: v => v.toLocaleString() }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        title: { display: true, text: 'Avg Basket (₾)', color: '#94a3b8', font: { size: 12 } },
+        ticks: { callback: v => '₾' + v.toFixed(0) }
+      }
+    }
+  }
+});
+
+// ── 3. Monthly Trend Line: Top 5 Campaigns ─────────────────────────
+const trendDatasets = top5Names.map((name, i) => ({
+  label: name.length > 28 ? name.slice(0, 28) + '…' : name,
+  data: campMonthly[name] || new Array(12).fill(0),
+  borderColor: CAMP_COLORS[i % CAMP_COLORS.length],
+  backgroundColor: CAMP_COLORS[i % CAMP_COLORS.length] + '22',
+  borderWidth: 2.5,
+  tension: 0.4,
+  fill: false,
+  pointRadius: 3,
+  pointHoverRadius: 6
+}));
+
+new Chart(document.getElementById('campaignTrendChart'), {
+  type: 'line',
+  data: { labels: monthLabelsShort, datasets: trendDatasets },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: { boxWidth: 12, font: { size: 11 }, padding: 12 }
+      },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#667eea',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ₾${ctx.parsed.y.toLocaleString()}`
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { callback: v => '₾' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v) }
+      }
+    }
+  }
+});
+</script> -->
+
+<!-- needed here -->
+
+
+<!-- ================================================================== -->
+<!-- LOCATION PERFORMANCE SUMMARY TABLE                                 -->
+<!-- Paste this block just above </main> in dashboard.html              -->
+<!-- ================================================================== -->
+
+  </main>
+
+
+  <div class="after_main">
+
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('#product-select').select2({
+      placeholder: 'Search products...',
+      allowClear: true,
+      width: '100%'
+    });
+    
+    $('#campaign-select').select2({
+      placeholder: 'Search campaigns...',
+      allowClear: true,
+      width: '100%'
+    });
+  });
+
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentYear = {{ current_year|default:2025 }};
+  const previousYear = {{ previous_year|default:2024 }};
+  
+  // Function to change comparison mode - DEFINED FIRST
+  // Function to change comparison mode - DEFINED FIRST
+  function changeComparison(mode) {
+    const url = new URL(window.location);
+    url.searchParams.set('comparison', mode);
+    
+    // Remove old date parameters to let them reset to defaults for the new year
+    url.searchParams.delete('start_date');
+    url.searchParams.delete('end_date');
+    
+    // Preserve other filter parameters
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    for (let [key, value] of formData.entries()) {
+      if (key !== 'comparison' && key !== 'start_date' && key !== 'end_date') {
+        url.searchParams.set(key, value);
+      }
+    }
+    
+    window.location.href = url.toString();
+  }
+  
+  // Update hidden comparison input when form is submitted
+  document.getElementById('filterForm').addEventListener('submit', function(e) {
+    const currentComparison = new URLSearchParams(window.location.search).get('comparison') || '2026-2025';
+    document.querySelector('input[name="comparison"]').value = currentComparison;
+  });
+  
+// Initialize date slider
+// const slider = document.getElementById('date-slider');
+
+// // Get the current year and determine number of days
+// const daysInYear = (currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0)) ? 366 : 365;
+
+// // Helper function to convert day number to date string FOR CURRENT YEAR
+// function dayToDate(dayNum, year) {
+//   const date = new Date(year, 0, dayNum);
+//   return {
+//     month: date.getMonth(),
+//     day: date.getDate(),
+//     formatted: monthNames[date.getMonth()] + ' ' + date.getDate()
+//   };
+// }
+
+// // Helper function to convert date to day number WITHIN A SPECIFIC YEAR
+// function dateToDayNum(dateStr, targetYear) {
+//   const date = new Date(dateStr);
+//   // Create a date in the target year with same month/day
+//   const adjustedDate = new Date(targetYear, date.getMonth(), date.getDate());
+//   const start = new Date(targetYear, 0, 0);
+//   const diff = adjustedDate - start;
+//   const oneDay = 1000 * 60 * 60 * 24;
+//   return Math.floor(diff / oneDay);
+// }
+
+// // Get initial values from Django context
+// let startDateStr = '{{ start_date|default:"2025-01-01" }}';
+// let endDateStr = '{{ end_date|default:"2025-12-31" }}';
+
+// // Parse dates and convert to day numbers IN THE CURRENT YEAR
+// const startDay = dateToDayNum(startDateStr, currentYear);
+// const endDay = dateToDayNum(endDateStr, currentYear);
+
+// noUiSlider.create(slider, {
+//   start: [startDay, endDay],
+//   connect: true,
+//   range: { 'min': 1, 'max': daysInYear },
+//   step: 1,
+//   tooltips: [
+//     { to: (v) => dayToDate(Math.round(v), currentYear).formatted },
+//     { to: (v) => dayToDate(Math.round(v), currentYear).formatted }
+//   ],
+//   format: { to: (v) => Math.round(v), from: (v) => Math.round(v) }
+// });
+
+// slider.noUiSlider.on('update', function (values) {
+//   const startDayNum = Math.round(values[0]);
+//   const endDayNum = Math.round(values[1]);
+  
+//   const startDate = dayToDate(startDayNum, currentYear);
+//   const endDate = dayToDate(endDayNum, currentYear);
+  
+//   // Update display
+//   document.getElementById('date-range-display').textContent = 
+//     startDate.formatted + ' - ' + endDate.formatted;
+  
+//   // Create dates in CURRENT YEAR and format as YYYY-MM-DD
+//   const startDateObj = new Date(currentYear, startDate.month, startDate.day);
+//   const endDateObj = new Date(currentYear, endDate.month, endDate.day);
+  
+//   // Format as ISO date ensuring correct year
+//   const formatDate = (dateObj) => {
+//     const year = dateObj.getFullYear();
+//     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+//     const day = String(dateObj.getDate()).padStart(2, '0');
+//     return `${year}-${month}-${day}`;
+//   };
+  
+//   document.getElementById('start_date').value = formatDate(startDateObj);
+//   document.getElementById('end_date').value = formatDate(endDateObj);
+  
+//   // Update top date range text
+//   document.getElementById('date-range-text').textContent = 
+//     startDate.formatted + ' - ' + endDate.formatted + ', ' + currentYear;
+// });
+  // Chart defaults
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.borderColor = '#334155';
+
+  // Chart data from Django
+  const rawLabels = {{ labels|default:"[]"|safe }};
+  const rawDataPrevious = {{ data_previous|default:"[]"|safe }};
+  const rawDataCurrent = {{ data_current|default:"[]"|safe }};
+
+  let yoyChart;
+
+  function aggregateChart(period) {
+    // Update button states
+    document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    let labels, dataPrev, dataCurr;
+
+    if (period === 'day') {
+      labels = rawLabels;
+      dataPrev = rawDataPrevious;
+      dataCurr = rawDataCurrent;
+    } else if (period === 'month') {
+      labels = monthNames;
+      dataPrev = new Array(12).fill(0);
+      dataCurr = new Array(12).fill(0);
+      
+      rawLabels.forEach((label, i) => {
+        const parts = label.split('/');
+        const month = parseInt(parts[0]) - 1;
+        if (month >= 0 && month < 12) {
+          dataPrev[month] += rawDataPrevious[i] || 0;
+          dataCurr[month] += rawDataCurrent[i] || 0;
+        }
+      });
+    } else {
+      const weeks = Math.ceil(rawLabels.length / 7);
+      labels = Array.from({length: weeks}, (_, i) => `Week ${i + 1}`);
+      dataPrev = new Array(weeks).fill(0);
+      dataCurr = new Array(weeks).fill(0);
+      
+      rawDataPrevious.forEach((val, i) => {
+        const weekIndex = Math.floor(i / 7);
+        if (weekIndex < weeks) dataPrev[weekIndex] += val || 0;
+      });
+      rawDataCurrent.forEach((val, i) => {
+        const weekIndex = Math.floor(i / 7);
+        if (weekIndex < weeks) dataCurr[weekIndex] += val || 0;
+      });
+    }
+
+    yoyChart.data.labels = labels;
+    yoyChart.data.datasets[0].data = dataPrev;
+    yoyChart.data.datasets[1].data = dataCurr;
+    yoyChart.update();
+  }
+
+  // YoY Chart initialization
+  yoyChart = new Chart(document.getElementById('yoyChart'), {
+  type: 'line',
+  data: {
+    labels: rawLabels,
+    datasets: [{
+      label: previousYear,
+      data: rawDataPrevious,
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }, {
+      label: currentYear,
+      data: rawDataCurrent,
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        padding: 12,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (tooltipItems) => {
+            return tooltipItems[0].label;
+          },
+          label: (ctx) => {
+            return ctx.dataset.label + ': ₾' + ctx.parsed.y.toLocaleString();
+          },
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              const percentChange = previous > 0 ? ((change / previous) * 100).toFixed(1) : 0;
+              return [
+                '',
+                'Difference: ₾' + change.toLocaleString(),
+                'Change: ' + (change >= 0 ? '+' : '') + percentChange + '%'
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { maxTicksLimit: 20 }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { callback: (v) => '₾' + v.toLocaleString() }
+      }
+    }
+  }
+});
+  // Category Chart
+  const categoryChart = new Chart(document.getElementById('categoryChart'), {
+  type: 'polarArea',
+  data: {
+    labels: {{ category_labels|default:"[]"|safe }},
+    datasets: [{
+      data: {{ category_values|default:"[]"|safe }},
+      backgroundColor: [
+        '#667eea', '#10b981', '#3b82f6', '#fb923c', 
+        '#ec4899', '#06b6d4', '#8b5cf6', '#f59e0b'
+      ],
+      borderWidth: 2,
+      borderColor: '#0f1629'
+    }]
+  },
+  options: {
+
+    scales: {
+    r: {
+      grid: { color: 'rgba(255, 255, 255, 0.1)' },
+      angleLines: { display: false },
+      ticks: { display: false } // Hides the numbers on the rings
+    }
+  },
+  // .
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { 
+        position: 'bottom', 
+        labels: { 
+          padding: 15, 
+          usePointStyle: true,
+          font: { size: 11 }
+        } 
+      },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+        label: (ctx) => {
+          const value = ctx.raw; // Use raw instead of parsed
+          const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          const pct = ((value / total) * 100).toFixed(1);
+          return `${ctx.label}: ₾${value.toLocaleString()} (${pct}%)`;
+        }
+      }
+    }
+  }
+}});
+
+  // Get data for additional metrics
+const rawTicketsCurrent = {{ tickets_values_current|default:"[]"|safe }};
+const rawTicketsPrevious = {{ tickets_values_previous|default:"[]"|safe }};
+const rawItemsCurrent = {{ items_values_current|default:"[]"|safe }};
+const rawItemsPrevious = {{ items_values_previous|default:"[]"|safe }};
+const rawBasketCurrent = {{ basket_values_current|default:"[]"|safe }};
+const rawBasketPrevious = {{ basket_values_previous|default:"[]"|safe }};
+
+let ticketsChart, basketChart, quantityChart;
+
+// Tickets Chart
+ticketsChart = new Chart(document.getElementById('ticketsChart'), {
+  type: 'line',
+  data: {
+    labels: rawLabels,
+    datasets: [{
+      label: previousYear,
+      data: rawTicketsPrevious,
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }, {
+      label: currentYear,
+      data: rawTicketsCurrent,
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        padding: 12,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (tooltipItems) => {
+            return tooltipItems[0].label;
+          },
+          label: (ctx) => {
+            return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' tickets';
+          },
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              const percentChange = previous > 0 ? ((change / previous) * 100).toFixed(1) : 0;
+              return [
+                '',
+                'Difference: ' + change.toLocaleString() + ' tickets',
+                'Change: ' + (change >= 0 ? '+' : '') + percentChange + '%'
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { maxTicksLimit: 20 }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { callback: (v) => v.toLocaleString() }
+      }
+    }
+  }
+});
+// Average Basket Chart
+basketChart = new Chart(document.getElementById('basketChart'), {
+  type: 'line',
+  data: {
+    labels: rawLabels,
+    datasets: [{
+      label: previousYear,
+      data: rawBasketPrevious,
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }, {
+      label: currentYear,
+      data: rawBasketCurrent,
+      borderColor: '#fb923c',
+      backgroundColor: 'rgba(251, 146, 60, 0.1)',
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#fb923c',
+        borderWidth: 1,
+        padding: 12,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (tooltipItems) => {
+            return tooltipItems[0].label;
+          },
+          label: (ctx) => {
+            return ctx.dataset.label + ': ₾' + ctx.parsed.y.toFixed(2);
+          },
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              const percentChange = previous > 0 ? ((change / previous) * 100).toFixed(1) : 0;
+              return [
+                '',
+                'Difference: ₾' + change.toFixed(2),
+                'Change: ' + (change >= 0 ? '+' : '') + percentChange + '%'
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { maxTicksLimit: 20 }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { callback: (v) => '₾' + v.toFixed(2) }
+      }
+    }
+  }
+});
+// Quantity Chart
+quantityChart = new Chart(document.getElementById('quantityChart'), {
+  type: 'line',
+  data: {
+    labels: rawLabels,
+    datasets: [{
+      label: previousYear,
+      data: rawItemsPrevious,
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }, {
+      label: currentYear,
+      data: rawItemsCurrent,
+      borderColor: '#ec4899',
+      backgroundColor: 'rgba(236, 72, 153, 0.1)',
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#ec4899',
+        borderWidth: 1,
+        padding: 12,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (tooltipItems) => {
+            return tooltipItems[0].label;
+          },
+          label: (ctx) => {
+            return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' items';
+          },
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              const percentChange = previous > 0 ? ((change / previous) * 100).toFixed(1) : 0;
+              return [
+                '',
+                'Difference: ' + change.toLocaleString() + ' items',
+                'Change: ' + (change >= 0 ? '+' : '') + percentChange + '%'
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { maxTicksLimit: 20 }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { callback: (v) => v.toLocaleString() }
+      }
+    }
+  }
+});
+// Aggregation functions for new charts
+function aggregateTicketsChart(period) {
+  // Update button states
+  const chartCard = document.getElementById('ticketsChart').closest('.chart-card');
+  chartCard.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  let labels, dataPrev, dataCurr;
+
+  if (period === 'day') {
+    labels = rawLabels;
+    dataPrev = rawTicketsPrevious;
+    dataCurr = rawTicketsCurrent;
+  } else if (period === 'month') {
+    labels = monthNames;
+    dataPrev = new Array(12).fill(0);
+    dataCurr = new Array(12).fill(0);
+    
+    rawLabels.forEach((label, i) => {
+      const parts = label.split('/');
+      const month = parseInt(parts[0]) - 1;
+      if (month >= 0 && month < 12) {
+        dataPrev[month] += rawTicketsPrevious[i] || 0;
+        dataCurr[month] += rawTicketsCurrent[i] || 0;
+      }
+    });
+  } else {
+    const weeks = Math.ceil(rawLabels.length / 7);
+    labels = Array.from({length: weeks}, (_, i) => `Week ${i + 1}`);
+    dataPrev = new Array(weeks).fill(0);
+    dataCurr = new Array(weeks).fill(0);
+    
+    rawTicketsPrevious.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) dataPrev[weekIndex] += val || 0;
+    });
+    rawTicketsCurrent.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) dataCurr[weekIndex] += val || 0;
+    });
+  }
+
+  ticketsChart.data.labels = labels;
+  ticketsChart.data.datasets[0].data = dataPrev;
+  ticketsChart.data.datasets[1].data = dataCurr;
+  ticketsChart.update();
+}
+
+function aggregateBasketChart(period) {
+  // Update button states
+  const chartCard = document.getElementById('basketChart').closest('.chart-card');
+  chartCard.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  let labels, dataPrev, dataCurr;
+
+  if (period === 'day') {
+    labels = rawLabels;
+    dataPrev = rawBasketPrevious;
+    dataCurr = rawBasketCurrent;
+  } else if (period === 'month') {
+    labels = monthNames;
+    const revenuePrev = new Array(12).fill(0);
+    const revenueCurr = new Array(12).fill(0);
+    const ticketsPrev = new Array(12).fill(0);
+    const ticketsCurr = new Array(12).fill(0);
+    
+    rawLabels.forEach((label, i) => {
+      const parts = label.split('/');
+      const month = parseInt(parts[0]) - 1;
+      if (month >= 0 && month < 12) {
+        revenuePrev[month] += rawDataPrevious[i] || 0;
+        revenueCurr[month] += rawDataCurrent[i] || 0;
+        ticketsPrev[month] += rawTicketsPrevious[i] || 0;
+        ticketsCurr[month] += rawTicketsCurrent[i] || 0;
+      }
+    });
+    
+    dataPrev = revenuePrev.map((rev, i) => ticketsPrev[i] > 0 ? rev / ticketsPrev[i] : 0);
+    dataCurr = revenueCurr.map((rev, i) => ticketsCurr[i] > 0 ? rev / ticketsCurr[i] : 0);
+  } else {
+    const weeks = Math.ceil(rawLabels.length / 7);
+    labels = Array.from({length: weeks}, (_, i) => `Week ${i + 1}`);
+    const revenuePrev = new Array(weeks).fill(0);
+    const revenueCurr = new Array(weeks).fill(0);
+    const ticketsPrev = new Array(weeks).fill(0);
+    const ticketsCurr = new Array(weeks).fill(0);
+    
+    rawDataPrevious.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) revenuePrev[weekIndex] += val || 0;
+    });
+    rawDataCurrent.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) revenueCurr[weekIndex] += val || 0;
+    });
+    rawTicketsPrevious.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) ticketsPrev[weekIndex] += val || 0;
+    });
+    rawTicketsCurrent.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) ticketsCurr[weekIndex] += val || 0;
+    });
+    
+    dataPrev = revenuePrev.map((rev, i) => ticketsPrev[i] > 0 ? rev / ticketsPrev[i] : 0);
+    dataCurr = revenueCurr.map((rev, i) => ticketsCurr[i] > 0 ? rev / ticketsCurr[i] : 0);
+  }
+
+  basketChart.data.labels = labels;
+  basketChart.data.datasets[0].data = dataPrev;
+  basketChart.data.datasets[1].data = dataCurr;
+  basketChart.update();
+}
+
+function aggregateQuantityChart(period) {
+  // Update button states
+  const chartCard = document.getElementById('quantityChart').closest('.chart-card');
+  chartCard.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  let labels, dataPrev, dataCurr;
+
+  if (period === 'day') {
+    labels = rawLabels;
+    dataPrev = rawItemsPrevious;
+    dataCurr = rawItemsCurrent;
+  } else if (period === 'month') {
+    labels = monthNames;
+    dataPrev = new Array(12).fill(0);
+    dataCurr = new Array(12).fill(0);
+    
+    rawLabels.forEach((label, i) => {
+      const parts = label.split('/');
+      const month = parseInt(parts[0]) - 1;
+      if (month >= 0 && month < 12) {
+        dataPrev[month] += rawItemsPrevious[i] || 0;
+        dataCurr[month] += rawItemsCurrent[i] || 0;
+      }
+    });
+  } else {
+    const weeks = Math.ceil(rawLabels.length / 7);
+    labels = Array.from({length: weeks}, (_, i) => `Week ${i + 1}`);
+    dataPrev = new Array(weeks).fill(0);
+    dataCurr = new Array(weeks).fill(0);
+    
+    rawItemsPrevious.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) dataPrev[weekIndex] += val || 0;
+    });
+    rawItemsCurrent.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) dataCurr[weekIndex] += val || 0;
+    });
+  }
+
+  quantityChart.data.labels = labels;
+  quantityChart.data.datasets[0].data = dataPrev;
+  quantityChart.data.datasets[1].data = dataCurr;
+  quantityChart.update();
+}
+
+
+const rawSingleItemCurrent = {{ single_item_pct_current|default:"[]"|safe }};
+const rawSingleItemPrevious = {{ single_item_pct_previous|default:"[]"|safe }};
+const rawCrossSellCurrent = {{ cross_sell_pct_current|default:"[]"|safe }};
+const rawCrossSellPrevious = {{ cross_sell_pct_previous|default:"[]"|safe }};
+
+let singleItemChart, crossSellChart;
+// Initialize Single Item Chart
+singleItemChart = new Chart(document.getElementById('singleItemChart'), {
+  type: 'line',
+  data: {
+    labels: rawLabels,
+    datasets: [{
+      label: previousYear,
+      data: rawSingleItemPrevious,
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }, {
+      label: currentYear,
+      data: rawSingleItemCurrent,
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#ef4444',
+        borderWidth: 1,
+        padding: 12,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (tooltipItems) => tooltipItems[0].label,
+          label: (ctx) => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%',
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              return [
+                '',
+                'Difference: ' + (change >= 0 ? '+' : '') + change.toFixed(1) + '%'
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { maxTicksLimit: 20 }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { 
+          callback: (v) => v.toFixed(1) + '%',
+          min: 0,
+          max: 100
+        }
+      }
+    }
+  }
+});
+// Initialize Cross-Sell Chart
+crossSellChart = new Chart(document.getElementById('crossSellChart'), {
+  type: 'line',
+  data: {
+    labels: rawLabels,
+    datasets: [{
+      label: previousYear,
+      data: rawCrossSellPrevious,
+      borderColor: '#94a3b8',
+      backgroundColor: 'rgba(148, 163, 184, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }, {
+      label: currentYear,
+      data: rawCrossSellCurrent,
+      borderColor: '#fb923c',
+      backgroundColor: 'rgba(251, 146, 60, 0.1)',
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#fb923c',
+        borderWidth: 1,
+        padding: 12,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (tooltipItems) => tooltipItems[0].label,
+          label: (ctx) => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%',
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              return [
+                '',
+                'Difference: ' + (change >= 0 ? '+' : '') + change.toFixed(1) + '%'
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { maxTicksLimit: 20 }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { 
+          callback: (v) => v.toFixed(1) + '%',
+          min: 0,
+          max: 100
+        }
+      }
+    }
+  }
+});
+// Aggregation function for Single Item Chart
+function aggregateSingleItemChart(period) {
+  const chartCard = document.getElementById('singleItemChart').closest('.chart-card');
+  chartCard.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  let labels, dataPrev, dataCurr;
+
+  if (period === 'day') {
+    labels = rawLabels;
+    dataPrev = rawSingleItemPrevious;
+    dataCurr = rawSingleItemCurrent;
+  } else if (period === 'month') {
+    labels = monthNames;
+    const countPrev = new Array(12).fill(0);
+    const countCurr = new Array(12).fill(0);
+    const totalPrev = new Array(12).fill(0);
+    const totalCurr = new Array(12).fill(0);
+    
+    rawLabels.forEach((label, i) => {
+      const parts = label.split('/');
+      const month = parseInt(parts[0]) - 1;
+      if (month >= 0 && month < 12) {
+        // Weight by total tickets at that date
+        const weightPrev = rawTicketsPrevious[i] || 0;
+        const weightCurr = rawTicketsCurrent[i] || 0;
+        
+        countPrev[month] += (rawSingleItemPrevious[i] || 0) * weightPrev;
+        totalPrev[month] += weightPrev;
+        countCurr[month] += (rawSingleItemCurrent[i] || 0) * weightCurr;
+        totalCurr[month] += weightCurr;
+      }
+    });
+    
+    dataPrev = countPrev.map((val, i) => totalPrev[i] > 0 ? val / totalPrev[i] : 0);
+    dataCurr = countCurr.map((val, i) => totalCurr[i] > 0 ? val / totalCurr[i] : 0);
+  } else { // week
+    const weeks = Math.ceil(rawLabels.length / 7);
+    labels = Array.from({length: weeks}, (_, i) => `Week ${i + 1}`);
+    const countPrev = new Array(weeks).fill(0);
+    const countCurr = new Array(weeks).fill(0);
+    const totalPrev = new Array(weeks).fill(0);
+    const totalCurr = new Array(weeks).fill(0);
+    
+    rawSingleItemPrevious.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) {
+        const weight = rawTicketsPrevious[i] || 0;
+        countPrev[weekIndex] += val * weight;
+        totalPrev[weekIndex] += weight;
+      }
+    });
+    
+    rawSingleItemCurrent.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) {
+        const weight = rawTicketsCurrent[i] || 0;
+        countCurr[weekIndex] += val * weight;
+        totalCurr[weekIndex] += weight;
+      }
+    });
+    
+    dataPrev = countPrev.map((val, i) => totalPrev[i] > 0 ? val / totalPrev[i] : 0);
+    dataCurr = countCurr.map((val, i) => totalCurr[i] > 0 ? val / totalCurr[i] : 0);
+  }
+
+  singleItemChart.data.labels = labels;
+  singleItemChart.data.datasets[0].data = dataPrev;
+  singleItemChart.data.datasets[1].data = dataCurr;
+  singleItemChart.update();
+}
+// Aggregation function for Cross-Sell Chart
+function aggregateCrossSellChart(period) {
+  const chartCard = document.getElementById('crossSellChart').closest('.chart-card');
+  chartCard.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  let labels, dataPrev, dataCurr;
+
+  if (period === 'day') {
+    labels = rawLabels;
+    dataPrev = rawCrossSellPrevious;
+    dataCurr = rawCrossSellCurrent;
+  } else if (period === 'month') {
+    labels = monthNames;
+    const countPrev = new Array(12).fill(0);
+    const countCurr = new Array(12).fill(0);
+    const totalPrev = new Array(12).fill(0);
+    const totalCurr = new Array(12).fill(0);
+    
+    rawLabels.forEach((label, i) => {
+      const parts = label.split('/');
+      const month = parseInt(parts[0]) - 1;
+      if (month >= 0 && month < 12) {
+        const weightPrev = rawTicketsPrevious[i] || 0;
+        const weightCurr = rawTicketsCurrent[i] || 0;
+        
+        countPrev[month] += (rawCrossSellPrevious[i] || 0) * weightPrev;
+        totalPrev[month] += weightPrev;
+        countCurr[month] += (rawCrossSellCurrent[i] || 0) * weightCurr;
+        totalCurr[month] += weightCurr;
+      }
+    });
+    
+    dataPrev = countPrev.map((val, i) => totalPrev[i] > 0 ? val / totalPrev[i] : 0);
+    dataCurr = countCurr.map((val, i) => totalCurr[i] > 0 ? val / totalCurr[i] : 0);
+  } else { // week
+    const weeks = Math.ceil(rawLabels.length / 7);
+    labels = Array.from({length: weeks}, (_, i) => `Week ${i + 1}`);
+    const countPrev = new Array(weeks).fill(0);
+    const countCurr = new Array(weeks).fill(0);
+    const totalPrev = new Array(weeks).fill(0);
+    const totalCurr = new Array(weeks).fill(0);
+    
+    rawCrossSellPrevious.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) {
+        const weight = rawTicketsPrevious[i] || 0;
+        countPrev[weekIndex] += val * weight;
+        totalPrev[weekIndex] += weight;
+      }
+    });
+    
+    rawCrossSellCurrent.forEach((val, i) => {
+      const weekIndex = Math.floor(i / 7);
+      if (weekIndex < weeks) {
+        const weight = rawTicketsCurrent[i] || 0;
+        countCurr[weekIndex] += val * weight;
+        totalCurr[weekIndex] += weight;
+      }
+    });
+    
+    dataPrev = countPrev.map((val, i) => totalPrev[i] > 0 ? val / totalPrev[i] : 0);
+    dataCurr = countCurr.map((val, i) => totalCurr[i] > 0 ? val / totalCurr[i] : 0);
+  }
+
+  crossSellChart.data.labels = labels;
+  crossSellChart.data.datasets[0].data = dataPrev;
+  crossSellChart.data.datasets[1].data = dataCurr;
+  crossSellChart.update();
+}
+// Define your location groups
+const locationGroups = {
+  Full_2025: [
+    'გალერია',
+    'გუდვილი 2 ',
+    'ბათუმი მეტრო მოლი',
+    'პეკინი ',
+    'ბათუმი გრანდ მოლი',
+    'ისტ პოინტი',
+    'გლდანი',
+    'რუსთავი',
+    'გლდანი სითი მოლი',
+    'ვაკე 1',
+    'პლეხანოვი ',
+    'გორი',
+    'ბათუმი1',
+    'გუდვილი',
+    'მერანი'
+  ],
+
+  LFL_2025: [
+    'გალერია',
+    'გუდვილი 2 ',
+    'ბათუმი მეტრო მოლი',
+    'პეკინი ',
+    'ბათუმი გრანდ მოლი',
+    'ისტ პოინტი',
+    'გლდანი',
+    'რუსთავი',
+    'გლდანი სითი მოლი',
+    'ვაკე 1',
+    'პლეხანოვი ',
+    'გუდვილი',
+    'მერანი'
+  ],
+
+   Full_2026: [
+    'გალერია',
+    'გუდვილი 2 ',
+    'ბათუმი მეტრო მოლი',
+    'პეკინი ',
+    'ბათუმი გრანდ მოლი',
+    'ისტ პოინტი',
+    'გლდანი',
+    'რუსთავი',
+    'გლდანი სითი მოლი',
+    'ვაკე 1',
+    'პლეხანოვი ',
+    'გუდვილი',
+    'გორი',
+    'მერანი'
+  ],
+  // tbilisi: [...],
+  // regions: [...],
+  // top5: [...],
+  all: []
+};
+
+function selectLocationGroup(groupName) {
+  const select = $('#location-select');
+  
+  if (groupName === 'all') {
+    // Select all options
+    select.val('all').trigger('change');
+  } else if (locationGroups[groupName]) {
+    const locations = locationGroups[groupName];
+    
+    if (locations.length === 0) {
+      // Empty array means select all
+      select.val('all').trigger('change');
+    } else if (select.prop('multiple')) {
+      // If it's a multi-select, select all locations in the group
+      select.val(locations).trigger('change');
+    } else {
+      // If it's a single select, select the first location
+      select.val(locations[0]).trigger('change');
+    }
+  } else {
+    console.warn(`Location group "${groupName}" not found`);
+  }
+  
+  // Optionally auto-submit the form
+  // $('#filterForm').submit();
+}</script>
+
+<script>
+// Get distribution data from Django
+const distLabels = {{ distribution_labels|safe }};
+const distCountsCurrent = {{ distribution_counts_current|safe }};
+const distCountsPrevious = {{ distribution_counts_previous|safe }};
+const distPctCurrent = {{ distribution_pct_current|safe }};
+const distPctPrevious = {{ distribution_pct_previous|safe }};
+
+// Distribution Count Chart
+const distributionCountChart = new Chart(document.getElementById('distributionCountChart'), {
+  type: 'bar',
+  data: {
+    labels: distLabels,
+    datasets: [{
+      label: previousYear,
+      data: distCountsPrevious,
+      backgroundColor: 'rgba(148, 163, 184, 0.6)',
+      borderColor: '#94a3b8',
+      borderWidth: 2
+    }, {
+      label: currentYear,
+      data: distCountsCurrent,
+      backgroundColor: 'rgba(16, 185, 129, 0.6)',
+      borderColor: '#10b981',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: (ctx) => {
+            const count = ctx.parsed.y;
+            return `${ctx.dataset.label}: ${count.toLocaleString()} tickets`;
+          },
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              const pctChange = previous > 0 ? ((change / previous) * 100).toFixed(1) : 0;
+              return [
+                '',
+                `Difference: ${change >= 0 ? '+' : ''}${change.toLocaleString()} tickets`,
+                `Change: ${change >= 0 ? '+' : ''}${pctChange}%`
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { color: '#94a3b8' }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { 
+          color: '#94a3b8',
+          callback: (v) => v.toLocaleString()
+        }
+      }
+    }
+  }
+});
+
+// Distribution Percentage Chart
+const distributionPctChart = new Chart(document.getElementById('distributionPctChart'), {
+  type: 'bar',
+  data: {
+    labels: distLabels,
+    datasets: [{
+      label: previousYear,
+      data: distPctPrevious,
+      backgroundColor: 'rgba(148, 163, 184, 0.6)',
+      borderColor: '#94a3b8',
+      borderWidth: 2
+    }, {
+      label: currentYear,
+      data: distPctCurrent,
+      backgroundColor: 'rgba(59, 130, 246, 0.6)',
+      borderColor: '#3b82f6',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        backgroundColor: '#0f1629',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: (ctx) => {
+            return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`;
+          },
+          afterBody: (tooltipItems) => {
+            if (tooltipItems.length === 2) {
+              const current = tooltipItems[1].parsed.y;
+              const previous = tooltipItems[0].parsed.y;
+              const change = current - previous;
+              return [
+                '',
+                `Difference: ${change >= 0 ? '+' : ''}${change.toFixed(1)}%`
+              ];
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: { display: false },
+        ticks: { color: '#94a3b8' }
+      },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { 
+          color: '#94a3b8',
+          callback: (v) => v.toFixed(1) + '%'
+        },
+        max: Math.max(...distPctCurrent, ...distPctPrevious) * 1.2
+      }
+    }
+  }
+});
+
+// Populate distribution table
+const tableBody = document.getElementById('distributionTableBody');
+distLabels.forEach((label, i) => {
+  const countPrev = distCountsPrevious[i];
+  const countCurr = distCountsCurrent[i];
+  const pctPrev = distPctPrevious[i];
+  const pctCurr = distPctCurrent[i];
+  
+  const countChange = countCurr - countPrev;
+  const pctChange = pctCurr - pctPrev;
+  
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><strong>₾${label}</strong></td>
+    <td>${countPrev.toLocaleString()}</td>
+    <td>${countCurr.toLocaleString()}</td>
+    <td class="${countChange >= 0 ? 'positive' : 'negative'}">
+      ${countChange >= 0 ? '+' : ''}${countChange.toLocaleString()}
+    </td>
+    <td>${pctPrev.toFixed(1)}%</td>
+    <td>${pctCurr.toFixed(1)}%</td>
+    <td class="${pctChange >= 0 ? 'positive' : 'negative'}">
+      ${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(1)}%
+    </td>
+  `;
+  tableBody.appendChild(row);
+});
+</script>
+
+<!-- filtering -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const locationSelect = document.getElementById('location-select');
+    const categorySelect = document.querySelector('select[name="category"]');
+    const productSelect = document.getElementById('product-select');
+    const campaignSelect = document.getElementById('campaign-select');
+    
+    // Function to update filter options via AJAX
+    function updateFilterOptions() {
+        // Get current selections
+        const formData = new FormData(document.getElementById('filterForm'));
+        const params = new URLSearchParams(formData);
+        
+        // Show loading state
+        [categorySelect, productSelect, campaignSelect].forEach(select => {
+            select.style.opacity = '0.6';
+            select.disabled = true;
+        });
+        
+        // Fetch new options
+        fetch(`/api/filter-options/?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update Categories
+                updateSelectOptions(categorySelect, data.categories, 'category', '{% trans "All Categories" %}');
+                
+                // Update Products
+                updateSelectOptions(productSelect, data.products, 'prod_filter', '{% trans "All Products" %}');
+                
+                // Update Campaigns
+                updateSelectOptions(campaignSelect, data.campaigns, 'campaign_filter', '{% trans "All Campaigns" %}');
+                
+                // Update Locations (if admin)
+                if (locationSelect && data.locations) {
+                    updateMultiSelectOptions(locationSelect, data.locations);
+                }
+                
+                // Remove loading state
+                [categorySelect, productSelect, campaignSelect].forEach(select => {
+                    select.style.opacity = '1';
+                    select.disabled = false;
+                });
+            })
+            .catch(error => {
+                console.error('Error updating filters:', error);
+                // Remove loading state on error
+                [categorySelect, productSelect, campaignSelect].forEach(select => {
+                    select.style.opacity = '1';
+                    select.disabled = false;
+                });
+            });
+    }
+    
+    // Helper function to update single-select dropdowns
+    function updateSelectOptions(selectElement, options, paramName, allLabel) {
+        const currentValue = selectElement.value;
+        
+        // Clear existing options
+        selectElement.innerHTML = '<option value="all">' + allLabel + '</option>';
+        
+        // Add new options
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = option;
+            if (option === currentValue) {
+                optionElement.selected = true;
+            }
+            selectElement.appendChild(optionElement);
+        });
+        
+        // If current selection is not in new options, reset to 'all'
+        if (currentValue !== 'all' && !options.includes(currentValue)) {
+            selectElement.value = 'all';
+        }
+    }
+    
+    // Helper function to update multi-select dropdowns
+    function updateMultiSelectOptions(selectElement, options) {
+        const currentValues = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+        
+        // Clear existing options
+        selectElement.innerHTML = '';
+        
+        // Add new options
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = option;
+            if (currentValues.includes(option)) {
+                optionElement.selected = true;
+            }
+            selectElement.appendChild(optionElement);
+        });
+    }
+    
+    // Attach change listeners to all filters
+    locationSelect?.addEventListener('change', updateFilterOptions);
+    categorySelect.addEventListener('change', updateFilterOptions);
+    productSelect.addEventListener('change', updateFilterOptions);
+    campaignSelect.addEventListener('change', updateFilterOptions);
+});
+</script>
+
+
+
+{% if request.user.profile.is_admin %}
+<!-- AI Chat Bubble — paste before </body> -->
+<style>
+/* EXPORT BUTTON */
+.yr-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 5px 12px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 6px;
+  color: #10b981;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all .15s;
+}
+.yr-export-btn:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10b981;
+}
+.yr-export-btn svg {
+  width: 12px; height: 12px; fill: #10b981;
+}
+
+.yr-fab{
+  position:fixed;
+  bottom:28px;
+  right:28px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:12px;
+  font-family:'Inter',sans-serif;
+}
+
+.yr-btn{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  border:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 4px 20px rgba(102,126,234,0.45);
+  transition:transform .2s,box-shadow .2s;
+}
+
+.yr-btn:hover{
+  transform:translateY(-3px) scale(1.05);
+  box-shadow:0 8px 28px rgba(102,126,234,0.6);
+}
+
+.yr-btn svg{
+  width:22px;
+  height:22px;
+  fill:white;
+}
+
+/* PANEL */
+.yr-panel{
+  width:800px;
+  height:700px;
+  max-width:92vw;
+  background:#0f1629;
+  border:1px solid #334155;
+  border-radius:16px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* HEADER */
+.yr-header{
+  padding:14px 16px;
+  background:linear-gradient(135deg,rgba(102,126,234,.15),rgba(118,75,162,.1));
+  border-bottom:1px solid #1e293b;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.yr-avatar{
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.yr-avatar svg{
+  width:16px;
+  height:16px;
+  fill:white;
+}
+
+.yr-head-text .yr-title{
+  font-size:16px;
+  font-weight:700;
+  color:#f1f5f9;
+}
+
+.yr-head-text .yr-sub{
+  font-size:13px;
+  color:#64748b;
+}
+
+.yr-close{
+  margin-left:auto;
+  background:none;
+  border:none;
+  color:#64748b;
+  cursor:pointer;
+  padding:4px;
+  border-radius:6px;
+  line-height:1;
+  font-size:18px;
+  transition:color .15s;
+}
+
+.yr-close:hover{
+  color:#f1f5f9;
+}
+
+/* MESSAGES AREA */
+.yr-messages{
+  flex:1;
+  overflow-y:auto;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.yr-messages::-webkit-scrollbar{
+  width:4px;
+}
+
+.yr-messages::-webkit-scrollbar-thumb{
+  background:#334155;
+  border-radius:2px;
+}
+
+/* MESSAGE BUBBLES */
+.yr-msg{
+  max-width:100%;
+  padding:9px 12px;
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.yr-msg.bot{
+  background:#1e293b;
+  color:#e4e4e7;
+  border-bottom-left-radius:3px;
+  align-self:flex-start;
+}
+
+.yr-msg.user{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+  border-bottom-right-radius:3px;
+  align-self:flex-end;
+}
+
+.yr-msg.error{
+  background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);
+  color:#fca5a5;
+}
+
+.yr-msg.thinking{
+  color:#64748b;
+  font-style:italic;
+}
+
+/* TABLE RESULTS */
+.yr-result-table{
+  width:100%;
+  min-width:600px;
+  border-collapse:collapse;
+  font-size:15px;
+  margin-top:6px;
+}
+
+.yr-result-table th{
+  background:#0f1629;
+  color:#94a3b8;
+  padding:6px 10px;
+  text-align:left;
+  font-weight:600;
+  text-transform:uppercase;
+  font-size:10px;
+  letter-spacing:.4px;
+  border-bottom:1px solid #334155;
+}
+
+.yr-result-table td{
+  padding:6px 10px;
+  border-bottom:1px solid #1e293b;
+  color:#e4e4e7;
+}
+
+.yr-result-table tr:last-child td{
+  border-bottom:none;
+}
+
+/* SQL BLOCK */
+.yr-sql{
+  font-family:monospace;
+  font-size:11px;
+  color:#94a3b8;
+  background:#0a0e27;
+  padding:8px 10px;
+  border-radius:6px;
+  margin-top:6px;
+  word-break:break-all;
+  border-left:3px solid #334155;
+}
+
+/* CHIPS */
+.yr-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:0 14px 10px;
+}
+
+.yr-chip{
+  padding:5px 10px;
+  background:#1e293b;
+  border:1px solid #334155;
+  border-radius:20px;
+  color:#94a3b8;
+  font-size:11px;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+
+.yr-chip:hover{
+  background:rgba(102,126,234,.15);
+  border-color:#667eea;
+  color:#667eea;
+}
+
+/* INPUT AREA */
+.yr-input-row{
+  padding:10px 14px;
+  border-top:1px solid #1e293b;
+  display:flex;
+  gap:8px;
+  align-items:flex-end;
+}
+
+.yr-input{
+  flex:1;
+  background:#1e293b;
+  border:1px solid #334155;
+  border-radius:10px;
+  color:#e4e4e7;
+  font-size:13px;
+  padding:9px 12px;
+  resize:none;
+  outline:none;
+  font-family:'Inter',sans-serif;
+  max-height:80px;
+  line-height:1.4;
+  transition:border-color .2s;
+}
+
+.yr-input::placeholder{
+  color:#475569;
+}
+
+.yr-input:focus{
+  border-color:#667eea;
+}
+
+.yr-send{
+  width:34px;
+  height:34px;
+  border-radius:8px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  border:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  transition:transform .15s,opacity .15s;
+}
+
+.yr-send:hover{
+  transform:scale(1.08);
+}
+
+.yr-send:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.yr-send svg{
+  width:14px;
+  height:14px;
+  fill:white;
+}
+
+/* THINKING ANIMATION */
+.yr-dot{
+  display:inline-block;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#667eea;
+  animation:yr-bounce .9s infinite ease-in-out;
+  margin:0 2px;
+}
+
+.yr-dot:nth-child(2){
+  animation-delay:.15s;
+}
+
+.yr-dot:nth-child(3){
+  animation-delay:.3s;
+}
+
+@keyframes yr-bounce{
+  0%,80%,100%{transform:translateY(0);}
+  40%{transform:translateY(-5px);}
+}
+
+.yr-badge{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  background:#10b981;
+  border-radius:50%;
+  margin-left:4px;
+}
+</style>
+
+<div class="yr-fab" id="yrFab">
+  <div class="yr-panel" id="yrPanel" style="display:none;">
+    <div class="yr-header">
+      <div class="yr-avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.73V7h1a7 7 0 0 1 7 7H3a7 7 0 0 1 7-7h1V5.73c-.6-.35-1-.99-1-1.73a2 2 0 0 1 2-2zM7.5 14.5A1.5 1.5 0 1 0 7.5 17.5 1.5 1.5 0 0 0 7.5 14.5zM16.5 14.5A1.5 1.5 0 1 0 16.5 17.5 1.5 1.5 0 0 0 16.5 14.5zM21 21H3v-1.5l1.5-3h15l1.5 3V21z"/></svg>
+      </div>
+      <div class="yr-head-text">
+        <div class="yr-title">AI Analytics <span class="yr-badge"></span></div>
+        <div class="yr-sub">Ask anything about your data</div>
+      </div>
+      <button class="yr-close" id="yrClose">×</button>
+    </div>
+    <div class="yr-messages" id="yrMessages">
+      <div class="yr-msg bot">👋 Hi! Ask me anything about your sales data — revenue, tickets, categories, employees, or trends.</div>
+    </div>
+    <div class="yr-chips" id="yrChips">
+      <span class="yr-chip" onclick="yrSendChip(this)">Total turnover 2024</span>
+      <span class="yr-chip" onclick="yrSendChip(this)">Top 5 products by revenue</span>
+      <span class="yr-chip" onclick="yrSendChip(this)">Monthly revenue this year</span>
+      <span class="yr-chip" onclick="yrSendChip(this)">Best employee last month</span>
+    </div>
+    <div class="yr-input-row">
+      <textarea class="yr-input" id="yrInput" placeholder="e.g. What was revenue in March 2024?" rows="1"></textarea>
+      <button class="yr-send" id="yrSend">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="yr-btn" id="yrToggle" title="AI Assistant">
+    <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.73V7h1a7 7 0 0 1 7 7H3a7 7 0 0 1 7-7h1V5.73c-.6-.35-1-.99-1-1.73a2 2 0 0 1 2-2zM7.5 14.5A1.5 1.5 0 1 0 7.5 17.5 1.5 1.5 0 0 0 7.5 14.5zM16.5 14.5A1.5 1.5 0 1 0 16.5 17.5 1.5 1.5 0 0 0 16.5 14.5zM21 21H3v-1.5l1.5-3h15l1.5 3V21z"/></svg>
+  </button>
+</div>
+
+<script>
+const panel=document.getElementById('yrPanel');
+const msgs=document.getElementById('yrMessages');
+const input=document.getElementById('yrInput');
+const sendBtn=document.getElementById('yrSend');
+const chips=document.getElementById('yrChips');
+
+// Track the last successful SQL for export
+let lastSql = null;
+
+document.getElementById('yrToggle').onclick=()=>{
+  panel.style.display=panel.style.display==='none'?'flex':'none';
+  if(panel.style.display==='flex'){panel.style.flexDirection='column';input.focus();}
+};
+document.getElementById('yrClose').onclick=()=>{panel.style.display='none';};
+
+function getCsrf(){const m=document.cookie.match(/csrftoken=([^;]+)/);return m?m[1]:'';}
+
+function addMsg(text,role){
+  const d=document.createElement('div');
+  d.className='yr-msg '+role;
+  d.textContent=text;
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+
+function addExportButton(sql) {
+  const btn = document.createElement('button');
+  btn.className = 'yr-export-btn';
+  btn.innerHTML = `
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm-2 8l-3-3h2v-4h2v4h2l-3 3z"/></svg>
+    Export to Excel
+  `;
+  btn.onclick = () => exportToExcel(sql, btn);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'yr-msg bot';
+  wrap.style.maxWidth = '100%';
+  wrap.style.paddingTop = '4px';
+  wrap.style.paddingBottom = '4px';
+  wrap.appendChild(btn);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function exportToExcel(sql, btn) {
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+    Exporting…
+  `;
+  try {
+    const r = await fetch('/api/export-excel/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+      body: JSON.stringify({sql})   // send pre-generated SQL directly
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      addMsg('Export failed: ' + err.error, 'error');
+      btn.disabled = false;
+      btn.innerHTML = original;
+      return;
+    }
+    // Get filename from Content-Disposition header if available
+    const disposition = r.headers.get('Content-Disposition') || '';
+    const nameMatch = disposition.match(/filename="(.+?)"/);
+    const filename = nameMatch ? nameMatch[1] : 'export.xlsx';
+
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+      Downloaded!
+    `;
+    btn.style.color = '#10b981';
+    setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2500);
+  } catch(e) {
+    addMsg('Export error — please try again.', 'error');
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
+
+function addTable(columns, rows, sql){
+  const wrap=document.createElement('div');
+  wrap.className='yr-msg bot';wrap.style.maxWidth='100%';
+  const count=document.createElement('div');
+  count.style.cssText='font-size:11px;color:#64748b;margin-bottom:6px;';
+  count.textContent=rows.length+' row'+(rows.length!==1?'s':'')+' returned';
+  wrap.appendChild(count);
+  if(rows.length){
+    const t=document.createElement('table');t.className='yr-result-table';
+    const thead=t.createTHead();const hr=thead.insertRow();
+    columns.forEach(c=>{const th=document.createElement('th');th.textContent=c;hr.appendChild(th);});
+    const tb=t.createTBody();
+    rows.slice(0,20).forEach(row=>{
+      const tr=tb.insertRow();
+      columns.forEach(c=>{
+        const td=tr.insertCell();const v=row[c];
+        td.textContent=v===null||v===undefined?'—':typeof v==='number'&&!Number.isInteger(v)?parseFloat(v).toFixed(2):v;
+      });
+    });
+    wrap.appendChild(t);
+    if(rows.length>20){
+      const n=document.createElement('div');
+      n.style.cssText='font-size:11px;color:#64748b;margin-top:4px;';
+      n.textContent='Showing first 20 of '+rows.length+' rows';
+      wrap.appendChild(n);
+    }
+  }
+  msgs.appendChild(wrap);
+  msgs.scrollTop=msgs.scrollHeight;
+
+  // Add export button after the table (only if there are results)
+  if(rows.length > 0) addExportButton(sql);
+}
+
+function addSql(sql){
+  const d=document.createElement('div');d.className='yr-msg bot';d.style.maxWidth='100%';
+  const lbl=document.createElement('div');
+  lbl.style.cssText='font-size:10px;color:#475569;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;';
+  lbl.textContent='Generated SQL';
+  const code=document.createElement('div');code.className='yr-sql';code.textContent=sql;
+  d.appendChild(lbl);d.appendChild(code);msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showThinking(){
+  const d=document.createElement('div');d.className='yr-msg bot thinking';d.id='yrThinking';
+  d.innerHTML='<span class="yr-dot"></span><span class="yr-dot"></span><span class="yr-dot"></span>';
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function hideThinking(){const t=document.getElementById('yrThinking');if(t)t.remove();}
+
+async function yrAsk(prompt){
+  if(!prompt.trim())return;
+  chips.style.display='none';
+  addMsg(prompt,'user');
+  input.value='';input.style.height='auto';
+  sendBtn.disabled=true;showThinking();
+  try{
+    const r=await fetch('/api/ai-query/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},
+      body:JSON.stringify({prompt})
+    });
+    const data=await r.json();
+    hideThinking();
+    if(data.error){addMsg('Error: '+data.error,'error');if(data.sql)addSql(data.sql);}
+    else{
+      addTable(data.columns, data.rows, data.sql);  // pass sql to addTable
+      addSql(data.sql);
+    }
+  }catch(e){hideThinking();addMsg('Network error — please try again.','error');}
+  sendBtn.disabled=false;
+}
+
+function yrSendChip(el){yrAsk(el.textContent);}
+sendBtn.onclick=()=>yrAsk(input.value);
+input.onkeydown=(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();yrAsk(input.value);}};
+input.oninput=()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,80)+'px';};
+</script>
+
+{% endif %}
+
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+updates sector
+
+
+
+1. add glow energie tab( like add section where we look at certain point whether it is competition or something liek that)
+2. responsive( later)
+3. client identification rate
