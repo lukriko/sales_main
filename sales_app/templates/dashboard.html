@@ -661,7 +661,7 @@
         <!-- <li class="nav-item"><a href="{% url 'query' %}" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Query" %}</span></a></li> -->
         <!-- <li class="nav-item"><a href="{% url 'client' %}" target="_blank" class="nav-link"><i class="fas fa-user"></i><span>{% trans "Client" %}</span></a></li> -->
         <li class="nav-item"><a href="{% url 'employee_analytics' %}" class="nav-link"><i class="fas fa-users"></i><span>{% trans "Employee Analytics" %}</span></a></li>
-        <!-- <li class="nav-item"><a href="{% url 'competitive' %}" target="_blank" class="nav-link"><i class="fas fa-lightbulb"></i><span></span></a></li> -->
+        <li class="nav-item"><a href="{% url 'competitive' %}" target="_blank" class="nav-link"><i class="fas fa-lightbulb"></i><span></span></a></li>
         <li class="nav-item"><a href="{% url 'bonus' %}" target="_blank" class="nav-link"><i class="fas fa-gift"></i><span></span></a></li>
         <!-- <li class="nav-item"><a href="{% url 'admin_main_only_me' %}" target="_blank" class="nav-link"><i class="fas fa-dollar-sign"></i><span></span></a></li> -->
         <!-- <li class="nav-item"><a href="{% url 'insights' %}" class="nav-link"><i class="fas fa-lightbulb"></i><span>{% trans "Insights" %}</span></a></li>
@@ -1286,8 +1286,31 @@ function toggleSection(btn) {
   ? rows.reduce((a, r) => a + (parseFloat(r.dataset.revPrev) || 0) * (parseFloat(r.dataset.skincarePrev) || 0) / 100, 0) / totalRevP * 100
   : 0;
 
-document.getElementById('ft-skincare').innerHTML = skincareC.toFixed(1) + '% ' + pill(chg(skincareC, skincareP));
-// at the bottom of calcFooter:
+
+  // After avgSingleItem, add:
+const avgCrossSellPrev  = tixC > 0
+  ? rows.reduce((a, r) => {
+      const t    = parseFloat(r.dataset.tixCurr) || 0;
+      const curr = parseFloat(r.dataset.crossSellRate) || 0;
+      const chgV = parseFloat(r.dataset.crossSellChg) || 0;
+      const prev = chgV !== 0 ? curr / (1 + chgV / 100) : curr;
+      return a + t * prev / 100;
+    }, 0) / tixC * 100
+  : 0;
+
+const avgSingleItemPrev = tixC > 0
+  ? rows.reduce((a, r) => {
+      const t    = parseFloat(r.dataset.tixCurr) || 0;
+      const curr = parseFloat(r.dataset.singleItemRate) || 0;
+      const chgV = parseFloat(r.dataset.singleItemChg) || 0;
+      const prev = chgV !== 0 ? curr / (1 + chgV / 100) : curr;
+      return a + t * prev / 100;
+    }, 0) / tixC * 100
+  : 0;
+
+// Then update the two footer lines:
+    document.getElementById('ft-cross-sell').innerHTML  = avgCrossSell.toFixed(1)+'% '+pill(chg(avgCrossSell, avgCrossSellPrev));
+    document.getElementById('ft-single-item').innerHTML = avgSingleItem.toFixed(1)+'% '+pill(chg(avgSingleItem, avgSingleItemPrev), true);
     document.getElementById('ft-skincare').innerHTML = skincareC.toFixed(1) + '% ' + pill(chg(skincareC, skincareP));
     document.getElementById('ft-rev-curr').innerHTML    = `${fmt(revC)} ${pill(chg(revC, revP))}`;
     document.getElementById('ft-tix-curr').innerHTML    = `${tixC.toLocaleString()} ${pill(chg(tixC, tixP))}`;
@@ -1296,8 +1319,6 @@ document.getElementById('ft-skincare').innerHTML = skincareC.toFixed(1) + '% ' +
     document.getElementById('ft-median').innerHTML      = '₾'+median.toFixed(2);
     document.getElementById('ft-id-rate').innerHTML     = avgId.toFixed(1)+'% '+pill(chg(avgId, avgIdPrev));
     document.getElementById('ft-discount').innerHTML    = avgDisc.toFixed(1)+'% '+pill(chg(avgDisc, avgDiscPrev), true);
-    document.getElementById('ft-cross-sell').innerHTML  = avgCrossSell.toFixed(1)+'%';
-    document.getElementById('ft-single-item').innerHTML = avgSingleItem.toFixed(1)+'%';
   }
 
   window.sortLocTable = function(key) {

@@ -1540,8 +1540,8 @@ def plan_workflow(request):
     
     # Get filter parameters
     selected_year = request.GET.get('year', '2026')
-    selected_start_month = request.GET.get('start_month', '1')
-    selected_end_month = request.GET.get('end_month', '12')
+    selected_start_month = request.GET.get('start_month', '3')
+    selected_end_month = request.GET.get('end_month', '3')
     selected_geo = request.GET.get('location', 'all')
     
     # SECURITY CHECK: Validate location access
@@ -2723,10 +2723,17 @@ def employee_analytics(request):
         current_year, previous_year = 2026, 2024
     else:
         current_year, previous_year = 2025, 2024
-    
+    today = date.today()
+    month_current = today.month
+    start_date = 1
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    if len(str(month_current)) > 1:
+        month_current = month_current   
+    else:
+        month_current = '0' + str(month_current)
     # Date parsing
-    start_date_str = request.GET.get('start_date', f'{current_year}-01-01')
-    end_date_str = request.GET.get('end_date', f'{current_year}-12-31')
+    start_date_str = request.GET.get('start_date', f'{current_year}-{month_current}-{start_date}')
+    end_date_str = request.GET.get('end_date', f'{current_year}-{month_current}-{last_day}')
     
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -3934,8 +3941,8 @@ def competitive(request):
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
     GLOW_CODES = ['3660005036502', '3660005817910', '3660005841410', '3660005867137', '3660005894508', '3660005913261']
     
-    start_date = request.GET.get('start_date', '2026-02-01')
-    end_date = request.GET.get('end_date', '2026-02-28')
+    start_date = request.GET.get('start_date', '2026-04-01')
+    end_date = request.GET.get('end_date', '2026-04-30')
     
     with connection.cursor() as cursor:
         
