@@ -4028,18 +4028,13 @@ def bonus(request):
 
     with connection.cursor() as cursor:
         cursor.execute("""
-                       with date_filtered_base_cte as (
+                      with date_filtered_base_cte as (
     select 
         "Tanam", 
         "ProdG", 
         "Tanxa", 
         "Zedd",
-        case
-            when trim("Tanam") = 'ეკატერინე ჩოხელი' then 'გუდვილი 2 '
-            when trim("Tanam") = 'ნათია კოკოლაშვილი' then 'გლდანი სითი მოლი'
-            when trim("Tanam") = 'მაკა ყინჩიყიძე' then 'გუდვილი'
-            else "UN"
-        end as "UN"
+        "UN"
     from sales_main_web
     where extract(year from "CD") = %s
       and extract(month from "CD") = %s
@@ -4197,20 +4192,31 @@ cte_consultant_count as (
     group by "UN"
 ),
 
+cte_total_headcount as (
+    select "UN",
+        count(distinct "Tanam") as total_headcount
+    from managers_not_cte
+    group by "UN"
+),
+
 total_base_per_employee as (
     select  
         c."Tanam",
         c."manager",
         c."UN",
         round(c."skincare_percentage"::numeric, 3) as skincare_percentage,
-        round(case 
-            when c."manager" = 0 then c.total_turnover
-            else ut.un_total_turnover - coalesce(zb.zedd_total, 0) + coalesce(ze.zedd_share, 0)
+        round(case
+            when c."manager" = 1 then ut.un_total_turnover
+            else c.total_turnover + (mgr.total_turnover / NULLIF(hc.total_headcount, 0))
         end::numeric, 3) as total_turnover,
-        round(case 
-            when c."manager" = 0 then c.total_turnover + coalesce(ze.zedd_share, 0)
-            else ut.un_total_turnover - coalesce(zb.zedd_total, 0) + coalesce(ze.zedd_share, 0)
+        round(case
+            when c."manager" = 1 then ut.un_total_turnover + coalesce(ze.zedd_share, 0)
+            else c.total_turnover + (mgr.total_turnover / NULLIF(hc.total_headcount, 0)) + coalesce(ze.zedd_share, 0)
         end::numeric, 3) as total_turnover_with_zedd,
+        round(case
+            when c."manager" = 1 then c.total_turnover / NULLIF(hc.total_headcount, 0)
+            else c.total_turnover + (mgr.total_turnover / NULLIF(hc.total_headcount, 0))
+        end::numeric, 3) as bonus_turnover,
         coalesce(ze.zedd_share, 0) as zedd_share,
         round(c1.cross_selling_percentage::numeric, 3) as cross_selling_percentage,
         p.plan,
@@ -4220,11 +4226,12 @@ total_base_per_employee as (
         end as individual_plan
     from cte_skincare_per c
     left join cte_cross_main c1 on c1."Tanam" = c."Tanam"
-    left join cte_un_turnover ut on ut."UN" = c."UN"
     left join plan_cte p on p."UN" = c."UN"
     left join cte_consultant_count cc on cc."UN" = c."UN"
     left join cte_zedd_per_employee ze on ze."UN" = c."UN"
-    left join cte_zedd_by_un zb on zb."UN" = c."UN"
+    left join cte_total_headcount hc on hc."UN" = c."UN"
+    left join cte_skincare_per mgr on mgr."UN" = c."UN" and mgr."manager" = 1
+    left join cte_un_turnover ut on ut."UN" = c."UN"
 ),
 
 calculated_steps_fixed as (
