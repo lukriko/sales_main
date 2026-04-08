@@ -4075,8 +4075,8 @@ def bonus(request):
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
 
     year = request.GET.get('year', 2026)
-    month = request.GET.get('month', 3)
-    working_days = request.GET.get('working_days', 31)
+    month = request.GET.get('month', 4)
+    working_days = request.GET.get('working_days', 30)
 
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -4092,44 +4092,29 @@ def bonus(request):
       and extract(month from "CD") = %s
 ),
 
+
 plan_cte as (
     select *
     from (values 
-    ('გუდვილი 2 ', 200000),
-    ('გალერია', 140000),
-    ('გლდანი', 100000),
-    ('პეკინი ', 95000),
-    ('ისტ პოინტი', 92000),
-    ('გლდანი სითი მოლი', 70000),
-    ('პლეხანოვი ', 68000),
-    ('ბათუმი მეტრო მოლი', 55000),
-    ('რუსთავი', 60000),
-    ('გუდვილი', 75000),
-    ('ვაკე 1', 75000),
-    ('ბათუმი გრანდ მოლი', 75000),
-    ('მერანი', 35000)
+    ('გუდვილი 2 ', 115000),
+    ('გალერია', 90000),
+    ('გლდანი', 61000),
+    ('პეკინი ', 60000),
+    ('ისტ პოინტი', 56000),
+    ('გლდანი სითი მოლი', 38000),
+    ('პლეხანოვი ', 39000),
+    ('ბათუმი მეტრო მოლი', 39000),
+    ('რუსთავი', 35000),
+    ('გუდვილი', 43000),
+    ('ვაკე 1', 42000),
+    ('ბათუმი გრანდ მოლი', 56000),
+    ('მერანი', 18000)
     ) as t("UN", plan)
 ),
 
 vacation_cte as (
     select * from (values
-        ('ქეთევან ინასარიძე', 3),
-        ('ნათია ჯანგულაშვილი', 3),
-        ('ანა სახელაშვილი', 2),
-        ('ლიკა დარისპანაშვილი', 1),
-        ('ლანა ნიკოლაიშვილი', 3),
-        ('ნათია კოკოლაშვილი', 2),
-        ('მეგი თურმანიძე', 1),
-        ('თამუნა ტაბატაძე', 3),
-        ('ლიზი ექსეულიძე', 6),
-        ('ინდირა მიქელაძე', 3),
-        ('ნინო ბერიძე', 1),
-        ('ელენე ფოფხაძე', 4),
-        ('მარიამ კუმარიტოვი', 1),
-        ('ნატო ანდღულაძე', 1),
-        ('თეა შავლოხაშვილი', 2),
-        ('ფიქრია გვაზავა', 5),
-        ('ნინო ინასარიძე', 6)
+        ('ნინო ინასარიძე', 0)
     ) as t("Tanam", days_absent)
 ),
 
@@ -4167,7 +4152,7 @@ cte_zedd_by_un as (
         sum("Tanxa") as zedd_total
     from sales_main_web
     where extract(year from "CD") = 2026
-      and extract(month from "CD") = 3
+      and extract(month from "CD") = 4
       and length("Zedd") = 10
     group by "UN"
 ),
