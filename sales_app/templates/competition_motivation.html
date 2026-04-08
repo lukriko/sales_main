@@ -227,6 +227,8 @@
           <th>Location</th>
           <th>Revenue</th>
           <th>Units</th>
+          <th>Plan</th>
+          <th>Ach%</th>
           <th>Share</th>
         </tr>
       </thead>
@@ -241,8 +243,21 @@
           <td><strong>{{ row.0 }}</strong></td>
           <td class="val-orange">${{ row.1|floatformat:0 }}</td>
           <td>
-            <span class="qty-badge"><i class="fas fa-box"></i> {{ row.2|floatformat:0 }}</span>
-          </td>
+              <span class="qty-badge"><i class="fas fa-box"></i> {{ row.2|floatformat:0 }}</span>
+            </td>
+
+            <td class="val-muted">
+              {{ row.5 }}
+            </td>
+
+            <td>
+              <div class="pct-bar-wrapper">
+                <div class="pct-bar-bg">
+                  <div class="pct-bar-fill fill-yellow" style="width: {{ row.6 }}%;"></div>
+                </div>
+                <span class="pct-value val-yellow">{{ row.6 }}%</span>
+              </div>
+            </td>
           <td>
             <div class="pct-bar-wrapper">
               <div class="pct-bar-bg">

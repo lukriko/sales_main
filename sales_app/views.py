@@ -3939,7 +3939,43 @@ def competitive(request):
     # ADMIN ONLY for query interface
     if not user_profile.is_admin:
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
-    GLOW_CODES = ['3660005036502', '3660005817910', '3660005841410', '3660005867137', '3660005894508', '3660005913261']
+    GLOW_CODES = codes = [
+    "3660005470269",
+    "3660005419190",
+    "3660005370316",
+    "3660005031309",
+    "3660005395180",
+    "3660005031385",
+    "3660005401157",
+    "3660005979069",
+    "3660005389745",
+    "3660005970684",
+    "3660005410142",
+    "3660005923642",
+    "3660005817965",
+    "3660005379852",
+    "3660005031446",
+    "3660005556055",
+    "3660005985138",
+    "3660005990897",
+    "3660005317915"
+]
+        # Plan quantities per location (AAG target)
+    PLAN_QTY = {
+        "ბათუმი გრანდ მოლი": 55,
+        "ბათუმი მეტრო მოლი": 25,
+        "გალერია": 65,
+        "გლდანი": 45,
+        "გლდანი სითი მოლი": 15,
+        "გუდვილი": 40,
+        "გუდვილი 2 ": 70,
+        "ვაკე 1": 35,
+        "ისტ პოინტი": 45,
+        "მერანი": 10,
+        "პეკინი ": 55,
+        "პლეხანოვი ": 25,
+        "რუსთავი": 15,
+    }
     
     start_date = request.GET.get('start_date', '2026-04-01')
     end_date = request.GET.get('end_date', '2026-04-30')
@@ -3957,7 +3993,7 @@ def competitive(request):
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as skincare_pct
             FROM sales_main_web
-            WHERE "CD" >= %s AND "CD" <= %s
+            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი'
             AND "Tanxa" != 0
             GROUP BY "UN"
             ORDER BY skincare_pct DESC
@@ -3976,12 +4012,28 @@ def competitive(request):
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as glow_pct
             FROM sales_main_web
-            WHERE "CD" >= %s AND "CD" <= %s
+            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი'
             AND "Tanxa" != 0
             GROUP BY "UN"
             ORDER BY glow_revenue DESC
         """, [tuple(GLOW_CODES), tuple(GLOW_CODES), tuple(GLOW_CODES), start_date, end_date])
         glow_rows = cursor.fetchall()
+        # Add plan + achievement %
+        glow_rows_enriched = []
+
+        for row in glow_rows:
+            location = row[0]
+            actual_qty = row[2]
+
+            plan = PLAN_QTY.get(location, 0)
+
+            achievement = round((actual_qty / plan) * 100, 1) if plan > 0 else 0
+
+            glow_rows_enriched.append((
+                *row,          # existing data
+                plan,          # index 5
+                achievement    # index 6
+            ))
 
         # Glow per product breakdown
         cursor.execute("""
@@ -3992,7 +4044,7 @@ def competitive(request):
                 SUM("raod") as quantity,
                 COUNT(DISTINCT "Zedd") as tickets
             FROM sales_main_web
-            WHERE "CD" >= %s AND "CD" <= %s
+            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი'
             AND "IdProd" IN %s
             AND "Tanxa" != 0
             GROUP BY "Prod", "IdProd"
@@ -4005,7 +4057,7 @@ def competitive(request):
 
     context = {
         'skincare_rows': skincare_rows,
-        'glow_rows': glow_rows,
+        'glow_rows': glow_rows_enriched,
         'glow_products': glow_products,
         'best_glow_location': best_glow_location,
         'start_date': start_date,
