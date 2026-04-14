@@ -2804,7 +2804,7 @@ def employee_analytics(request):
     
     def apply_filters(q):
         if selected_employee != "all" and not selected_locations:
-            return q.none()   # force no cross-location results
+            return q.none()
 
         if selected_locations:
             q = q.filter(un__in=selected_locations)
@@ -2821,7 +2821,6 @@ def employee_analytics(request):
         return q
     
     def get_base_queryset(is_current=True):
-        """Get base queryset with filters applied"""
         if is_current:
             q = Sales.objects.filter(**date_filter_current)
         else:
@@ -2831,14 +2830,8 @@ def employee_analytics(request):
     # ==================== OPTIMIZED DATA FETCHING ====================
     
     def get_employee_performance_optimized(is_current=True):
-        """
-        MASSIVELY OPTIMIZED: Get all employee metrics in minimal queries
-        Uses subqueries and conditional aggregation to avoid N+1 problems
-        """
         q = get_base_queryset(is_current)
         
-        # First, get base employee stats with all standard metrics
-        # This is ONE query that gets all the basic aggregations
         employee_base_stats = q.values('tanam', 'un').annotate(
             total_revenue=Sum('tanxa'),
             total_revenue_skincare_eligible=Sum('tanxa', filter=Q(~Q(prodg='POP'))),
@@ -2849,18 +2842,13 @@ def employee_analytics(request):
             std_price_total=Sum('std_price')
         ).order_by('-total_revenue')[:20]
         
-        # Convert to list to avoid re-querying
         employee_list = list(employee_base_stats)
         
         if not employee_list:
             return []
         
-        # Get all employee names for batch processing
-        # Get all employee names for batch processing
         employee_names = [emp['tanam'] for emp in employee_list]
 
-        # NEW CODE BLOCK START ==========================================
-        # OPTIMIZED: Get category breakdown for ALL employees in ONE query
         employee_category_query = (Sales.objects
             .filter(**date_filter_current if is_current else date_filter_previous)
             .filter(tanam__in=employee_names))
@@ -2870,26 +2858,20 @@ def employee_analytics(request):
         if selected_category != 'all':
             employee_category_query = employee_category_query.filter(prodg=selected_category)
 
-        # Get category breakdown per employee
         employee_category_data = employee_category_query.values('tanam', 'prodg').annotate(
             total=Sum('tanxa')
         ).order_by('tanam', '-total')
 
-        # Process category data by employee
         employee_categories = {}
         for record in employee_category_data:
             emp_name = record['tanam']
             if emp_name not in employee_categories:
                 employee_categories[emp_name] = []
-            
             employee_categories[emp_name].append({
                 'category': record['prodg'] or 'Unknown',
                 'value': float(record['total'] or 0)
             })
-# NEW CODE BLOCK END ============================================
         
-        # OPTIMIZED: Get cross-selling data for ALL employees in ONE query
-        # Instead of querying each employee separately
         cross_sell_query = (Sales.objects
             .filter(**date_filter_current if is_current else date_filter_previous)
             .filter(prodt='selling item', tanam__in=employee_names)
@@ -2901,12 +2883,10 @@ def employee_analytics(request):
         if selected_category != 'all':
             cross_sell_query = cross_sell_query.filter(prodg=selected_category)
         
-        # Get ticket-level item counts for ALL employees at once
         cross_sell_data = cross_sell_query.values('tanam', 'zedd').annotate(
             item_count=Count('zedd')
         )
         
-        # Process cross-selling data by employee
         employee_cross_sell = {}
         for record in cross_sell_data:
             emp_name = record['tanam']
@@ -2928,12 +2908,10 @@ def employee_analytics(request):
             elif item_count >= 3:
                 employee_cross_sell[emp_name]['three_plus'] += 1
         
-        # Build final results by combining base stats with cross-sell data
         results = []
         for emp in employee_list:
             emp_name = emp['tanam'] or 'Unknown'
             
-            # Calculate basic metrics
             total_rev_skincare = emp.get('total_revenue_skincare_eligible') or 0
             skincare_turnover = emp.get('skincare_turnover') or 0
             skincare_percentage = (
@@ -2946,19 +2924,16 @@ def employee_analytics(request):
             items_per_ticket = emp['total_items'] / emp['total_tickets'] if emp['total_tickets'] > 0 else 0
             discount_rate = (1 - (emp['discount_given'] / emp['std_price_total'])) * 100 if emp['std_price_total'] and emp['std_price_total'] > 0 else 0
             
-            # Get cross-selling metrics from pre-calculated data
             cs_data = employee_cross_sell.get(emp_name, {
                 'total': 0,
                 'one_item': 0,
                 'two_item': 0,
                 'three_plus': 0
             })
-            # NEW CODE BLOCK START ==========================================
-            # Get category breakdown for this employee (limit to top 8)
+
             category_breakdown = employee_categories.get(emp_name, [])[:8]
             category_labels = [cat['category'] for cat in category_breakdown]
             category_values = [cat['value'] for cat in category_breakdown]
-            # NEW CODE BLOCK END ============================================
             
             total_cs_tickets = cs_data['total']
             
@@ -2967,7 +2942,7 @@ def employee_analytics(request):
                 one_item_pct = (cs_data['one_item'] / total_cs_tickets) * 100
                 two_item_pct = (cs_data['two_item'] / total_cs_tickets) * 100
                 three_plus_pct = cross_sell_pct
-                avg_items_per_ticket = items_per_ticket  # Already calculated above
+                avg_items_per_ticket = items_per_ticket
             else:
                 cross_sell_pct = 0
                 one_item_pct = 0
@@ -2994,94 +2969,13 @@ def employee_analytics(request):
                 'one_item_tickets': cs_data['one_item'],
                 'two_item_tickets': cs_data['two_item'],
                 'three_plus_tickets': cs_data['three_plus'],
-                'category_labels_json': json.dumps(category_labels),  # ✅ JSON string
-                'category_values_json': json.dumps(category_values), 
-            })
-        
-        return results
-    
-    def get_category_top_performers_optimized(category, is_current=True):
-        """
-        OPTIMIZED: Get top performers for a category with cross-sell data
-        Uses single query instead of one per employee
-        """
-        if is_current:
-            q = Sales.objects.filter(**date_filter_current, prodg=category)
-        else:
-            q = Sales.objects.filter(**date_filter_previous, prodg=category)
-        
-        # Apply location filter only
-        if selected_locations:
-            q = q.filter(un__in=selected_locations)
-        
-        # Get top 10 employees by revenue for this category
-        employee_data = list(
-            q.values('tanam')
-            .annotate(
-                total_revenue=Sum('tanxa'),
-                total_tickets=Count('zedd', distinct=True),
-                total_items=Count('zedd')
-            )
-            .order_by('-total_revenue')[:10]
-        )
-
-        
-        
-        if not employee_data:
-            return []
-        
-        # Get employee names
-        employee_names = [emp['tanam'] for emp in employee_data]
-        
-        # Get cross-selling data for these specific employees in this category
-        cross_sell_query = (Sales.objects
-            .filter(**date_filter_current if is_current else date_filter_previous)
-            .filter(prodt='selling item', prodg=category, tanam__in=employee_names)
-            .exclude(tanxa=0)
-            .exclude(prodg='POP'))
-        
-        if selected_locations:
-            cross_sell_query = cross_sell_query.filter(un__in=selected_locations)
-        
-        cross_sell_data = cross_sell_query.values('tanam', 'zedd').annotate(
-            item_count=Count('zedd')
-        )
-        
-        # Process cross-selling data
-        employee_cross_sell = {}
-        for record in cross_sell_data:
-            emp_name = record['tanam']
-            if emp_name not in employee_cross_sell:
-                employee_cross_sell[emp_name] = {'total': 0, 'three_plus': 0}
-            
-            employee_cross_sell[emp_name]['total'] += 1
-            if record['item_count'] >= 3:
-                employee_cross_sell[emp_name]['three_plus'] += 1
-        
-        # Build results
-        results = []
-        for emp in employee_data:
-            emp_name = emp['tanam'] or 'Unknown'
-            cs_data = employee_cross_sell.get(emp_name, {'total': 0, 'three_plus': 0})
-            
-            cross_sell_pct = (cs_data['three_plus'] / cs_data['total'] * 100) if cs_data['total'] > 0 else 0
-            
-            results.append({
-                'name': emp_name,
-                'revenue': float(emp['total_revenue'] or 0),
-                'tickets': emp['total_tickets'],
-                'items': emp['total_items'],
-                'cross_sell_pct': cross_sell_pct
+                'category_labels_json': json.dumps(category_labels),
+                'category_values_json': json.dumps(category_values),
             })
         
         return results
     
     def get_all_category_leaders_optimized(is_current=True):
-        """
-        ULTRA-OPTIMIZED: Get top performers for ALL categories in minimal queries
-        Instead of N queries (one per category), uses smart batching
-        """
-        # First, get top categories
         top_categories_query = Sales.objects.filter(**date_filter_current if is_current else date_filter_previous)
         if selected_locations:
             top_categories_query = top_categories_query.filter(un__in=selected_locations)
@@ -3097,15 +2991,11 @@ def employee_analytics(request):
         if not top_categories:
             return []
         
-        # Get ALL employee performance across ALL top categories in ONE query
         q = Sales.objects.filter(**date_filter_current if is_current else date_filter_previous)
         if selected_locations:
             q = q.filter(un__in=selected_locations)
-        
-        # Filter to only top categories
         q = q.filter(prodg__in=top_categories)
         
-        # Get employee stats per category
         all_category_stats = list(
             q.values('prodg', 'tanam')
             .annotate(
@@ -3116,7 +3006,6 @@ def employee_analytics(request):
             .order_by('prodg', '-total_revenue')
         )
         
-        # Get cross-selling data for all these employees across all categories
         cross_sell_query = (Sales.objects
             .filter(**date_filter_current if is_current else date_filter_previous)
             .filter(prodt='selling item', prodg__in=top_categories)
@@ -3130,7 +3019,6 @@ def employee_analytics(request):
             item_count=Count('zedd')
         )
         
-        # Process cross-selling data by category and employee
         category_employee_cs = {}
         for record in cross_sell_data:
             cat = record['prodg']
@@ -3144,23 +3032,17 @@ def employee_analytics(request):
             if record['item_count'] >= 3:
                 category_employee_cs[key]['three_plus'] += 1
         
-        # Organize by category and get top 10 per category
         category_leaders = []
         for category in top_categories:
-            # Filter stats for this category
             cat_stats = [s for s in all_category_stats if s['prodg'] == category]
-            
-            # Sort by revenue and take top 10
             cat_stats.sort(key=lambda x: x['total_revenue'], reverse=True)
             top_10 = cat_stats[:10]
             
-            # Build performer list
             performers = []
             for emp in top_10:
                 emp_name = emp['tanam'] or 'Unknown'
                 key = (category, emp['tanam'])
                 cs_data = category_employee_cs.get(key, {'total': 0, 'three_plus': 0})
-                
                 cross_sell_pct = (cs_data['three_plus'] / cs_data['total'] * 100) if cs_data['total'] > 0 else 0
                 
                 performers.append({
@@ -3184,16 +3066,13 @@ def employee_analytics(request):
     print("Starting employee analytics data fetch...")
     start_time = timezone.now()
     
-    # Get overall employee performance (2 optimized queries)
     employees_current = get_employee_performance_optimized(is_current=True)
     employees_previous = get_employee_performance_optimized(is_current=False)
     
     print(f"Employee performance fetched in {(timezone.now() - start_time).total_seconds():.2f}s")
     
-    # Create comparison dictionary
     employees_previous_dict = {emp['name']: emp for emp in employees_previous}
     
-    # Add YoY comparison (no additional queries)
     for emp in employees_current:
         prev_data = employees_previous_dict.get(emp['name'], {})
         emp['revenue_previous'] = prev_data.get('revenue', 0)
@@ -3201,36 +3080,50 @@ def employee_analytics(request):
         emp['revenue_change'] = ((emp['revenue'] - emp['revenue_previous']) / emp['revenue_previous'] * 100) if emp['revenue_previous'] > 0 else 0
         emp['tickets_change'] = ((emp['tickets'] - emp['tickets_previous']) / emp['tickets_previous'] * 100) if emp['tickets_previous'] > 0 else 0
     
-    # Get category leaders (MASSIVELY optimized - was N queries, now ~4 queries total)
     category_leaders_current = get_all_category_leaders_optimized(is_current=True)
     category_leaders_previous = get_all_category_leaders_optimized(is_current=False)
     
     print(f"Category leaders fetched in {(timezone.now() - start_time).total_seconds():.2f}s")
     
-    # Merge current and previous for each category
     category_leaders = []
     for cat_current in category_leaders_current:
         cat_name = cat_current['category']
-        # Find matching previous year data
         cat_previous = next(
             (c for c in category_leaders_previous if c['category'] == cat_name),
             {'category': cat_name, 'performers_previous': []}
         )
-        
         category_leaders.append({
             'category': cat_name,
             'performers_current': cat_current['performers_current'],
             'performers_previous': cat_previous['performers_previous']
         })
     
-    # Get top categories for display
     top_categories = [cat['category'] for cat in category_leaders]
     
     print(f"All category data processed in {(timezone.now() - start_time).total_seconds():.2f}s")
     
-    # ==================== GET FILTER OPTIONS (OPTIMIZED) ====================
+    # ==================== EMPLOYEE INSIGHTS (no extra queries) ====================
+    # Derived from employees_current in Python — zero additional DB hits
     
-    # Use .distinct() to avoid duplicates and limit queries
+    def safe_max(lst, key):
+        """Return the employee with the highest value for key, or None if empty."""
+        filtered = [e for e in lst if e.get(key) is not None]
+        return max(filtered, key=lambda x: x[key]) if filtered else None
+
+    employee_insights = {}
+    if employees_current:
+        employee_insights = {
+            'revenue_leader':       safe_max(employees_current, 'revenue'),
+            'best_cross_seller':    safe_max(employees_current, 'cross_sell_pct'),
+            'highest_avg_basket':   safe_max(employees_current, 'avg_basket'),
+            'most_tickets':         safe_max(employees_current, 'tickets'),
+            'skincare_specialist':  safe_max(employees_current, 'skincare_percentage'),
+            'top_yoy_growth':       safe_max(employees_current, 'revenue_change'),
+            'most_items_per_ticket': safe_max(employees_current, 'avg_items_per_ticket'),
+        }
+
+    # ==================== GET FILTER OPTIONS ====================
+    
     if user_profile.is_admin:
         all_locations = list(
             Sales.objects
@@ -3242,10 +3135,8 @@ def employee_analytics(request):
     else:
         all_locations = allowed_locations
     
-    # Base query for filter options - respects location selection
     filter_base_query = Sales.objects.filter(cd__year=current_year)
     
-    # Apply location filter to categories and employees
     if selected_locations:
         filter_base_query = filter_base_query.filter(un__in=selected_locations)
     
@@ -3286,6 +3177,7 @@ def employee_analytics(request):
         'end_date': end_date.isoformat(),
         
         'employees_current': employees_current,
+        'employee_insights': employee_insights,   # NEW — used by insight cards
         'category_leaders': category_leaders,
         'top_categories': top_categories,
         
@@ -3303,11 +3195,11 @@ def employee_analytics(request):
         'is_admin': user_profile.is_admin,
         'user_locations_count': len(allowed_locations) if not user_profile.is_admin else 0,
         
-        # Debug info (remove in production)
         'load_time': f"{total_time:.2f}s",
     }
     
     return render(request, 'employee_analytics.html', context)
+
 
 @login_required
 def insights(request):
@@ -3939,7 +3831,7 @@ def competitive(request):
     # ADMIN ONLY for query interface
     if not user_profile.is_admin:
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
-    GLOW_CODES = codes = [
+    GLOW_CODES = [
     "3660005470269",
     "3660005419190",
     "3660005370316",
@@ -3993,7 +3885,7 @@ def competitive(request):
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as skincare_pct
             FROM sales_main_web
-            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი'
+            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი' and "ProdG" <> 'POP'
             AND "Tanxa" != 0
             GROUP BY "UN"
             ORDER BY skincare_pct DESC
@@ -4012,7 +3904,7 @@ def competitive(request):
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as glow_pct
             FROM sales_main_web
-            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი'
+            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი' and "ProdG" <> 'POP'
             AND "Tanxa" != 0
             GROUP BY "UN"
             ORDER BY glow_revenue DESC
