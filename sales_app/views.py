@@ -2822,9 +2822,9 @@ def employee_analytics(request):
     
     def get_base_queryset(is_current=True):
         if is_current:
-            q = Sales.objects.filter(**date_filter_current)
+            q = Sales.objects.filter(**date_filter_current).exclude(un__in=["მთავარი საწყობი 2", "სატესტო"])
         else:
-            q = Sales.objects.filter(**date_filter_previous)
+            q = Sales.objects.filter(**date_filter_previous).exclude(un__in=["მთავარი საწყობი 2", "სატესტო"])
         return apply_filters(q)
     
     # ==================== OPTIMIZED DATA FETCHING ====================
@@ -3832,26 +3832,31 @@ def competitive(request):
     if not user_profile.is_admin:
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
     GLOW_CODES = [
-    "3660005470269",
-    "3660005419190",
-    "3660005370316",
-    "3660005031309",
-    "3660005395180",
-    "3660005031385",
-    "3660005401157",
-    "3660005979069",
-    "3660005389745",
-    "3660005970684",
-    "3660005410142",
-    "3660005923642",
-    "3660005817965",
-    "3660005379852",
-    "3660005031446",
-    "3660005556055",
-    "3660005985138",
-    "3660005990897",
-    "3660005317915"
-]
+       "47026",
+        "41919",
+        "37031",
+        "99206",
+        "39518",
+        "01990",
+        "40115",
+        "98513",
+        "38974",
+        "97906",
+        "41014",
+        "97068",
+        "81796",
+        "37985",
+        "63392",
+        "55605",
+        "99916",
+        "99089",
+        "95940",
+        "96869",
+        "06378",
+        "04490",
+        "77704",
+        "05675"
+            ]
         # Plan quantities per location (AAG target)
     PLAN_QTY = {
         "ბათუმი გრანდ მოლი": 55,
@@ -3896,11 +3901,11 @@ def competitive(request):
         cursor.execute("""
             SELECT 
                 "UN" as location,
-                SUM(CASE WHEN "IdProd" IN %s THEN "Tanxa" ELSE 0 END) as glow_revenue,
-                SUM(CASE WHEN "IdProd" IN %s THEN 1 ELSE 0 END) as glow_qty,
+                SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN "Tanxa" ELSE 0 END) as glow_revenue,
+                SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN 1 ELSE 0 END) as glow_qty,
                 SUM("Tanxa") as total_revenue,
                 ROUND(
-                    (100.0 * SUM(CASE WHEN "IdProd" IN %s THEN "Tanxa" ELSE 0 END) 
+                    (100.0 * SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN "Tanxa" ELSE 0 END) 
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as glow_pct
             FROM sales_main_web
@@ -3937,7 +3942,7 @@ def competitive(request):
                 COUNT(DISTINCT "Zedd") as tickets
             FROM sales_main_web
             WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი'
-            AND "IdProd" IN %s
+            AND left(right("IdProd",6),5) IN %s
             AND "Tanxa" != 0
             GROUP BY "Prod", "IdProd"
             ORDER BY revenue DESC
