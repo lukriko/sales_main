@@ -3951,7 +3951,21 @@ def competitive(request):
 
     # Best glow location
     best_glow_location = glow_rows[0] if glow_rows else None
+    # After glow_rows_enriched is built:
+    total_glow_revenue = sum(r[1] for r in glow_rows_enriched)
+    total_glow_qty = sum(r[2] for r in glow_rows_enriched)
+    total_glow_plan = sum(r[5] for r in glow_rows_enriched)
+    total_glow_achievement = round((total_glow_qty / total_glow_plan) * 100, 1) if total_glow_plan > 0 else 0
 
+    # After skincare_rows:
+    total_skincare_revenue = sum(r[1] for r in skincare_rows)
+    total_all_revenue = sum(r[2] for r in skincare_rows)
+    total_skincare_pct = round((total_skincare_revenue / total_all_revenue) * 100, 2) if total_all_revenue > 0 else 0
+
+    # After glow_products:
+    total_prod_revenue = sum(p[2] for p in glow_products)
+    total_prod_qty = sum(p[3] for p in glow_products)
+    total_prod_tickets = sum(p[4] for p in glow_products)
     context = {
         'skincare_rows': skincare_rows,
         'glow_rows': glow_rows_enriched,
@@ -3959,6 +3973,16 @@ def competitive(request):
         'best_glow_location': best_glow_location,
         'start_date': start_date,
         'end_date': end_date,
+        'total_skincare_revenue': total_skincare_revenue,
+        'total_all_revenue': total_all_revenue,
+        'total_skincare_pct': total_skincare_pct,
+        'total_glow_revenue': total_glow_revenue,
+        'total_glow_qty': total_glow_qty,
+        'total_glow_plan': total_glow_plan,
+        'total_glow_achievement': total_glow_achievement,
+        'total_prod_revenue': total_prod_revenue,
+        'total_prod_qty': total_prod_qty,
+        'total_prod_tickets': total_prod_tickets,
     }
     return render(request, 'competition_motivation.html', context)
 

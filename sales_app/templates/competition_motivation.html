@@ -207,7 +207,17 @@
         {% empty %}
         <tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No data</td></tr>
         {% endfor %}
+        </tbody>
+  <tfoot>
+    <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
+      <td colspan="2"><strong style="color:#f1f5f9;">TOTAL</strong></td>
+      <td class="val-pink"><strong>${{ total_skincare_revenue|floatformat:0 }}</strong></td>
+      <td class="val-muted"><strong>${{ total_all_revenue|floatformat:0 }}</strong></td>
+      <td><span class="pct-value val-pink"><strong>{{ total_skincare_pct }}%</strong></span></td>
+    </tr>
+  </tfoot>
       </tbody>
+      
     </table>
   </div>
 
@@ -270,6 +280,25 @@
         {% empty %}
         <tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No data</td></tr>
         {% endfor %}
+
+        </tbody>
+<tfoot>
+  <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
+    <td colspan="2"><strong style="color:#f1f5f9;">TOTAL</strong></td>
+    <td class="val-orange"><strong>${{ total_glow_revenue|floatformat:0 }}</strong></td>
+    <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_glow_qty|floatformat:0 }}</span></td>
+    <td class="val-muted"><strong>{{ total_glow_plan }}</strong></td>
+    <td>
+      <div class="pct-bar-wrapper">
+        <div class="pct-bar-bg">
+          <div class="pct-bar-fill fill-yellow" style="width: {{ total_glow_achievement }}%;"></div>
+        </div>
+        <span class="pct-value val-yellow"><strong>{{ total_glow_achievement }}%</strong></span>
+      </div>
+    </td>
+    <td></td>
+  </tr>
+</tfoot>
       </tbody>
     </table>
   </div>
@@ -331,6 +360,16 @@
       <tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">No Glow Énergie products found for this period</td></tr>
       {% endfor %}
       {% endwith %}
+      </tbody>
+<tfoot>
+  <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
+    <td colspan="3"><strong style="color:#f1f5f9;">TOTAL</strong></td>
+    <td class="val-yellow"><strong>${{ total_prod_revenue|floatformat:0 }}</strong></td>
+    <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_prod_qty|floatformat:0 }}</span></td>
+    <td class="val-green"><strong>{{ total_prod_tickets }}</strong></td>
+    <td colspan="2"></td>
+  </tr>
+</tfoot>
     </tbody>
   </table>
 </div>
