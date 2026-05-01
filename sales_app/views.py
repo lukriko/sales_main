@@ -3832,50 +3832,27 @@ def competitive(request):
     if not user_profile.is_admin:
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
     GLOW_CODES = [
-       "47026",
-        "41919",
-        "37031",
-        "99206",
-        "39518",
-        "01990",
-        "40115",
-        "98513",
-        "38974",
-        "97906",
-        "41014",
-        "97068",
-        "81796",
-        "37985",
-        "63392",
-        "55605",
-        "99916",
-        "99089",
-        "95940",
-        "96869",
-        "06378",
-        "04490",
-        "77704",
-        "05675"
+        "62903"
             ]
         # Plan quantities per location (AAG target)
     PLAN_QTY = {
-        "ბათუმი გრანდ მოლი": 55,
-        "ბათუმი მეტრო მოლი": 25,
-        "გალერია": 65,
-        "გლდანი": 45,
-        "გლდანი სითი მოლი": 15,
-        "გუდვილი": 40,
-        "გუდვილი 2 ": 70,
-        "ვაკე 1": 35,
-        "ისტ პოინტი": 45,
-        "მერანი": 10,
-        "პეკინი ": 55,
-        "პლეხანოვი ": 25,
-        "რუსთავი": 15,
+        "ბათუმი გრანდ მოლი": 12,
+        "ბათუმი მეტრო მოლი": 6,
+        "გალერია":18,
+        "გლდანი": 16,
+        "გლდანი სითი მოლი": 8,
+        "გუდვილი": 10,
+        "გუდვილი 2 ": 20,
+        "ვაკე 1": 8,
+        "ისტ პოინტი": 16,
+        "მერანი": 4,
+        "პეკინი ": 14,
+        "პლეხანოვი ": 10,
+        "რუსთავი": 8,
     }
     
-    start_date = request.GET.get('start_date', '2026-04-01')
-    end_date = request.GET.get('end_date', '2026-04-30')
+    start_date = request.GET.get('start_date', '2026-05-01')
+    end_date = request.GET.get('end_date', '2026-05-31')
     
     with connection.cursor() as cursor:
         
@@ -3883,10 +3860,10 @@ def competitive(request):
         cursor.execute("""
             SELECT 
                 "UN" as location,
-                SUM(CASE WHEN "ProdG" = 'SKIN CARE' THEN "Tanxa" ELSE 0 END) as skincare_revenue,
+                SUM(CASE WHEN "ProdG" = 'PARFUMS' THEN "Tanxa" ELSE 0 END) as skincare_revenue,
                 SUM("Tanxa") as total_revenue,
                 ROUND(
-                    (100.0 * SUM(CASE WHEN "ProdG" = 'SKIN CARE' THEN "Tanxa" ELSE 0 END) 
+                    (100.0 * SUM(CASE WHEN "ProdG" = 'PARFUMS' THEN "Tanxa" ELSE 0 END) 
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as skincare_pct
             FROM sales_main_web

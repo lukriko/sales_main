@@ -1104,11 +1104,11 @@ function toggleSection(btn) {
               <div style="display:flex; align-items:center; gap:8px;">
                 <div style="width:50px; height:5px; background:#1e293b; border-radius:3px; overflow:hidden;">
                   <div style="width:{{ loc.id_rate }}%; height:100%;
-                    background: {% if loc.id_rate >= 60 %}#10b981{% elif loc.id_rate >= 30 %}#fb923c{% else %}#ef4444{% endif %};
+                    background: {% if loc.id_rate >= 80 %}#10b981{% elif loc.id_rate >= 50 %}#fb923c{% else %}#ef4444{% endif %};
                     border-radius:3px;"></div>
                 </div>
                 <span style="font-size:13px; font-weight:600;
-                  color: {% if loc.id_rate >= 60 %}#10b981{% elif loc.id_rate >= 30 %}#fb923c{% else %}#ef4444{% endif %};">
+                  color: {% if loc.id_rate >= 80 %}#10b981{% elif loc.id_rate >= 50 %}#fb923c{% else %}#ef4444{% endif %};">
                   {{ loc.id_rate|floatformat:1 }}%
                 </span>
               </div>
