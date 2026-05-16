@@ -154,7 +154,7 @@ def dashboard(request):
         current_year, previous_year = 2025, 2024
     
     # Date parsing
-    start_date_str = request.GET.get('start_date', f'{current_year}-01-01')
+    start_date_str = request.GET.get('start_date', f'{current_year}-05-01')
     end_date_str = request.GET.get('end_date', f'{current_year}-12-31')
     
     try:
