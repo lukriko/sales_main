@@ -3973,8 +3973,8 @@ def bonus(request):
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
 
     year = request.GET.get('year', 2026)
-    month = request.GET.get('month', 4)
-    working_days = request.GET.get('working_days', 30)
+    month = request.GET.get('month', 5)
+    working_days = request.GET.get('working_days', 31)
 
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -3996,17 +3996,17 @@ plan_cte as (
     from (values 
     ('გუდვილი 2 ', 115000),
     ('გალერია', 90000),
-    ('გლდანი', 61000),
-    ('პეკინი ', 60000),
-    ('ისტ პოინტი', 56000),
-    ('გლდანი სითი მოლი', 38000),
-    ('პლეხანოვი ', 39000),
-    ('ბათუმი მეტრო მოლი', 39000),
-    ('რუსთავი', 35000),
-    ('გუდვილი', 43000),
-    ('ვაკე 1', 42000),
-    ('ბათუმი გრანდ მოლი', 56000),
-    ('მერანი', 18000)
+    ('გლდანი', 62000),
+    ('პეკინი ', 61000),
+    ('ისტ პოინტი', 60000),
+    ('გლდანი სითი მოლი', 32000),
+    ('პლეხანოვი ', 47000),
+    ('ბათუმი მეტრო მოლი', 42000),
+    ('რუსთავი', 30000),
+    ('გუდვილი', 48000),
+    ('ვაკე 1', 45000),
+    ('ბათუმი გრანდ მოლი', 50000),
+    ('მერანი', 16000)
     ) as t("UN", plan)
 ),
 
@@ -4049,7 +4049,7 @@ cte_zedd_by_un as (
         sum("Tanxa") as zedd_total
     from sales_main_web
     where extract(year from "CD") = 2026
-      and extract(month from "CD") = 4
+      and extract(month from "CD") = 5
       and length("Zedd") = 10
     group by "UN"
 ),
