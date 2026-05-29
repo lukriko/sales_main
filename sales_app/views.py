@@ -4206,7 +4206,7 @@ cte_un_achievement as (
         p.plan,
         (ut.un_total_turnover / NULLIF(p.plan::numeric, 0)) as un_achievement_ratio,
         case
-            when ut.un_total_turnover / NULLIF(p.plan::numeric, 0) >= 1.05 then 2.1
+            when ut.un_total_turnover / NULLIF(p.plan::numeric, 0) >= 1.1 then 2.1
             when ut.un_total_turnover / NULLIF(p.plan::numeric, 0) >= 0.95 then 2.0
             when ut.un_total_turnover / NULLIF(p.plan::numeric, 0) >= 0.85 then 1.7
             else 0
