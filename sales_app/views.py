@@ -3973,7 +3973,7 @@ def bonus(request):
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
 
     year = request.GET.get('year', 2026)
-    month = request.GET.get('month', 1)
+    month = request.GET.get('month', 5)
     working_days = request.GET.get('working_days', 31)
 
     with connection.cursor() as cursor:
