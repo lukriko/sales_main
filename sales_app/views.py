@@ -3973,7 +3973,7 @@ def bonus(request):
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
 
     year = request.GET.get('year', 2026)
-    month = request.GET.get('month', 5)
+    month = request.GET.get('month', 1)
     working_days = request.GET.get('working_days', 31)
 
     with connection.cursor() as cursor:
@@ -4012,7 +4012,19 @@ plan_cte as (
 
 vacation_cte as (
     select * from (values
-        ('ნინო ინასარიძე', 0)
+        ('სოფო ფილია', 1),
+        ('ლიკა დარისპანაშვილი', 2),
+        ('ნატა გურეშიძე', 3),
+        ('ვერიკო გვასალია', 1), 
+        ('შორენა კვარაცხელია', 5),
+        ('თამუნა ტაბატაძე',4),
+        ('ინდირა მიქელაძე', 2),
+        ('ნინო ბერიძე', 5),
+        ('სოფიო ფევაძე', 2),
+        ('ნინო ართილაყვა', 8),
+        ('ნატა ჩიტაშვილი', 10),
+        ('ქეთევან ბესელია',2),
+        ('ქეთი რუხაძე',1)                                                                          
     ) as t("Tanam", days_absent)
 ),
 
