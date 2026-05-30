@@ -4141,15 +4141,15 @@ total_base_per_employee as (
         round(c."skincare_percentage"::numeric, 3) as skincare_percentage,
         round(case
             when c."manager" = 1 then ut.un_total_turnover
-            else c.total_turnover + (mgr.total_turnover / NULLIF(hc.total_headcount, 0))
+            else c.total_turnover                                          -- own sales only
         end::numeric, 3) as total_turnover,
         round(case
             when c."manager" = 1 then ut.un_total_turnover + coalesce(ze.zedd_share, 0)
-            else c.total_turnover + (mgr.total_turnover / NULLIF(hc.total_headcount, 0)) + coalesce(ze.zedd_share, 0)
+            else c.total_turnover + coalesce(ze.zedd_share, 0)            -- own sales + zedd only
         end::numeric, 3) as total_turnover_with_zedd,
         round(case
             when c."manager" = 1 then c.total_turnover / NULLIF(hc.total_headcount, 0)
-            else c.total_turnover + (mgr.total_turnover / NULLIF(hc.total_headcount, 0))
+            else c.total_turnover                                          -- own sales only
         end::numeric, 3) as bonus_turnover,
         coalesce(ze.zedd_share, 0) as zedd_share,
         round(c1.cross_selling_percentage::numeric, 3) as cross_selling_percentage,
