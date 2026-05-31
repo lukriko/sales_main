@@ -4975,7 +4975,7 @@ def compute_metrics(merged: pd.DataFrame) -> dict:
 def Forecast_fb(request):
     # 1. Load forecast file
     path = os.path.join(
-        settings.BASE_DIR, "sales_app", "data", "Forecast_March_Base.xlsx"
+        settings.BASE_DIR, "sales_app", "data", "Forecast_June_Base.xlsx"
     )
     forecast_df = pd.read_excel(path, engine="openpyxl", sheet_name="Sheet1")
 
@@ -5046,7 +5046,7 @@ def Forecast_fb(request):
             "yhat_lower":      loc_df["yhat_lower"].round(2).tolist(),
             "yhat_upper":      loc_df["yhat_upper"].round(2).tolist(),
             "actual":          loc_df["actual"].where(loc_df["actual"].notna(), None).tolist(),
-            "daily_error":     daily_error.round(2).tolist(),
+            "daily_error": [round(v, 2) if v is not None else None for v in daily_error],
             "daily_error_pct": daily_error_pct.round(1).tolist(),
         }
         metrics_data[loc] = compute_metrics(loc_df)
