@@ -1850,8 +1850,19 @@ def plan_workflow(request):
         total_plan_85 = sum(current_data['plan_85_values'])
         total_actual = sum(current_data['actual_values'])
 
-        daily_left_85 = (total_actual - total_plan_85) / days_left if days_left > 0 else 0
-        daily_left_100 = (total_actual - total_plan) / days_left if days_left > 0 else 0
+        # daily_left_85 = (total_actual - total_plan_85) / days_left if days_left > 0 else 0
+        # daily_left_100 = (total_actual - total_plan) / days_left if days_left > 0 else 0
+
+        if (total_actual - total_plan_85) <= 0 and days_left > 0:
+            daily_left_85 = (total_actual - total_plan_85) / days_left
+        else:          
+            daily_left_85 = 0
+
+
+        if (total_actual - total_plan) <= 0 and days_left > 0:
+            daily_left_100 = (total_actual - total_plan) / days_left
+        else:          
+            daily_left_100 = 0
 
         plan_achievement = (total_actual / total_plan * 100) if total_plan > 0 else 0
         variance = total_actual - total_plan
