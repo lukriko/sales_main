@@ -3990,12 +3990,15 @@ def bonus(request):
     with connection.cursor() as cursor:
         cursor.execute("""
                       with date_filtered_base_cte as (
-    select 
+       select 
         "Tanam", 
         "ProdG", 
         "Tanxa", 
         "Zedd",
-        "UN"
+        case 
+            when trim("Tanam") = 'თინათინ საძაგლიშვილი' then 'გლდანი სითი მოლი'
+            else "UN"
+        end as "UN"
     from sales_main_web
     where extract(year from "CD") = %s
       and extract(month from "CD") = %s
@@ -4068,13 +4071,20 @@ managers_not_cte as (
 ),
 
 cte_zedd_by_un as (
-    select "UN",
-        sum("Tanxa") as zedd_total
-    from sales_main_web
-    where extract(year from "CD") = 2026
-      and extract(month from "CD") = 5
-      and length("Zedd") = 10
-    group by "UN"
+select 
+    case 
+        when trim("Tanam") = 'თინათინ საძაგლიშვილი' then 'გლდანი სითი მოლი'
+        else "UN"
+    end as "UN",
+    sum("Tanxa") as zedd_total
+from sales_main_web
+where extract(year from "CD") = 2026
+  and extract(month from "CD") = 5
+  and length("Zedd") = 10
+group by case 
+    when trim("Tanam") = 'თინათინ საძაგლიშვილი' then 'გლდანი სითი მოლი'
+    else "UN"
+end
 ),
 
 cte_all_employee_count as (
