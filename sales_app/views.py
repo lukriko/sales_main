@@ -1540,8 +1540,8 @@ def plan_workflow(request):
     
     # Get filter parameters
     selected_year = request.GET.get('year', '2026')
-    selected_start_month = request.GET.get('start_month', '5')
-    selected_end_month = request.GET.get('end_month', '5')
+    selected_start_month = request.GET.get('start_month', '6')
+    selected_end_month = request.GET.get('end_month', '6')
     selected_geo = request.GET.get('location', 'all')
     
     # SECURITY CHECK: Validate location access
