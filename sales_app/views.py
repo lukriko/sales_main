@@ -154,8 +154,8 @@ def dashboard(request):
         current_year, previous_year = 2025, 2024
     
     # Date parsing
-    start_date_str = request.GET.get('start_date', f'{current_year}-05-01')
-    end_date_str = request.GET.get('end_date', f'{current_year}-12-31')
+    start_date_str = request.GET.get('start_date', f'{current_year}-06-01')
+    end_date_str = request.GET.get('end_date', f'{current_year}-06-31')
     
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -5032,6 +5032,8 @@ def Forecast_fb(request):
     # 6. Build per-location chart data + metrics
     chart_data   = {}
     metrics_data = {}
+    today = date.today()
+
 
     for loc in locations:
         loc_df = merged[merged["location"] == loc].sort_values("ds")
