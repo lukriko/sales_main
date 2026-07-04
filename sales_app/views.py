@@ -4988,7 +4988,7 @@ def compute_metrics(merged: pd.DataFrame) -> dict:
 def Forecast_fb(request):
     # 1. Load forecast file
     path = os.path.join(
-        settings.BASE_DIR, "sales_app", "data", "Forecast_June_Base.xlsx"
+        settings.BASE_DIR, "sales_app", "data", "Forecast_July_Base.xlsx"
     )
     forecast_df = pd.read_excel(path, engine="openpyxl", sheet_name="Sheet1")
 
