@@ -154,8 +154,8 @@ def dashboard(request):
         current_year, previous_year = 2025, 2024
     
     # Date parsing
-    start_date_str = request.GET.get('start_date', f'{current_year}-06-01')
-    end_date_str = request.GET.get('end_date', f'{current_year}-06-31')
+    start_date_str = request.GET.get('start_date', f'{current_year}-07-01')
+    end_date_str = request.GET.get('end_date', f'{current_year}-07-31')
     
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -1540,8 +1540,8 @@ def plan_workflow(request):
     
     # Get filter parameters
     selected_year = request.GET.get('year', '2026')
-    selected_start_month = request.GET.get('start_month', '6')
-    selected_end_month = request.GET.get('end_month', '6')
+    selected_start_month = request.GET.get('start_month', '7')
+    selected_end_month = request.GET.get('end_month', '7')
     selected_geo = request.GET.get('location', 'all')
     
     # SECURITY CHECK: Validate location access
