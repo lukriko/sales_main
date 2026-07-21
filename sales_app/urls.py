@@ -32,10 +32,12 @@ urlpatterns = [
     path('', views.dashboard, name='sales_dashboard'),  # Root URL
     path('dashboard/', views.dashboard, name='sales_dashboard'),  # Also accessible at /dashboard/
     path('another/', views.plan_workflow, name='another'),
+    path('query/', views.plan_workflow, name='query'),
     path('employees/', views.employee_analytics, name='employee_analytics'),
     path('query/', views.query, name='query'),
     path('export/csv/', views.export_location_csv, name='export_location_csv'),
     path('insights/', views.insights, name='insights'),
+    path('forecast/', views.Forecast_fb, name='forecast')
     
     # Admin Upload - Data upload with deduplication
     # CORRECT ORDER:

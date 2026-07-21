@@ -44,7 +44,7 @@ urlpatterns = [
     path('insights/', views.insights, name='insights'),
     path('hypothesis_testing_me_/', views.stat_main, name='stat_main'),
     path('api/filter-options/', views.get_filter_options, name='get_filter_options'),
-    path('forecast/', views.Forecast_fb, name='ForecastMain')
+    path('forecast/', views.Forecast_fb, name='forecast')
     
     # Admin Upload - Data upload with deduplication
     # CORRECT ORDER:
