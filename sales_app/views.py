@@ -154,8 +154,8 @@ def dashboard(request):
         current_year, previous_year = 2025, 2024
     
     # Date parsing
-    start_date_str = request.GET.get('start_date', f'{current_year}-07-01')
-    end_date_str = request.GET.get('end_date', f'{current_year}-07-31')
+    start_date_str = request.GET.get('start_date', f'{current_year}-08-01')
+    end_date_str = request.GET.get('end_date', f'{current_year}-08-31')
     
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -3838,89 +3838,74 @@ def competitive(request):
         user_profile = request.user.profile
     except:
         return HttpResponseForbidden("Access denied. Contact administrator.")
-    
-    # ADMIN ONLY for query interface
+
     if not user_profile.is_admin:
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
+
     GLOW_CODES = [
-        "62903"
-            ]
-        # Plan quantities per location (AAG target)
-    PLAN_QTY = {
-        "ბათუმი გრანდ მოლი": 12,
-        "ბათუმი მეტრო მოლი": 6,
-        "გალერია":18,
-        "გლდანი": 16,
-        "გლდანი სითი მოლი": 8,
-        "გუდვილი": 10,
-        "გუდვილი 2 ": 20,
-        "ვაკე 1": 8,
-        "ისტ პოინტი": 16,
-        "მერანი": 4,
-        "პეკინი ": 14,
-        "პლეხანოვი ": 10,
-        "რუსთავი": 8,
-    }
-    
-    start_date = request.GET.get('start_date', '2026-05-01')
-    end_date = request.GET.get('end_date', '2026-05-31')
-    
+        "3660005332024", "3660005381848", "3660005029849", "3660005561660",
+        "3660005535029", "3660005577760", "3660005270531", "3660005249070",
+        "3660005267920"
+    ]
+
+    start_date = request.GET.get('start_date', '2026-08-01')
+    end_date = request.GET.get('end_date', '2026-08-31')
+
     with connection.cursor() as cursor:
-        
+
         # Skincare by location
         cursor.execute("""
             SELECT 
                 "UN" as location,
-                SUM(CASE WHEN "ProdG" = 'PARFUMS' THEN "Tanxa" ELSE 0 END) as skincare_revenue,
+                SUM(CASE WHEN "ProdG" = 'SKIN CARE' THEN "Tanxa" ELSE 0 END) as skincare_revenue,
                 SUM("Tanxa") as total_revenue,
                 ROUND(
-                    (100.0 * SUM(CASE WHEN "ProdG" = 'PARFUMS' THEN "Tanxa" ELSE 0 END) 
+                    (100.0 * SUM(CASE WHEN "ProdG" = 'SKIN CARE' THEN "Tanxa" ELSE 0 END) 
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as skincare_pct
             FROM sales_main_web
             WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი' and "ProdG" <> 'POP'
             AND "Tanxa" != 0
             GROUP BY "UN"
-            ORDER BY skincare_pct DESC
         """, [start_date, end_date])
         skincare_rows = cursor.fetchall()
 
-        # Glow by location — revenue, quantity, share
+        # Glow by location — basket-level, 2+ glow items per ticket
         cursor.execute("""
-            SELECT 
-                "UN" as location,
-                SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN "Tanxa" ELSE 0 END) as glow_revenue,
-                SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN 1 ELSE 0 END) as glow_qty,
-                SUM("Tanxa") as total_revenue,
+            WITH basket_level AS (
+                SELECT
+                    "UN" AS location,
+                    "Zedd" AS ticket_id,
+                    COUNT(CASE WHEN left(right("IdProd",6),5) IN %s THEN 1 END) AS glow_items_in_basket,
+                    SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN "Tanxa" ELSE 0 END) AS basket_glow_revenue,
+                    SUM("Tanxa") AS basket_revenue
+                FROM sales_main_web
+                WHERE "CD" >= %s AND "CD" <= %s
+                AND "UN" <> 'გორი'
+                AND "ProdG" <> 'POP'
+                AND "Tanxa" != 0
+                GROUP BY "UN", "Zedd"
+            )
+            SELECT
+                location,
+                SUM(basket_glow_revenue) AS glow_revenue,
+                SUM(glow_items_in_basket) AS glow_qty,
+                SUM(basket_revenue) AS total_revenue,
                 ROUND(
-                    (100.0 * SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN "Tanxa" ELSE 0 END) 
-                    / NULLIF(SUM("Tanxa"), 0))::numeric, 2
-                ) as glow_pct
-            FROM sales_main_web
-            WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი' and "ProdG" <> 'POP'
-            AND "Tanxa" != 0
-            GROUP BY "UN"
-            ORDER BY glow_revenue DESC
-        """, [tuple(GLOW_CODES), tuple(GLOW_CODES), tuple(GLOW_CODES), start_date, end_date])
+                    (100.0 * SUM(basket_glow_revenue) / NULLIF(SUM(basket_revenue), 0))::numeric, 2
+                ) AS glow_pct,
+                COUNT(*) AS total_tickets,
+                SUM(CASE WHEN glow_items_in_basket >= 2 THEN 1 ELSE 0 END) AS multi_glow_baskets,
+                ROUND(
+                    (100.0 * SUM(CASE WHEN glow_items_in_basket >= 2 THEN 1 ELSE 0 END)
+                    / NULLIF(COUNT(*), 0))::numeric, 2
+                ) AS multi_glow_basket_pct
+            FROM basket_level
+            GROUP BY location
+        """, [tuple(GLOW_CODES), tuple(GLOW_CODES), start_date, end_date])
         glow_rows = cursor.fetchall()
-        # Add plan + achievement %
-        glow_rows_enriched = []
 
-        for row in glow_rows:
-            location = row[0]
-            actual_qty = row[2]
-
-            plan = PLAN_QTY.get(location, 0)
-
-            achievement = round((actual_qty / plan) * 100, 1) if plan > 0 else 0
-
-            glow_rows_enriched.append((
-                *row,          # existing data
-                plan,          # index 5
-                achievement    # index 6
-            ))
-
-        # Glow per product breakdown
+        # Glow per-product breakdown (unchanged)
         cursor.execute("""
             SELECT 
                 "Prod" as product_name,
@@ -3937,26 +3922,61 @@ def competitive(request):
         """, [start_date, end_date, tuple(GLOW_CODES)])
         glow_products = cursor.fetchall()
 
-    # Best glow location
-    best_glow_location = glow_rows[0] if glow_rows else None
-    # After glow_rows_enriched is built:
-    total_glow_revenue = sum(r[1] for r in glow_rows_enriched)
-    total_glow_qty = sum(r[2] for r in glow_rows_enriched)
-    total_glow_plan = sum(r[5] for r in glow_rows_enriched)
-    total_glow_achievement = round((total_glow_qty / total_glow_plan) * 100, 1) if total_glow_plan > 0 else 0
+    # --- Merge skincare + glow into one per-location row, sorted in Python ---
+    glow_by_location = {
+        row[0]: {
+            'glow_revenue': row[1],
+            'glow_qty': row[2],
+            'glow_pct': row[4] or 0,
+            'total_tickets': row[5],
+            'multi_glow_baskets': row[6],
+            'multi_glow_basket_pct': row[7] or 0,
+        }
+        for row in glow_rows
+    }
 
-    # After skincare_rows:
-    total_skincare_revenue = sum(r[1] for r in skincare_rows)
-    total_all_revenue = sum(r[2] for r in skincare_rows)
-    total_skincare_pct = round((total_skincare_revenue / total_all_revenue) * 100, 2) if total_all_revenue > 0 else 0
+    combined_rows = []
+    for loc, skincare_revenue, total_revenue, skincare_pct in skincare_rows:
+        g = glow_by_location.get(loc, {
+            'glow_revenue': 0, 'glow_qty': 0, 'glow_pct': 0,
+            'total_tickets': 0, 'multi_glow_baskets': 0, 'multi_glow_basket_pct': 0,
+        })
+        skincare_pct = skincare_pct or 0
+        combined_rows.append({
+            'location': loc,
+            'skincare_revenue': skincare_revenue,
+            'skincare_pct': skincare_pct,
+            'is_high_skincare': skincare_pct >= 25,
+            'total_revenue': total_revenue,
+            'glow_revenue': g['glow_revenue'],
+            'glow_qty': g['glow_qty'],
+            'glow_pct': g['glow_pct'],
+            'total_tickets': g['total_tickets'],
+            'multi_glow_baskets': g['multi_glow_baskets'],
+            'multi_glow_basket_pct': g['multi_glow_basket_pct'],
+        })
 
-    # After glow_products:
+    # Sort by "2+ items in basket" percentage, descending — done here in Python
+    combined_rows.sort(key=lambda r: r['multi_glow_basket_pct'], reverse=True)
+
+    best_glow_location = max(combined_rows, key=lambda r: r['glow_revenue'], default=None)
+
+    total_skincare_revenue = sum(r['skincare_revenue'] for r in combined_rows)
+    total_all_revenue = sum(r['total_revenue'] for r in combined_rows)
+    total_skincare_pct = round((total_skincare_revenue / total_all_revenue) * 100, 2) if total_all_revenue else 0
+
+    total_glow_revenue = sum(r['glow_revenue'] for r in combined_rows)
+    total_glow_qty = sum(r['glow_qty'] for r in combined_rows)
+    total_tickets_all = sum(r['total_tickets'] for r in combined_rows)
+    total_multi_glow_baskets = sum(r['multi_glow_baskets'] for r in combined_rows)
+    total_multi_glow_basket_pct = round((total_multi_glow_baskets / total_tickets_all) * 100, 2) if total_tickets_all else 0
+
     total_prod_revenue = sum(p[2] for p in glow_products)
     total_prod_qty = sum(p[3] for p in glow_products)
     total_prod_tickets = sum(p[4] for p in glow_products)
+
     context = {
-        'skincare_rows': skincare_rows,
-        'glow_rows': glow_rows_enriched,
+        'combined_rows': combined_rows,
         'glow_products': glow_products,
         'best_glow_location': best_glow_location,
         'start_date': start_date,
@@ -3966,8 +3986,9 @@ def competitive(request):
         'total_skincare_pct': total_skincare_pct,
         'total_glow_revenue': total_glow_revenue,
         'total_glow_qty': total_glow_qty,
-        'total_glow_plan': total_glow_plan,
-        'total_glow_achievement': total_glow_achievement,
+        'total_tickets_all': total_tickets_all,
+        'total_multi_glow_baskets': total_multi_glow_baskets,
+        'total_multi_glow_basket_pct': total_multi_glow_basket_pct,
         'total_prod_revenue': total_prod_revenue,
         'total_prod_qty': total_prod_qty,
         'total_prod_tickets': total_prod_tickets,

@@ -60,10 +60,7 @@
     .best-stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
     .best-stat-value { font-size: 16px; font-weight: 700; color: #fb923c; }
 
-    /* Tables Grid */
-    .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
-
-    .table-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+    .table-card { background: linear-gradient(135deg, #1e293b 0%, #0f1629 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
     .table-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
     .table-card-header h3 { font-size: 16px; font-weight: 700; color: #f1f5f9; }
     .card-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
@@ -74,9 +71,10 @@
     table { width: 100%; border-collapse: collapse; }
     thead { border-bottom: 1px solid #334155; }
     th { text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-    td { padding: 12px; font-size: 13px; color: #e4e4e7; border-bottom: 1px solid #1e293b; }
+    td { padding: 12px; font-size: 13px; color: #e4e4e7; border-bottom: 1px solid #1e293b; white-space: nowrap; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: rgba(102,126,234,0.04); }
+    tr.row-hit td { background: rgba(16,185,129,0.06); }
 
     .pct-bar-wrapper { display: flex; align-items: center; gap: 8px; }
     .pct-bar-bg { flex: 1; background: #0f1629; height: 8px; border-radius: 4px; overflow: hidden; min-width: 50px; }
@@ -84,6 +82,7 @@
     .fill-pink { background: linear-gradient(90deg, #ec4899, #8b5cf6); }
     .fill-orange { background: linear-gradient(90deg, #fb923c, #f59e0b); }
     .fill-yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .fill-mint { background: linear-gradient(90deg, #10b981, #34d399); }
     .pct-value { font-weight: 700; font-size: 13px; min-width: 42px; text-align: right; }
 
     .val-pink { color: #ec4899; }
@@ -98,14 +97,12 @@
     .badge-rank.bronze { background: rgba(180,100,50,0.15); color: #cd7f32; }
 
     .qty-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(16,185,129,0.1); border-radius: 20px; font-size: 11px; font-weight: 600; color: #10b981; }
-
-    @media (max-width: 1024px) { .tables-grid { grid-template-columns: 1fr; } }
+    .hit-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(16,185,129,0.15); border-radius: 20px; font-size: 10px; font-weight: 700; color: #10b981; margin-left: 6px; }
   </style>
 </head>
 <body>
 
-<!-- <div class="page-title">📊 Category Performance by Location</div> -->
-<div class="page-subtitle">SEAU DE PARFUM BOUQUET AMBRÉ SPRAY BOTTLE 100 ML
+<div class="page-subtitle">HYDRA Water - PLUMP - Competitive Motivation Dashboard
 <div class="filter-card">
   <div class="filter-label"><i class="fas fa-calendar-alt"></i> &nbsp;Date Range</div>
   <form method="GET">
@@ -121,10 +118,6 @@
       </div>
       <div class="presets">
         <button type="button" class="preset-btn" onclick="setDates('2026-04-01','2026-04-30')">Apr 2026</button>
-        <!-- <button type="button" class="preset-btn" onclick="setDates('2026-01-01','2026-01-31')">Jan 2026</button>
-        <button type="button" class="preset-btn" onclick="setDates('2025-02-01','2025-02-28')">Feb 2025</button>
-        <button type="button" class="preset-btn" onclick="setDates('2026-01-01','2026-02-28')">YTD 2026</button> -->
-        
       </div>
       <button type="submit" class="apply-btn"><i class="fas fa-filter"></i> Apply</button>
       <button class="apply-btn">
@@ -142,166 +135,100 @@
   <div class="best-location-icon">🏆</div>
   <div class="best-location-info">
     <div class="best-location-title"><i class="fas fa-star"></i> &nbsp;Best EAU DE PARFUM BOUQUET AMBRÉ SPRAY BOTTLE location</div>
-    <div class="best-location-name">{{ best_glow_location.0 }}</div>
+    <div class="best-location-name">{{ best_glow_location.location }}</div>
     <div class="best-location-stats">
       <div class="best-stat">
         <span class="best-stat-label">Revenue</span>
-        <span class="best-stat-value">${{ best_glow_location.1|floatformat:0 }}</span>
+        <span class="best-stat-value">${{ best_glow_location.glow_revenue|floatformat:0 }}</span>
       </div>
       <div class="best-stat">
         <span class="best-stat-label">Units Sold</span>
-        <span class="best-stat-value">{{ best_glow_location.2|floatformat:0 }}</span>
+        <span class="best-stat-value">{{ best_glow_location.glow_qty|floatformat:0 }}</span>
       </div>
       <div class="best-stat">
-        <span class="best-stat-label">Share of Location Revenue</span>
-        <span class="best-stat-value">{{ best_glow_location.4 }}%</span>
+        <span class="best-stat-label">2+ Item Basket %</span>
+        <span class="best-stat-value">{{ best_glow_location.multi_glow_basket_pct }}%</span>
       </div>
     </div>
   </div>
 </div>
 {% endif %}
 
-<!-- Skincare + Glow Location Tables -->
-<div class="tables-grid">
-
-  <!-- SKINCARE TABLE -->
-  <div class="table-card">
-    <div class="table-card-header">
-      <div class="card-icon icon-pink"><i class="fas fa-spa"></i></div>
-      <div>
-        <h3>Parfums — Revenue Share</h3>
-        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">{{ start_date }} → {{ end_date }}</div>
-      </div>
+<!-- Combined Location Performance Table -->
+<div class="table-card">
+  <div class="table-card-header">
+    <div class="card-icon icon-pink"><i class="fas fa-chart-bar"></i></div>
+    <div>
+      <h3>Location Performance — Skincare &amp; Glow Parfum</h3>
+      <div style="font-size: 12px; color: #64748b; margin-top: 2px;">{{ start_date }} → {{ end_date }} · sorted by 2+ item basket %</div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Location</th>
-          <th>Parfums Rev</th>
-          <th>Total Rev</th>
-          <th>Share</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in skincare_rows %}
-        <tr>
-          <td>
-            <span class="badge-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
-              {{ forloop.counter }}
-            </span>
-          </td>
-          <td><strong>{{ row.0 }}</strong></td>
-          <td class="val-pink">${{ row.1|floatformat:0 }}</td>
-          <td class="val-muted">${{ row.2|floatformat:0 }}</td>
-          <td>
-            <div class="pct-bar-wrapper">
-              <div class="pct-bar-bg">
-                <div class="pct-bar-fill fill-pink" style="width: {{ row.3 }}%;"></div>
-              </div>
-              <span class="pct-value val-pink">{{ row.3 }}%</span>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No data</td></tr>
-        {% endfor %}
-        </tbody>
-  <tfoot>
-    <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
-      <td colspan="2"><strong style="color:#f1f5f9;">TOTAL</strong></td>
-      <td class="val-pink"><strong>${{ total_skincare_revenue|floatformat:0 }}</strong></td>
-      <td class="val-muted"><strong>${{ total_all_revenue|floatformat:0 }}</strong></td>
-      <td><span class="pct-value val-pink"><strong>{{ total_skincare_pct }}%</strong></span></td>
-    </tr>
-  </tfoot>
-      </tbody>
-      
-    </table>
   </div>
-
-  <!-- GLOW LOCATION TABLE -->
-  <div class="table-card">
-    <div class="table-card-header">
-      <div class="card-icon icon-orange"><i class="fas fa-bolt"></i></div>
-      <div>
-        <h3>EAU DE PARFUM BOUQUET AMBRÉ SPRAY BOTTLE 100 ML — By Location</h3>
-        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">{{ start_date }} → {{ end_date }}</div>
-      </div>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Location</th>
-          <th>Revenue</th>
-          <th>Units</th>
-          <th>Plan</th>
-          <th>Ach%</th>
-          <th>Share</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in glow_rows %}
-        <tr>
-          <td>
-            <span class="badge-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
-              {{ forloop.counter }}
-            </span>
-          </td>
-          <td><strong>{{ row.0 }}</strong></td>
-          <td class="val-orange">${{ row.1|floatformat:0 }}</td>
-          <td>
-              <span class="qty-badge"><i class="fas fa-box"></i> {{ row.2|floatformat:0 }}</span>
-            </td>
-
-            <td class="val-muted">
-              {{ row.5 }}
-            </td>
-
-            <td>
-              <div class="pct-bar-wrapper">
-                <div class="pct-bar-bg">
-                  <div class="pct-bar-fill fill-yellow" style="width: {{ row.6 }}%;"></div>
-                </div>
-                <span class="pct-value val-yellow">{{ row.6 }}%</span>
-              </div>
-            </td>
-          <td>
-            <div class="pct-bar-wrapper">
-              <div class="pct-bar-bg">
-                <div class="pct-bar-fill fill-orange" style="width: {{ row.4 }}%;"></div>
-              </div>
-              <span class="pct-value val-orange">{{ row.4 }}%</span>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Location</th>
+        <th>Skincare Rev</th>
+        <th>Skincare %</th>
+        <th>Total Rev</th>
+        <th>Glow Rev</th>
+        <th>Glow Units</th>
+        <th>Total Tickets</th>
+        <th>2+ Glow Baskets</th>
+        <th>Basket %</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in combined_rows %}
+      <tr class="{% if row.is_high_skincare %}row-hit{% endif %}">
+        <td>
+          <span class="badge-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+            {{ forloop.counter }}
+          </span>
+        </td>
+        <td><strong>{{ row.location }}</strong></td>
+        <td class="val-pink">${{ row.skincare_revenue|floatformat:0 }}</td>
+        <td>
+          <div class="pct-bar-wrapper">
+            <div class="pct-bar-bg">
+              <div class="pct-bar-fill {% if row.is_high_skincare %}fill-mint{% else %}fill-pink{% endif %}" style="width: {{ row.skincare_pct }}%;"></div>
             </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No data</td></tr>
-        {% endfor %}
-
-        </tbody>
-<tfoot>
-  <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
-    <td colspan="2"><strong style="color:#f1f5f9;">TOTAL</strong></td>
-    <td class="val-orange"><strong>${{ total_glow_revenue|floatformat:0 }}</strong></td>
-    <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_glow_qty|floatformat:0 }}</span></td>
-    <td class="val-muted"><strong>{{ total_glow_plan }}</strong></td>
-    <td>
-      <div class="pct-bar-wrapper">
-        <div class="pct-bar-bg">
-          <div class="pct-bar-fill fill-yellow" style="width: {{ total_glow_achievement }}%;"></div>
-        </div>
-        <span class="pct-value val-yellow"><strong>{{ total_glow_achievement }}%</strong></span>
-      </div>
-    </td>
-    <td></td>
-  </tr>
-</tfoot>
-      </tbody>
-    </table>
-  </div>
-
+            <span class="pct-value {% if row.is_high_skincare %}val-green{% else %}val-pink{% endif %}">{{ row.skincare_pct }}%</span>
+            {% if row.is_high_skincare %}<span class="hit-badge"><i class="fas fa-medal"></i> 25%+</span>{% endif %}
+          </div>
+        </td>
+        <td class="val-muted">${{ row.total_revenue|floatformat:0 }}</td>
+        <td class="val-orange">${{ row.glow_revenue|floatformat:0 }}</td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ row.glow_qty|floatformat:0 }}</span></td>
+        <td class="val-muted">{{ row.total_tickets }}</td>
+        <td class="val-green">{{ row.multi_glow_baskets }}</td>
+        <td>
+          <div class="pct-bar-wrapper">
+            <div class="pct-bar-bg">
+              <div class="pct-bar-fill fill-yellow" style="width: {{ row.multi_glow_basket_pct }}%;"></div>
+            </div>
+            <span class="pct-value val-yellow">{{ row.multi_glow_basket_pct }}%</span>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="10" style="text-align:center; padding:30px; color:#64748b;">No data</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
+        <td colspan="2"><strong style="color:#f1f5f9;">TOTAL</strong></td>
+        <td class="val-pink"><strong>${{ total_skincare_revenue|floatformat:0 }}</strong></td>
+        <td class="val-pink"><strong>{{ total_skincare_pct }}%</strong></td>
+        <td class="val-muted"><strong>${{ total_all_revenue|floatformat:0 }}</strong></td>
+        <td class="val-orange"><strong>${{ total_glow_revenue|floatformat:0 }}</strong></td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_glow_qty|floatformat:0 }}</span></td>
+        <td class="val-muted"><strong>{{ total_tickets_all }}</strong></td>
+        <td class="val-green"><strong>{{ total_multi_glow_baskets }}</strong></td>
+        <td class="val-yellow"><strong>{{ total_multi_glow_basket_pct }}%</strong></td>
+      </tr>
+    </tfoot>
+  </table>
 </div>
 
 <!-- Glow Per Product Breakdown -->
@@ -310,7 +237,7 @@
     <div class="card-icon icon-yellow"><i class="fas fa-layer-group"></i></div>
     <div>
       <h3>EAU DE PARFUM BOUQUET AMBRÉ SPRAY BOTTLE 100 Breakdown</h3>
-      <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Each product's revenue, units sold & tickets</div>
+      <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Each product's revenue, units sold &amp; tickets</div>
     </div>
   </div>
   <table>
@@ -322,12 +249,10 @@
         <th>Revenue</th>
         <th>Units Sold</th>
         <th>Tickets</th>
-        <th>Avg per Ticket</th>
         <th>Revenue Share</th>
       </tr>
     </thead>
     <tbody>
-      {% with total_glow_rev=0 %}
       {% for prod in glow_products %}
       <tr>
         <td>
@@ -338,15 +263,9 @@
         <td><strong>{{ prod.0 }}</strong></td>
         <td style="color: #64748b; font-size: 12px; font-family: monospace;">{{ prod.1 }}</td>
         <td class="val-yellow">${{ prod.2|floatformat:0 }}</td>
-        <td>
-          <span class="qty-badge"><i class="fas fa-box"></i> {{ prod.3|floatformat:0 }}</span>
-        </td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ prod.3|floatformat:0 }}</span></td>
         <td class="val-green">{{ prod.4 }}</td>
-        <td style="color: #94a3b8;">
-          ${% if prod.4 > 0 %}{{ prod.2|floatformat:0 }}{% else %}0{% endif %}
-        </td>
         <td>
-          <!-- Revenue bar relative to top product -->
           <div class="pct-bar-wrapper">
             <div class="pct-bar-bg">
               <div class="pct-bar-fill fill-yellow" 
@@ -356,20 +275,18 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">No Glow Énergie products found for this period</td></tr>
+      <tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">No Glow Énergie products found for this period</td></tr>
       {% endfor %}
-      {% endwith %}
-      </tbody>
-<tfoot>
-  <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
-    <td colspan="3"><strong style="color:#f1f5f9;">TOTAL</strong></td>
-    <td class="val-yellow"><strong>${{ total_prod_revenue|floatformat:0 }}</strong></td>
-    <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_prod_qty|floatformat:0 }}</span></td>
-    <td class="val-green"><strong>{{ total_prod_tickets }}</strong></td>
-    <td colspan="2"></td>
-  </tr>
-</tfoot>
     </tbody>
+    <tfoot>
+      <tr style="border-top: 2px solid #334155; background: rgba(102,126,234,0.05);">
+        <td colspan="3"><strong style="color:#f1f5f9;">TOTAL</strong></td>
+        <td class="val-yellow"><strong>${{ total_prod_revenue|floatformat:0 }}</strong></td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_prod_qty|floatformat:0 }}</span></td>
+        <td class="val-green"><strong>{{ total_prod_tickets }}</strong></td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 
