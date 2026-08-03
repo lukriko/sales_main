@@ -117,7 +117,7 @@
         <input type="date" name="end_date" value="{{ end_date }}">
       </div>
       <div class="presets">
-        <button type="button" class="preset-btn" onclick="setDates('2026-04-01','2026-04-30')">Apr 2026</button>
+        <button type="button" class="preset-btn" onclick="setDates('2026-08-01','2026-08-31')">Aug 2026</button>
       </div>
       <button type="submit" class="apply-btn"><i class="fas fa-filter"></i> Apply</button>
       <button class="apply-btn">
@@ -134,7 +134,7 @@
 <div class="best-location-banner">
   <div class="best-location-icon">🏆</div>
   <div class="best-location-info">
-    <div class="best-location-title"><i class="fas fa-star"></i> &nbsp;Best EAU DE PARFUM BOUQUET AMBRÉ SPRAY BOTTLE location</div>
+    <div class="best-location-title"><i class="fas fa-star"></i>Performace Location</div>
     <div class="best-location-name">{{ best_glow_location.location }}</div>
     <div class="best-location-stats">
       <div class="best-stat">
@@ -159,7 +159,7 @@
   <div class="table-card-header">
     <div class="card-icon icon-pink"><i class="fas fa-chart-bar"></i></div>
     <div>
-      <h3>Location Performance — Skincare &amp; Glow Parfum</h3>
+      <h3>Location Performance</h3>
       <div style="font-size: 12px; color: #64748b; margin-top: 2px;">{{ start_date }} → {{ end_date }} · sorted by 2+ item basket %</div>
     </div>
   </div>
@@ -236,7 +236,7 @@
   <div class="table-card-header">
     <div class="card-icon icon-yellow"><i class="fas fa-layer-group"></i></div>
     <div>
-      <h3>EAU DE PARFUM BOUQUET AMBRÉ SPRAY BOTTLE 100 Breakdown</h3>
+      <h3>Breakdown</h3>
       <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Each product's revenue, units sold &amp; tickets</div>
     </div>
   </div>
@@ -275,7 +275,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">No Glow Énergie products found for this period</td></tr>
+      <tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">None Found/td></tr>
       {% endfor %}
     </tbody>
     <tfoot>
