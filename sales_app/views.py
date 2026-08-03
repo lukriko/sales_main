@@ -3876,8 +3876,8 @@ def competitive(request):
                 SELECT
                     "UN" AS location,
                     "Zedd" AS ticket_id,
-                    COUNT(CASE WHEN left(right("IdProd",6),5) IN %s THEN 1 END) AS glow_items_in_basket,
-                    SUM(CASE WHEN left(right("IdProd",6),5) IN %s THEN "Tanxa" ELSE 0 END) AS basket_glow_revenue,
+                    COUNT(CASE WHEN "IdProd" IN %s THEN 1 END) AS glow_items_in_basket,
+                    SUM(CASE WHEN "IdProd" IN %s THEN "Tanxa" ELSE 0 END) AS basket_glow_revenue,
                     SUM("Tanxa") AS basket_revenue
                 FROM sales_main_web
                 WHERE "CD" >= %s AND "CD" <= %s
@@ -3915,7 +3915,7 @@ def competitive(request):
                 COUNT(DISTINCT "Zedd") as tickets
             FROM sales_main_web
             WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი'
-            AND left(right("IdProd",6),5) IN %s
+            AND "IdProd" IN %s
             AND "Tanxa" != 0
             GROUP BY "Prod", "IdProd"
             ORDER BY revenue DESC
