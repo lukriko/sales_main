@@ -3857,6 +3857,7 @@ def competitive(request):
         cursor.execute("""
             SELECT 
                 "UN" as location,
+                "Tanam" as employee,
                 SUM(CASE WHEN "ProdG" = 'SKIN CARE' THEN "Tanxa" ELSE 0 END) as skincare_revenue,
                 SUM("Tanxa") as total_revenue,
                 ROUND(
@@ -3866,7 +3867,7 @@ def competitive(request):
             FROM sales_main_web
             WHERE "CD" >= %s AND "CD" <= %s and "UN" <> 'გორი' and "ProdG" <> 'POP'
             AND "Tanxa" != 0
-            GROUP BY "UN"
+            GROUP BY "UN", "Tanam"
         """, [start_date, end_date])
         skincare_rows = cursor.fetchall()
 
@@ -3875,6 +3876,7 @@ def competitive(request):
             WITH basket_level AS (
                 SELECT
                     "UN" AS location,
+                    "Tanam" AS employee,
                     "Zedd" AS ticket_id,
                     COUNT(CASE WHEN "IdProd" IN %s THEN 1 END) AS glow_items_in_basket,
                     SUM(CASE WHEN "IdProd" IN %s THEN "Tanxa" ELSE 0 END) AS basket_glow_revenue,
@@ -3884,7 +3886,7 @@ def competitive(request):
                 AND "UN" <> 'გორი'
                 AND "ProdG" <> 'POP'
                 AND "Tanxa" != 0
-                GROUP BY "UN", "Zedd"
+                GROUP BY "UN", "Tanam", "Zedd"
             )
             SELECT
                 location,
@@ -3936,7 +3938,7 @@ def competitive(request):
     }
 
     combined_rows = []
-    for loc, skincare_revenue, total_revenue, skincare_pct in skincare_rows:
+    for loc,employee, skincare_revenue, total_revenue, skincare_pct in skincare_rows:
         g = glow_by_location.get(loc, {
             'glow_revenue': 0, 'glow_qty': 0, 'glow_pct': 0,
             'total_tickets': 0, 'multi_glow_baskets': 0, 'multi_glow_basket_pct': 0,
@@ -3944,6 +3946,7 @@ def competitive(request):
         skincare_pct = skincare_pct or 0
         combined_rows.append({
             'location': loc,
+            'employee': employee,
             'skincare_revenue': skincare_revenue,
             'skincare_pct': skincare_pct,
             'is_high_skincare': skincare_pct >= 25,
