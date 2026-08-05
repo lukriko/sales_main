@@ -3872,10 +3872,12 @@ def competitive(request):
         skincare_rows = cursor.fetchall()
 
         # Glow by location — basket-level, 2+ glow items per ticket
+        # FIX: "UN" (location) restored to SELECT/GROUP BY so results are keyed
+        # by (location, employee) instead of collapsing all locations per employee.
         cursor.execute("""
             WITH basket_level AS (
                 SELECT
-                    -- "UN" AS location,
+                    "UN" AS location,
                     "Tanam" AS employee,
                     "Zedd" AS ticket_id,
                     COUNT(CASE WHEN "IdProd" IN %s THEN 1 END) AS glow_items_in_basket,
@@ -3886,10 +3888,10 @@ def competitive(request):
                 AND "UN" <> 'გორი'
                 AND "ProdG" <> 'POP'
                 AND "Tanxa" != 0
-                GROUP BY "Tanam", "Zedd"
+                GROUP BY "UN", "Tanam", "Zedd"
             )
             SELECT
-                -- location,
+                location,
                 employee,
                 SUM(basket_glow_revenue) AS glow_revenue,
                 SUM(glow_items_in_basket) AS glow_qty,
@@ -3904,7 +3906,7 @@ def competitive(request):
                     / NULLIF(COUNT(*), 0))::numeric, 2
                 ) AS multi_glow_basket_pct
             FROM basket_level
-            GROUP BY employee
+            GROUP BY location, employee
         """, [tuple(GLOW_CODES), tuple(GLOW_CODES), start_date, end_date])
         glow_rows = cursor.fetchall()
 
@@ -3925,22 +3927,25 @@ def competitive(request):
         """, [start_date, end_date, tuple(GLOW_CODES)])
         glow_products = cursor.fetchall()
 
-    # --- Merge skincare + glow into one per-location row, sorted in Python ---
-    glow_by_location = {
-        row[0]: {
-            'glow_revenue': row[1],
-            'glow_qty': row[2],
-            'glow_pct': row[4] or 0,
-            'total_tickets': row[5],
-            'multi_glow_baskets': row[6],
-            'multi_glow_basket_pct': row[7] or 0,
+    # --- Merge skincare + glow into one per-(location, employee) row ---
+    # FIX: dict is now keyed by (location, employee) tuple to match the
+    # skincare query's grain, instead of being keyed by location alone
+    # (which was actually receiving employee values after the SQL change).
+    glow_by_key = {
+        (row[0], row[1]): {
+            'glow_revenue': row[2],
+            'glow_qty': row[3],
+            'glow_pct': row[5] or 0,
+            'total_tickets': row[6],
+            'multi_glow_baskets': row[7],
+            'multi_glow_basket_pct': row[8] or 0,
         }
         for row in glow_rows
     }
 
     combined_rows = []
-    for loc,employee, skincare_revenue, total_revenue, skincare_pct in skincare_rows:
-        g = glow_by_location.get(loc, {
+    for loc, employee, skincare_revenue, total_revenue, skincare_pct in skincare_rows:
+        g = glow_by_key.get((loc, employee), {
             'glow_revenue': 0, 'glow_qty': 0, 'glow_pct': 0,
             'total_tickets': 0, 'multi_glow_baskets': 0, 'multi_glow_basket_pct': 0,
         })
