@@ -3875,7 +3875,7 @@ def competitive(request):
         cursor.execute("""
             WITH basket_level AS (
                 SELECT
-                    "UN" AS location,
+                    -- "UN" AS location,
                     "Tanam" AS employee,
                     "Zedd" AS ticket_id,
                     COUNT(CASE WHEN "IdProd" IN %s THEN 1 END) AS glow_items_in_basket,
@@ -3886,7 +3886,7 @@ def competitive(request):
                 AND "UN" <> 'გორი'
                 AND "ProdG" <> 'POP'
                 AND "Tanxa" != 0
-                GROUP BY "UN", "Tanam", "Zedd"
+                GROUP BY "Tanam", "Zedd"
             )
             SELECT
                 -- location,
