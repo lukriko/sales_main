@@ -3889,7 +3889,8 @@ def competitive(request):
                 GROUP BY "UN", "Tanam", "Zedd"
             )
             SELECT
-                location,
+                -- location,
+                employee,
                 SUM(basket_glow_revenue) AS glow_revenue,
                 SUM(glow_items_in_basket) AS glow_qty,
                 SUM(basket_revenue) AS total_revenue,
@@ -3903,7 +3904,7 @@ def competitive(request):
                     / NULLIF(COUNT(*), 0))::numeric, 2
                 ) AS multi_glow_basket_pct
             FROM basket_level
-            GROUP BY location
+            GROUP BY employee
         """, [tuple(GLOW_CODES), tuple(GLOW_CODES), start_date, end_date])
         glow_rows = cursor.fetchall()
 
