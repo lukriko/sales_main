@@ -3842,7 +3842,7 @@ def competitive(request):
     if not user_profile.is_admin:
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
 
-    GLOW_CODES = [
+    HYDRA_CODES = [
         "3660005332024", "3660005381848", "3660005029849", "3660005561660",
         "3660005535029", "3660005577760", "3660005270531", "3660005249070",
         "3660005267920"
@@ -3871,7 +3871,7 @@ def competitive(request):
         """, [start_date, end_date])
         skincare_rows = cursor.fetchall()
 
-        # Glow by location — basket-level, 2+ glow items per ticket
+        # Hydra by location — basket-level, 2+ hydra items per ticket
         # FIX: "UN" (location) restored to SELECT/GROUP BY so results are keyed
         # by (location, employee) instead of collapsing all locations per employee.
         cursor.execute("""
@@ -3880,8 +3880,8 @@ def competitive(request):
                     "UN" AS location,
                     "Tanam" AS employee,
                     "Zedd" AS ticket_id,
-                    COUNT(CASE WHEN "IdProd" IN %s THEN 1 END) AS glow_items_in_basket,
-                    SUM(CASE WHEN "IdProd" IN %s THEN "Tanxa" ELSE 0 END) AS basket_glow_revenue,
+                    COUNT(CASE WHEN "IdProd" IN %s THEN 1 END) AS hydra_items_in_basket,
+                    SUM(CASE WHEN "IdProd" IN %s THEN "Tanxa" ELSE 0 END) AS basket_hydra_revenue,
                     SUM("Tanxa") AS basket_revenue
                 FROM sales_main_web
                 WHERE "CD" >= %s AND "CD" <= %s
@@ -3893,24 +3893,24 @@ def competitive(request):
             SELECT
                 location,
                 employee,
-                SUM(basket_glow_revenue) AS glow_revenue,
-                SUM(glow_items_in_basket) AS glow_qty,
+                SUM(basket_hydra_revenue) AS hydra_revenue,
+                SUM(hydra_items_in_basket) AS hydra_qty,
                 SUM(basket_revenue) AS total_revenue,
                 ROUND(
-                    (100.0 * SUM(basket_glow_revenue) / NULLIF(SUM(basket_revenue), 0))::numeric, 2
-                ) AS glow_pct,
+                    (100.0 * SUM(basket_hydra_revenue) / NULLIF(SUM(basket_revenue), 0))::numeric, 2
+                ) AS hydra_pct,
                 COUNT(*) AS total_tickets,
-                SUM(CASE WHEN glow_items_in_basket >= 2 THEN 1 ELSE 0 END) AS multi_glow_baskets,
+                SUM(CASE WHEN hydra_items_in_basket >= 2 THEN 1 ELSE 0 END) AS multi_hydra_baskets,
                 ROUND(
-                    (100.0 * SUM(CASE WHEN glow_items_in_basket >= 2 THEN 1 ELSE 0 END)
+                    (100.0 * SUM(CASE WHEN hydra_items_in_basket >= 2 THEN 1 ELSE 0 END)
                     / NULLIF(COUNT(*), 0))::numeric, 2
-                ) AS multi_glow_basket_pct
+                ) AS multi_hydra_basket_pct
             FROM basket_level
             GROUP BY location, employee
-        """, [tuple(GLOW_CODES), tuple(GLOW_CODES), start_date, end_date])
-        glow_rows = cursor.fetchall()
+        """, [tuple(HYDRA_CODES), tuple(HYDRA_CODES), start_date, end_date])
+        hydra_rows = cursor.fetchall()
 
-        # Glow per-product breakdown (unchanged)
+        # Hydra per-product breakdown (unchanged)
         cursor.execute("""
             SELECT 
                 "Prod" as product_name,
@@ -3924,30 +3924,30 @@ def competitive(request):
             AND "Tanxa" != 0
             GROUP BY "Prod", "IdProd"
             ORDER BY revenue DESC
-        """, [start_date, end_date, tuple(GLOW_CODES)])
-        glow_products = cursor.fetchall()
+        """, [start_date, end_date, tuple(HYDRA_CODES)])
+        hydra_products = cursor.fetchall()
 
-    # --- Merge skincare + glow into one per-(location, employee) row ---
+    # --- Merge skincare + hydra into one per-(location, employee) row ---
     # FIX: dict is now keyed by (location, employee) tuple to match the
     # skincare query's grain, instead of being keyed by location alone
     # (which was actually receiving employee values after the SQL change).
-    glow_by_key = {
+    hydra_by_key = {
         (row[0], row[1]): {
-            'glow_revenue': row[2],
-            'glow_qty': row[3],
-            'glow_pct': row[5] or 0,
+            'hydra_revenue': row[2],
+            'hydra_qty': row[3],
+            'hydra_pct': row[5] or 0,
             'total_tickets': row[6],
-            'multi_glow_baskets': row[7],
-            'multi_glow_basket_pct': row[8] or 0,
+            'multi_hydra_baskets': row[7],
+            'multi_hydra_basket_pct': row[8] or 0,
         }
-        for row in glow_rows
+        for row in hydra_rows
     }
 
     combined_rows = []
     for loc, employee, skincare_revenue, total_revenue, skincare_pct in skincare_rows:
-        g = glow_by_key.get((loc, employee), {
-            'glow_revenue': 0, 'glow_qty': 0, 'glow_pct': 0,
-            'total_tickets': 0, 'multi_glow_baskets': 0, 'multi_glow_basket_pct': 0,
+        h = hydra_by_key.get((loc, employee), {
+            'hydra_revenue': 0, 'hydra_qty': 0, 'hydra_pct': 0,
+            'total_tickets': 0, 'multi_hydra_baskets': 0, 'multi_hydra_basket_pct': 0,
         })
         skincare_pct = skincare_pct or 0
         combined_rows.append({
@@ -3957,47 +3957,56 @@ def competitive(request):
             'skincare_pct': skincare_pct,
             'is_high_skincare': skincare_pct >= 25,
             'total_revenue': total_revenue,
-            'glow_revenue': g['glow_revenue'],
-            'glow_qty': g['glow_qty'],
-            'glow_pct': g['glow_pct'],
-            'total_tickets': g['total_tickets'],
-            'multi_glow_baskets': g['multi_glow_baskets'],
-            'multi_glow_basket_pct': g['multi_glow_basket_pct'],
+            'hydra_revenue': h['hydra_revenue'],
+            'hydra_qty': h['hydra_qty'],
+            'hydra_pct': h['hydra_pct'],
+            'total_tickets': h['total_tickets'],
+            'multi_hydra_baskets': h['multi_hydra_baskets'],
+            'multi_hydra_basket_pct': h['multi_hydra_basket_pct'],
         })
 
-    # Sort by "2+ items in basket" percentage, descending — done here in Python
-    combined_rows.sort(key=lambda r: r['multi_glow_basket_pct'], reverse=True)
+    # Sort priority (all descending):
+    # 1) hydra basket %  2) hydra revenue  3) skincare revenue  4) hydra units
+    combined_rows.sort(
+        key=lambda r: (
+            r['multi_hydra_basket_pct'],
+            r['hydra_revenue'],
+            r['skincare_revenue'],
+            r['hydra_qty'],
+        ),
+        reverse=True,
+    )
 
-    best_glow_location = max(combined_rows, key=lambda r: r['glow_revenue'], default=None)
+    best_hydra_location = max(combined_rows, key=lambda r: r['hydra_revenue'], default=None)
 
     total_skincare_revenue = sum(r['skincare_revenue'] for r in combined_rows)
     total_all_revenue = sum(r['total_revenue'] for r in combined_rows)
     total_skincare_pct = round((total_skincare_revenue / total_all_revenue) * 100, 2) if total_all_revenue else 0
 
-    total_glow_revenue = sum(r['glow_revenue'] for r in combined_rows)
-    total_glow_qty = sum(r['glow_qty'] for r in combined_rows)
+    total_hydra_revenue = sum(r['hydra_revenue'] for r in combined_rows)
+    total_hydra_qty = sum(r['hydra_qty'] for r in combined_rows)
     total_tickets_all = sum(r['total_tickets'] for r in combined_rows)
-    total_multi_glow_baskets = sum(r['multi_glow_baskets'] for r in combined_rows)
-    total_multi_glow_basket_pct = round((total_multi_glow_baskets / total_tickets_all) * 100, 2) if total_tickets_all else 0
+    total_multi_hydra_baskets = sum(r['multi_hydra_baskets'] for r in combined_rows)
+    total_multi_hydra_basket_pct = round((total_multi_hydra_baskets / total_tickets_all) * 100, 2) if total_tickets_all else 0
 
-    total_prod_revenue = sum(p[2] for p in glow_products)
-    total_prod_qty = sum(p[3] for p in glow_products)
-    total_prod_tickets = sum(p[4] for p in glow_products)
+    total_prod_revenue = sum(p[2] for p in hydra_products)
+    total_prod_qty = sum(p[3] for p in hydra_products)
+    total_prod_tickets = sum(p[4] for p in hydra_products)
 
     context = {
         'combined_rows': combined_rows,
-        'glow_products': glow_products,
-        'best_glow_location': best_glow_location,
+        'hydra_products': hydra_products,
+        'best_hydra_location': best_hydra_location,
         'start_date': start_date,
         'end_date': end_date,
         'total_skincare_revenue': total_skincare_revenue,
         'total_all_revenue': total_all_revenue,
         'total_skincare_pct': total_skincare_pct,
-        'total_glow_revenue': total_glow_revenue,
-        'total_glow_qty': total_glow_qty,
+        'total_hydra_revenue': total_hydra_revenue,
+        'total_hydra_qty': total_hydra_qty,
         'total_tickets_all': total_tickets_all,
-        'total_multi_glow_baskets': total_multi_glow_baskets,
-        'total_multi_glow_basket_pct': total_multi_glow_basket_pct,
+        'total_multi_hydra_baskets': total_multi_hydra_baskets,
+        'total_multi_hydra_basket_pct': total_multi_hydra_basket_pct,
         'total_prod_revenue': total_prod_revenue,
         'total_prod_qty': total_prod_qty,
         'total_prod_tickets': total_prod_tickets,

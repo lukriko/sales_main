@@ -129,25 +129,25 @@
   </form>
 </div>
 
-<!-- Best Glow Location Banner -->
-{% if best_glow_location %}
+<!-- Best Hydra Location Banner -->
+{% if best_hydra_location %}
 <div class="best-location-banner">
   <div class="best-location-icon">🏆</div>
   <div class="best-location-info">
     <div class="best-location-title"><i class="fas fa-star"></i>Performace Location</div>
-    <div class="best-location-name">{{ best_glow_location.location }}</div>
+    <div class="best-location-name">{{ best_hydra_location.location }}</div>
     <div class="best-location-stats">
       <div class="best-stat">
         <span class="best-stat-label">Revenue</span>
-        <span class="best-stat-value">${{ best_glow_location.glow_revenue|floatformat:0 }}</span>
+        <span class="best-stat-value">${{ best_hydra_location.hydra_revenue|floatformat:0 }}</span>
       </div>
       <div class="best-stat">
         <span class="best-stat-label">Units Sold</span>
-        <span class="best-stat-value">{{ best_glow_location.glow_qty|floatformat:0 }}</span>
+        <span class="best-stat-value">{{ best_hydra_location.hydra_qty|floatformat:0 }}</span>
       </div>
       <div class="best-stat">
         <span class="best-stat-label">2+ Item Basket %</span>
-        <span class="best-stat-value">{{ best_glow_location.multi_glow_basket_pct }}%</span>
+        <span class="best-stat-value">{{ best_hydra_location.multi_hydra_basket_pct }}%</span>
       </div>
     </div>
   </div>
@@ -160,7 +160,7 @@
     <div class="card-icon icon-pink"><i class="fas fa-chart-bar"></i></div>
     <div>
       <h3>Location Performance</h3>
-      <div style="font-size: 12px; color: #64748b; margin-top: 2px;">{{ start_date }} → {{ end_date }} · sorted by 2+ item basket %</div>
+      <div style="font-size: 12px; color: #64748b; margin-top: 2px;">{{ start_date }} → {{ end_date }} · sorted by hydra basket %, hydra revenue, skincare revenue, hydra units</div>
     </div>
   </div>
   <table>
@@ -172,10 +172,10 @@
         <th>Skincare Rev</th>
         <th>Skincare %</th>
         <th>Total Rev</th>
-        <th>Glow Rev</th>
-        <th>Glow Units</th>
+        <th>Hydra Rev</th>
+        <th>Hydra Units</th>
         <th>Total Tickets</th>
-        <th>2+ Glow Baskets</th>
+        <th>2+ Hydra Baskets</th>
         <th>Basket %</th>
       </tr>
     </thead>
@@ -200,16 +200,16 @@
           </div>
         </td>
         <td class="val-muted">${{ row.total_revenue|floatformat:0 }}</td>
-        <td class="val-orange">${{ row.glow_revenue|floatformat:0 }}</td>
-        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ row.glow_qty|floatformat:0 }}</span></td>
+        <td class="val-orange">${{ row.hydra_revenue|floatformat:0 }}</td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ row.hydra_qty|floatformat:0 }}</span></td>
         <td class="val-muted">{{ row.total_tickets }}</td>
-        <td class="val-green">{{ row.multi_glow_baskets }}</td>
+        <td class="val-green">{{ row.multi_hydra_baskets }}</td>
         <td>
           <div class="pct-bar-wrapper">
             <div class="pct-bar-bg">
-              <div class="pct-bar-fill fill-yellow" style="width: {{ row.multi_glow_basket_pct }}%;"></div>
+              <div class="pct-bar-fill fill-yellow" style="width: {{ row.multi_hydra_basket_pct }}%;"></div>
             </div>
-            <span class="pct-value val-yellow">{{ row.multi_glow_basket_pct }}%</span>
+            <span class="pct-value val-yellow">{{ row.multi_hydra_basket_pct }}%</span>
           </div>
         </td>
       </tr>
@@ -223,17 +223,17 @@
         <td class="val-pink"><strong>${{ total_skincare_revenue|floatformat:0 }}</strong></td>
         <td class="val-pink"><strong>{{ total_skincare_pct }}%</strong></td>
         <td class="val-muted"><strong>${{ total_all_revenue|floatformat:0 }}</strong></td>
-        <td class="val-orange"><strong>${{ total_glow_revenue|floatformat:0 }}</strong></td>
-        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_glow_qty|floatformat:0 }}</span></td>
+        <td class="val-orange"><strong>${{ total_hydra_revenue|floatformat:0 }}</strong></td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_hydra_qty|floatformat:0 }}</span></td>
         <td class="val-muted"><strong>{{ total_tickets_all }}</strong></td>
-        <td class="val-green"><strong>{{ total_multi_glow_baskets }}</strong></td>
-        <td class="val-yellow"><strong>{{ total_multi_glow_basket_pct }}%</strong></td>
+        <td class="val-green"><strong>{{ total_multi_hydra_baskets }}</strong></td>
+        <td class="val-yellow"><strong>{{ total_multi_hydra_basket_pct }}%</strong></td>
       </tr>
     </tfoot>
   </table>
 </div>
 
-<!-- Glow Per Product Breakdown -->
+<!-- Hydra Per Product Breakdown -->
 <div class="table-card">
   <div class="table-card-header">
     <div class="card-icon icon-yellow"><i class="fas fa-layer-group"></i></div>
@@ -255,7 +255,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for prod in glow_products %}
+      {% for prod in hydra_products %}
       <tr>
         <td>
           <span class="badge-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
@@ -271,7 +271,7 @@
           <div class="pct-bar-wrapper">
             <div class="pct-bar-bg">
               <div class="pct-bar-fill fill-yellow" 
-                   style="width: {% if glow_products.0.2 > 0 %}{% widthratio prod.2 glow_products.0.2 100 %}{% else %}0{% endif %}%;"></div>
+                   style="width: {% if hydra_products.0.2 > 0 %}{% widthratio prod.2 hydra_products.0.2 100 %}{% else %}0{% endif %}%;"></div>
             </div>
           </div>
         </td>
