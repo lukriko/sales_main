@@ -50,6 +50,7 @@ class Sales(models.Model):
     IdGvari = models.BigIntegerField(db_column='IdGvari',null=True, blank=True)
     Gvari = models.TextField(db_column='Gvari',null=True, blank=True)
     Segment = models.TextField(db_column='Segment',null=True, blank=True)
+    tvitg = models.TextField(db_column='Tvitg',null=True, blank=True)
 
     class Meta:
         managed = False
