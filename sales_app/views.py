@@ -155,7 +155,7 @@ def dashboard(request):
     
     # Date parsing
     start_date_str = request.GET.get('start_date', f'{current_year}-09-01')
-    end_date_str = request.GET.get('end_date', f'{current_year}-09-30')
+    end_date_str = request.GET.get('end_date', f'{current_year}-09-31')
     
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
