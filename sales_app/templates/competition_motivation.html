@@ -102,7 +102,7 @@
 </head>
 <body>
 
-<div class="page-subtitle">HYDRA Water - PLUMP - Competitive Motivation Dashboard
+<div class="page-subtitle"> Hair Care - Competitive Motivation Dashboard
 <div class="filter-card">
   <div class="filter-label"><i class="fas fa-calendar-alt"></i> &nbsp;Date Range</div>
   <form method="GET">
@@ -117,7 +117,7 @@
         <input type="date" name="end_date" value="{{ end_date }}">
       </div>
       <div class="presets">
-        <button type="button" class="preset-btn" onclick="setDates('2026-08-01','2026-08-31')">Aug 2026</button>
+        <button type="button" class="preset-btn" onclick="setDates('2026-09-01','2026-09-31')">Sep 2026</button>
       </div>
       <button type="submit" class="apply-btn"><i class="fas fa-filter"></i> Apply</button>
       <button class="apply-btn">
@@ -174,8 +174,9 @@
         <th>Total Rev</th>
         <th>Hydra Rev</th>
         <th>Hydra Units</th>
+        <th title="Code 3660005974002">3660005974002 Qty</th>
         <th>Total Tickets</th>
-        <th>2+ Hydra Baskets</th>
+        <th>2+ Baskets</th>
         <th>Basket %</th>
       </tr>
     </thead>
@@ -202,6 +203,7 @@
         <td class="val-muted">${{ row.total_revenue|floatformat:0 }}</td>
         <td class="val-orange">${{ row.hydra_revenue|floatformat:0 }}</td>
         <td><span class="qty-badge"><i class="fas fa-box"></i> {{ row.hydra_qty|floatformat:0 }}</span></td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ row.target_qty|floatformat:0 }}</span></td>
         <td class="val-muted">{{ row.total_tickets }}</td>
         <td class="val-green">{{ row.multi_hydra_baskets }}</td>
         <td>
@@ -214,7 +216,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="10" style="text-align:center; padding:30px; color:#64748b;">No data</td></tr>
+      <tr><td colspan="11" style="text-align:center; padding:30px; color:#64748b;">No data</td></tr>
       {% endfor %}
     </tbody>
     <tfoot>
@@ -225,6 +227,7 @@
         <td class="val-muted"><strong>${{ total_all_revenue|floatformat:0 }}</strong></td>
         <td class="val-orange"><strong>${{ total_hydra_revenue|floatformat:0 }}</strong></td>
         <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_hydra_qty|floatformat:0 }}</span></td>
+        <td><span class="qty-badge"><i class="fas fa-box"></i> {{ total_target_qty|floatformat:0 }}</span></td>
         <td class="val-muted"><strong>{{ total_tickets_all }}</strong></td>
         <td class="val-green"><strong>{{ total_multi_hydra_baskets }}</strong></td>
         <td class="val-yellow"><strong>{{ total_multi_hydra_basket_pct }}%</strong></td>
@@ -277,7 +280,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">None Found/td></tr>
+      <tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">None Found</td></tr>
       {% endfor %}
     </tbody>
     <tfoot>
@@ -295,7 +298,7 @@
 <script>
 function setDates(start, end) {
   document.querySelector('input[name="start_date"]').value = start;
-  document.querySelector('input[name="end_date"]').value = end;r
+  document.querySelector('input[name="end_date"]').value = end;
   document.querySelector('form').submit();
 }
 </script>

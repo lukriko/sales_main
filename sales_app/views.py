@@ -3842,13 +3842,15 @@ def competitive(request):
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
 
     HYDRA_CODES = [
-        "3660005332024", "3660005381848", "3660005029849", "3660005561660",
-        "3660005535029", "3660005577760", "3660005270531", "3660005249070",
-        "3660005267920"
+        "3660005946252", "3660005009919", "3660005354989", "3660005951287",
+        "3660005969718", "3660005954677", "3660005960074", "3660005974002"
+        # "3660005267920"
     ]
 
-    start_date = request.GET.get('start_date', '2026-08-01')
-    end_date = request.GET.get('end_date', '2026-08-31')
+    TARGET_HYDRA_CODE = "3660005974002"  # tracked separately for its own quantity column
+
+    start_date = request.GET.get('start_date', '2026-09-01')
+    end_date = request.GET.get('end_date', '2026-09-30')
 
     with connection.cursor() as cursor:
 
@@ -3857,10 +3859,10 @@ def competitive(request):
             SELECT 
                 "UN" as location,
                 "Tanam" as employee,
-                SUM(CASE WHEN "ProdG" = 'SKIN CARE' THEN "Tanxa" ELSE 0 END) as skincare_revenue,
+                SUM(CASE WHEN "ProdG" = 'HAIR CARE' THEN "Tanxa" ELSE 0 END) as skincare_revenue,
                 SUM("Tanxa") as total_revenue,
                 ROUND(
-                    (100.0 * SUM(CASE WHEN "ProdG" = 'SKIN CARE' THEN "Tanxa" ELSE 0 END) 
+                    (100.0 * SUM(CASE WHEN "ProdG" = 'HAIR CARE' THEN "Tanxa" ELSE 0 END) 
                     / NULLIF(SUM("Tanxa"), 0))::numeric, 2
                 ) as skincare_pct
             FROM sales_main_web
@@ -3871,8 +3873,8 @@ def competitive(request):
         skincare_rows = cursor.fetchall()
 
         # Hydra by location — basket-level, 2+ hydra items per ticket
-        # FIX: "UN" (location) restored to SELECT/GROUP BY so results are keyed
-        # by (location, employee) instead of collapsing all locations per employee.
+        # ADDED: target_items_in_basket / target_qty tracks 3660005974002 on its own,
+        # separate from the combined hydra_qty column.
         cursor.execute("""
             WITH basket_level AS (
                 SELECT
@@ -3880,6 +3882,7 @@ def competitive(request):
                     "Tanam" AS employee,
                     "Zedd" AS ticket_id,
                     COUNT(CASE WHEN "IdProd" IN %s THEN 1 END) AS hydra_items_in_basket,
+                    COUNT(CASE WHEN "IdProd" = %s THEN 1 END) AS target_items_in_basket,
                     SUM(CASE WHEN "IdProd" IN %s THEN "Tanxa" ELSE 0 END) AS basket_hydra_revenue,
                     SUM("Tanxa") AS basket_revenue
                 FROM sales_main_web
@@ -3894,6 +3897,7 @@ def competitive(request):
                 employee,
                 SUM(basket_hydra_revenue) AS hydra_revenue,
                 SUM(hydra_items_in_basket) AS hydra_qty,
+                SUM(target_items_in_basket) AS target_qty,
                 SUM(basket_revenue) AS total_revenue,
                 ROUND(
                     (100.0 * SUM(basket_hydra_revenue) / NULLIF(SUM(basket_revenue), 0))::numeric, 2
@@ -3906,7 +3910,7 @@ def competitive(request):
                 ) AS multi_hydra_basket_pct
             FROM basket_level
             GROUP BY location, employee
-        """, [tuple(HYDRA_CODES), tuple(HYDRA_CODES), start_date, end_date])
+        """, [tuple(HYDRA_CODES), TARGET_HYDRA_CODE, tuple(HYDRA_CODES), start_date, end_date])
         hydra_rows = cursor.fetchall()
 
         # Hydra per-product breakdown (unchanged)
@@ -3927,17 +3931,15 @@ def competitive(request):
         hydra_products = cursor.fetchall()
 
     # --- Merge skincare + hydra into one per-(location, employee) row ---
-    # FIX: dict is now keyed by (location, employee) tuple to match the
-    # skincare query's grain, instead of being keyed by location alone
-    # (which was actually receiving employee values after the SQL change).
     hydra_by_key = {
         (row[0], row[1]): {
             'hydra_revenue': row[2],
             'hydra_qty': row[3],
-            'hydra_pct': row[5] or 0,
-            'total_tickets': row[6],
-            'multi_hydra_baskets': row[7],
-            'multi_hydra_basket_pct': row[8] or 0,
+            'target_qty': row[4],
+            'hydra_pct': row[6] or 0,
+            'total_tickets': row[7],
+            'multi_hydra_baskets': row[8],
+            'multi_hydra_basket_pct': row[9] or 0,
         }
         for row in hydra_rows
     }
@@ -3945,7 +3947,7 @@ def competitive(request):
     combined_rows = []
     for loc, employee, skincare_revenue, total_revenue, skincare_pct in skincare_rows:
         h = hydra_by_key.get((loc, employee), {
-            'hydra_revenue': 0, 'hydra_qty': 0, 'hydra_pct': 0,
+            'hydra_revenue': 0, 'hydra_qty': 0, 'target_qty': 0, 'hydra_pct': 0,
             'total_tickets': 0, 'multi_hydra_baskets': 0, 'multi_hydra_basket_pct': 0,
         })
         skincare_pct = skincare_pct or 0
@@ -3958,6 +3960,7 @@ def competitive(request):
             'total_revenue': total_revenue,
             'hydra_revenue': h['hydra_revenue'],
             'hydra_qty': h['hydra_qty'],
+            'target_qty': h['target_qty'],
             'hydra_pct': h['hydra_pct'],
             'total_tickets': h['total_tickets'],
             'multi_hydra_baskets': h['multi_hydra_baskets'],
@@ -3984,6 +3987,7 @@ def competitive(request):
 
     total_hydra_revenue = sum(r['hydra_revenue'] for r in combined_rows)
     total_hydra_qty = sum(r['hydra_qty'] for r in combined_rows)
+    total_target_qty = sum(r['target_qty'] for r in combined_rows)
     total_tickets_all = sum(r['total_tickets'] for r in combined_rows)
     total_multi_hydra_baskets = sum(r['multi_hydra_baskets'] for r in combined_rows)
     total_multi_hydra_basket_pct = round((total_multi_hydra_baskets / total_tickets_all) * 100, 2) if total_tickets_all else 0
@@ -4003,6 +4007,7 @@ def competitive(request):
         'total_skincare_pct': total_skincare_pct,
         'total_hydra_revenue': total_hydra_revenue,
         'total_hydra_qty': total_hydra_qty,
+        'total_target_qty': total_target_qty,
         'total_tickets_all': total_tickets_all,
         'total_multi_hydra_baskets': total_multi_hydra_baskets,
         'total_multi_hydra_basket_pct': total_multi_hydra_basket_pct,
@@ -4011,6 +4016,7 @@ def competitive(request):
         'total_prod_tickets': total_prod_tickets,
     }
     return render(request, 'competition_motivation.html', context)
+
 
 def bonus(request):
     try:
