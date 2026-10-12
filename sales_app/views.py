@@ -154,8 +154,8 @@ def dashboard(request):
         current_year, previous_year = 2025, 2024
     
     # Date parsing
-    start_date_str = request.GET.get('start_date', f'{current_year}-09-01')
-    end_date_str = request.GET.get('end_date', f'{current_year}-09-31')
+    start_date_str = request.GET.get('start_date', f'{current_year}-10-01')
+    end_date_str = request.GET.get('end_date', f'{current_year}-10-31')
     
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -1540,8 +1540,8 @@ def plan_workflow(request):
     
     # Get filter parameters
     selected_year = request.GET.get('year', '2026')
-    selected_start_month = request.GET.get('start_month', '9')
-    selected_end_month = request.GET.get('end_month', '9')
+    selected_start_month = request.GET.get('start_month', '10')
+    selected_end_month = request.GET.get('end_month', '10')
     selected_geo = request.GET.get('location', 'all')
     
     # SECURITY CHECK: Validate location access
@@ -4017,7 +4017,6 @@ def competitive(request):
     }
     return render(request, 'competition_motivation.html', context)
 
-
 def bonus(request):
     try:
         user_profile = request.user.profile
@@ -4028,7 +4027,7 @@ def bonus(request):
         return HttpResponseForbidden("Only administrators can access the SQL query interface.")
 
     year = request.GET.get('year', 2026)
-    month = request.GET.get('month', 6)
+    month = request.GET.get('month', 9)
     working_days = request.GET.get('working_days', 30)
 
     with connection.cursor() as cursor:
